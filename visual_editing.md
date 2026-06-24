@@ -130,9 +130,9 @@
   - Notes: Allow copy when the note is empty but visual edits exist. Copy output should preserve existing `## Requests`, `## Targets`, and `## Rules`, and append hidden-on-screen `## Visual edits` with human-readable summaries plus fenced JSON. On copy success, clear note draft and visual edit records.
   - Parallelizable: no
 
-- [ ] Update reset behavior to clear both note draft and visual edit records.
+- [x] Update reset behavior to clear both note draft and visual edit records.
   - Files/areas: `src/editor/components/NotePanel.tsx`, `src/editor/stores/useNotebookStore.ts`, `src/editor/stores/useVisualEditStore.ts`.
-  - Notes: The Reset button should match the user's selected copy lifecycle: clear visible note and accumulated hidden visual prompt data. Decide whether preview DOM mutations also revert on Reset through stored before payloads.
+  - Notes: The Reset button matches the user's selected copy lifecycle by clearing the visible note and accumulated hidden visual prompt data. This pass does not revert already-applied preview DOM mutations; reverting through stored before payloads needs a separate bridge action.
   - Parallelizable: no
 
 ### Phase 6 - Editor-owned hover quick-action bar

@@ -16,6 +16,7 @@ import {
   MIN_NOTE_FONT_SIZE,
   useNotebookStore,
 } from '../stores/useNotebookStore';
+import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
@@ -35,6 +36,12 @@ export function NotePanel() {
   const hydrateNoteFontSize = useNotebookStore((state) => state.hydrateNoteFontSize);
   const stepNoteFontSize = useNotebookStore((state) => state.stepNoteFontSize);
   const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
+  const hasVisualEditState = useVisualEditStore((state) => (
+    state.records.length > 0
+    || state.errorMessages.length > 0
+    || Object.keys(state.pendingMutations).length > 0
+  ));
+  const clearVisualEdits = useVisualEditStore((state) => state.clearVisualEdits);
 
   useEffect(() => {
     void hydrateNoteFontSize();
@@ -61,6 +68,11 @@ export function NotePanel() {
 
   const handleCopy = async (): Promise<void> => {
     await copyNotebookDraftFromStore();
+  };
+
+  const handleReset = (): void => {
+    clearDraft();
+    clearVisualEdits();
   };
 
   const openNoticeEditor = (): void => {
@@ -177,10 +189,10 @@ export function NotePanel() {
           </ToolbarButton>
           <ToolbarButton
             data-ai-id="copy-ai-id-editor-note-reset-button"
-            disabled={isNotebookEmpty}
+            disabled={isNotebookEmpty && !hasVisualEditState}
             title={messages.notebook.reset}
             aria-label={messages.notebook.reset}
-            onClick={clearDraft}
+            onClick={handleReset}
           >
             {messages.notebook.reset}
           </ToolbarButton>
