@@ -1,251 +1,360 @@
 # Implementation Checklist
 
 ## Objective
-- Add a preview-iframe-based visual editing system to the Copy AI ID Chrome extension, using the existing `copy-ai-id-preview=1` bridge and the referenced `ai-editor` plugin as the functional model.
-- The feature should feel like a page-builder-style Visual tab: users select any layout-tree DOM element, edit style/content/media/link/curated attributes/structure in the preview, undo/redo edits, and copy a prompt that includes both human-readable visual edit instructions and machine-readable JSON diffs.
-- Edits are preview-only DOM/CSS mutations inside the existing preview iframe; they are not saved back to the source page or site.
+- Replace the previous broad visual-editing plan with a focused implementation plan for porting the `ai-editor` quick-action bar and floating visual control panel UX into `copy-ai-id`.
+- Keep `copy-ai-id` as a Chrome extension with no chat feature: the existing right `NotePanel` remains the prompt/sidebar and its Copy button exports the visible note plus hidden visual-edit instructions.
+- Render the quick-action bar in the editor Shadow DOM over the preview iframe, not inside the iframe document, while matching the `ai-editor` interaction model: hover target shows toolbar, toolbar remains usable when the pointer leaves the element, category buttons open a floating panel, and desktop placement follows the target/toolbar while mobile/tablet placement sits beside the preview iframe.
+- Support all layout-tree targets, including fallback targets without `data-ai-id`, using preview-only DOM/inline-style/attribute/rich-text/structure mutations that generate AI-readable prompt output rather than assuming the edited page uses Tailwind.
+- Match the `ai-editor` floating visual panel design and control UX as closely as practical by adding the needed Tailwind/PostCSS and UI dependencies, while avoiding `ai-editor` WordPress, REST, source-map, save, chat, and AI-generated-control-panel dependencies.
 
 ## Assumptions
-- Visual editing runs only in the existing preview iframe path wired by `src/editor/components/PreviewWorkspace.tsx`, `src/editor/bridge/bridgeClient.ts`, and `src/content/editor-bridge/index.ts`.
-- Target identity uses the current Copy AI ID approach: prefer `data-ai-id` targets when present; otherwise use fallback selector/path metadata from `src/content/editor-bridge/fallback-target.ts` and runtime `nodeId` maps from `src/content/editor-bridge/layout-tree.ts`.
-- The right panel becomes a Note / Visual tabbed panel rather than a separate fourth column.
-- Styling changes are inline-style/scoped-preview-CSS based, not Tailwind class based. Do not add Tailwind class editing or Tailwind compilation.
-- Breakpoint-specific visual edits are stored separately and applied in preview through extension-injected scoped CSS/media rules, then exported in the prompt by breakpoint.
-- All layout-tree DOM targets should be editable, including form controls and contenteditable targets, while preserving the existing exclusions for extension-owned DOM and non-editable technical elements such as script/style/template/meta/link/noscript.
-- Curated attribute editing is allowed for safe attributes only; do not implement an unrestricted freeform attribute editor in the first pass.
-- Structure controls should aim to match `ai-editor` behavior: delete, duplicate, move, insert, wrap, convert tag, and replace element HTML where feasible in preview-only mode.
-- Human/browser visual verification is outside this checklist because the active user defaults prohibit AI-side browser/UI automation.
+- `visual_editing.md` is intentionally being replaced with this new plan.
+- The final product does not add chat. `NotePanel` remains visible and editable; visual-edit prompt text is hidden during editing and appended only to clipboard output.
+- Copy success clears both the visible note draft and accumulated visual edit records; this matches the user's selected option and the existing `copyNotebookDraftFromStore()` lifecycle.
+- Actual preview edits use inline style, safe attributes, text/value changes, rich inner HTML, and DOM structure operations. They do not rely on Tailwind classes in the inspected page.
+- The UI may use Tailwind utilities for the extension editor itself to closely match `ai-editor`, but generated prompt diffs describe CSS properties/DOM mutations, not Tailwind class assumptions.
+- The `생성` / AI generated control panel feature from `ai-editor` is excluded.
+- The active user defaults prohibit AI-side browser/UI automation; human visual review is important but is not a checklist completion dependency.
+- After code changes in this npm project, `npm run build` is required by user defaults.
 
 ## Risks
-- This is a large feature crossing shared message contracts, preview bridge mutations, editor state, right-panel UI, notebook export, CSS, i18n, docs, and build artifacts.
-- Runtime `nodeId` and fallback selector/path metadata can become stale after structure edits; mutation handlers must refresh layout-tree snapshots after DOM-changing operations.
-- Inline editing can conflict with existing preview keyboard shortcuts and the Lexical notebook editor unless edit-mode and focus guards are explicit.
-- Breakpoint-specific scoped CSS needs a stable selector strategy for non-`data-ai-id` targets; fallback selectors may be ambiguous or become stale after structure edits.
-- Structure editing without source persistence can produce prompts that are descriptive rather than directly source-applicable; export text must clearly label edits as preview-derived instructions.
-- Allowing form/input/contenteditable edits increases edge cases around value vs attribute vs textContent handling.
-- Existing unrelated working tree changes may be present; implementation commits should avoid staging unrelated files.
+- This is a large feature crossing the message contract, preview bridge, editor stores, Shadow DOM/Tailwind styling, floating geometry, note copy formatting, and DOM mutation logic.
+- `ai-editor` controls are coupled to Tailwind class-token/source-map/pending-change systems; `copy-ai-id` needs a new CSS-property/DOM-diff model while preserving the visual design.
+- Arbitrary web pages can contain forms, iframes, custom elements, Shadow DOM, contenteditable nodes, SVG, scripts, and CSS that complicate universal preview-only mutation.
+- Hover-triggered quick actions can flicker if toolbar hover protection and hide delays are not implemented carefully.
+- Fallback target identity can become stale after structure edits; mutation handlers must refresh layout-tree and target snapshots after DOM-changing operations.
+- Rich-text editing must sanitize untrusted HTML fragments and avoid exporting runtime-only extension artifacts.
+- Tailwind integration inside the extension Shadow DOM must not leak styles into the inspected page or break existing `copy-ai-id-editor-*` CSS.
 
 ## Unresolved Issues
 - None
 
 ## Checklist
-### Phase 1 - Shared contracts and target descriptors
-- [ ] Extend `src/shared/editor-messages.ts` with visual editing message types and payload interfaces.
+### Phase 1 - Replace stale plan and prepare project styling/dependencies
+- [ ] Keep this root `visual_editing.md` as the authoritative plan and do not rely on the older broad checklist content.
+  - Files/areas: `visual_editing.md`.
+  - Notes: The user explicitly requested replacing the old plan and matching `ai-editor` behavior more closely.
+  - Parallelizable: no
+
+- [ ] Add the editor-UI dependencies needed to port the `ai-editor` floating panel/control UX.
+  - Files/areas: `package.json`, `package-lock.json`.
+  - Notes: Add only dependencies used by the chosen port: likely `@radix-ui/react-select`, `@radix-ui/react-slider`, `@radix-ui/react-tabs`, `@radix-ui/react-tooltip`, `@radix-ui/react-popover`, `react-hook-form`, `clsx`, `tailwind-merge`, `dompurify`, and Tailwind build dev dependencies `tailwindcss`, `postcss`, `autoprefixer`. Do not add `@json-render/*` or `zod` unless a non-AI generated-panel control actually needs them.
+  - Parallelizable: yes
+
+- [ ] Configure Tailwind/PostCSS for the extension editor Shadow DOM without changing the page under inspection.
+  - Files/areas: new `tailwind.config.js`, new `postcss.config.js`, `vite.config.ts`, `src/editor/editor.css`.
+  - Notes: Mirror `ai-editor`'s important selector approach using `[data-ai-editor-ui]`, disable preflight, scan editor `.tsx` files, and preserve existing `editor.css` rules. Import Tailwind layers in a way that works with the existing inline CSS injection from `src/editor/main.tsx`.
+  - Parallelizable: no
+
+- [ ] Add a short source-port map comment/doc section in the plan or nearby implementation notes if needed.
+  - Files/areas: `visual_editing.md` or future implementation notes.
+  - Notes: Track primary source references: `ai-editor/src/bridge/quickActions.ts`, `src/editor/components/visual-panel/FloatingVisualPanel.tsx`, `src/editor/components/visual-panel/VisualPanelContent.tsx`, `src/editor/components/visual-panel/visualPanelCategories.tsx`, `src/editor/components/visual/*`, `src/editor/components/controls/*`, `src/bridge/mutations.ts`, and `src/bridge/dragAndDrop.ts`.
+  - Parallelizable: yes
+
+### Phase 2 - Shared visual-edit contracts and target model
+- [ ] Extend the shared bridge message contract with visual editing messages and payloads.
   - Files/areas: `src/shared/editor-messages.ts`.
-  - Notes: Add messages for target snapshot request/response, style update, text/rich-text update, image update, link update, curated attributes update, delete/restore, duplicate, move, insert HTML, wrap, convert tag, replace HTML, scoped CSS update, and mutation error responses. Keep existing highlight/layout messages compatible.
+  - Notes: Add quick-action anchor/category messages, target snapshot request/response, style update/result, text/rich-text update/result, attribute update/result, structure duplicate/move/delete/restore messages, drag/move request messages, mutation errors, and optional box-region highlight messages. Keep existing highlight/layout/notebook messages compatible.
   - Parallelizable: no
 
-- [ ] Add shared visual edit domain types for changes, target descriptors, breakpoint scopes, style declarations, curated attributes, structure actions, and prompt export payloads.
-  - Files/areas: new `src/shared/visual-edits.ts` or similarly named shared module; optionally `src/shared/visual-style.ts` for CSS property metadata.
-  - Notes: Model each edit as preview-only and exportable. Include before/after data, target identity, fallback metadata, active breakpoint, timestamp/order, and human-readable summary.
+- [ ] Add shared visual edit domain types for preview-only records and export diffs.
+  - Files/areas: new `src/shared/visual-edits.ts`.
+  - Notes: Model `VisualEditRecord` with id/order/timestamp, target descriptor, target snapshot summary, category/control kind, breakpoint id, before/after payload, human summary, and JSON diff payload. Payload kinds should cover `style`, `attribute`, `text`, `rich-text`, `form-value`, `structure`, and `html`.
   - Parallelizable: no
 
-- [ ] Add target-label and target-serialization helpers for visual edits.
-  - Files/areas: `src/shared/editor-targets.ts`, new shared helper module if cleaner.
-  - Notes: Prefer `data-ai-id` display when available; otherwise serialize fallback selector/path/fullPath/text context. Do not expose any temporary implementation-only attributes in final prompt output.
+- [ ] Add target descriptor and serialization helpers for visual edits.
+  - Files/areas: `src/shared/editor-targets.ts`, new `src/shared/visual-targets.ts` if cleaner.
+  - Notes: Prefer `data-ai-id + instanceIndex`; otherwise serialize fallback node id, selector, selector kind, DOM path/fullPath, tag, label, text/accessibility context, and class tokens. Do not expose extension runtime-only attributes in final copied output.
   - Parallelizable: yes
 
-### Phase 2 - Bridge target resolution and snapshots
-- [ ] Add preview-bridge target resolution helpers for visual editing.
-  - Files/areas: new `src/content/editor-bridge/visual-targets.ts`; reuse `resolveAiTarget`, `resolveTreeNode`, `instancesOf`, `resolveNodeIdForElement` from `src/content/editor-bridge/layout-tree.ts`.
-  - Notes: Resolution order should be `data-ai-id + instanceIndex`, then runtime `nodeId`, then fallback selector/path metadata when needed. Return clear stale/ambiguous/not-found errors.
+- [ ] Define a CSS property catalog for inline-style visual controls.
+  - Files/areas: new `src/shared/visual-style.ts` or `src/editor/visual/styleProperties.ts`.
+  - Notes: Reuse the property coverage from `ai-editor/src/editor/tokens/propertyMap.ts` conceptually, but values should be CSS declarations rather than Tailwind tokens. Include layout, spacing, size, typography, color/background, opacity, border/radius, shadow, and image/background properties.
+  - Parallelizable: yes
+
+### Phase 3 - Preview target resolution and snapshots
+- [ ] Add a preview-side visual target resolver that supports both `data-ai-id` and fallback targets.
+  - Files/areas: new `src/content/editor-bridge/visual-targets.ts`, `src/content/editor-bridge/layout-tree.ts`, `src/content/editor-bridge/fallback-target.ts`.
+  - Notes: Resolution order should be live `nodeId`, then `data-ai-id + instanceIndex`, then fallback selector/path metadata. Return explicit `not-found`, `stale`, or `ambiguous` errors for export and UI feedback.
   - Parallelizable: no
 
-- [ ] Add target snapshot extraction for selected elements.
+- [ ] Add visual target snapshot extraction for selected/hovered elements.
   - Files/areas: `src/content/editor-bridge/visual-targets.ts`, `src/shared/visual-edits.ts`.
-  - Notes: Snapshot computed/inline style, relevant attributes, tagName, text/rich HTML, image/link fields, form value fields, parent/sibling structure metadata, fallback selector/path metadata, and current `nodeId`.
+  - Notes: Capture tagName, rect, computed style values for supported properties, inline style values, class tokens, safe attributes, text/value/rich HTML state, image/link fields, form field state, parent/sibling metadata, nodeId, and fallback metadata.
   - Parallelizable: no
 
-- [ ] Add visual editability guards while honoring the user's all-DOM preference.
-  - Files/areas: `src/content/editor-bridge/visual-targets.ts`, `src/shared/config.ts` if existing extension-owned helpers need reuse.
-  - Notes: Allow normal layout-tree nodes including form controls/contenteditable; block extension-owned DOM and technical/non-editable tags already excluded by layout-tree (`script`, `style`, `template`, `meta`, `link`, `noscript`).
-  - Parallelizable: yes
-
-### Phase 3 - Preview bridge mutation routing
-- [ ] Wire visual editing messages into the preview bridge router.
-  - Files/areas: `src/content/editor-bridge/index.ts`, new `src/content/editor-bridge/visual-mutations.ts`.
-  - Notes: Follow the existing `route(message, post)` pattern and the reference plugin's `src/bridge/mutations.ts` routing style. Every mutation should post a success/error result and refresh overlays/layout tree when DOM or layout may change.
+- [ ] Add bridge-side mutation result helpers and layout-tree refresh hooks.
+  - Files/areas: `src/content/editor-bridge/index.ts`, `src/content/editor-bridge/layout-tree.ts`, new mutation helpers.
+  - Notes: After any DOM/structure mutation, rebuild/post layout tree and keep hover/quick-action anchors fresh. Preserve existing `bridgeReady` and `layoutTree` behavior.
   - Parallelizable: no
 
-- [ ] Implement inline style and breakpoint-scoped style mutations.
-  - Files/areas: `src/content/editor-bridge/visual-mutations.ts`, new `src/content/editor-bridge/visual-style-sheet.ts`.
-  - Notes: Base/common edits can use element inline style. Breakpoint edits should inject/update an extension-owned scoped `<style>` in the preview document with media rules. Keep generated CSS tied to serialized target selectors and refresh on target changes.
+- [ ] Add runtime-artifact stripping helpers for HTML snapshots and rich-text export.
+  - Files/areas: new `src/content/editor-bridge/runtime-artifacts.ts` or inside visual mutation module.
+  - Notes: Mirror `ai-editor/src/bridge/mutations.ts` `stripRuntimeArtifacts` concept for extension-owned overlays, temp IDs, contenteditable markers, quick-action layers, and preview-only style markers.
+  - Parallelizable: yes
+
+### Phase 4 - Editor bridge client and geometry
+- [ ] Add editor-side bridge routing for visual messages.
+  - Files/areas: `src/editor/bridge/bridgeClient.ts`.
+  - Notes: Route quick-action anchor changes, quick-action category clicks, visual target snapshots, mutation results, mutation errors, structure results, and layout refreshes into visual stores without disturbing notebook shortcut behavior.
   - Parallelizable: no
 
-- [ ] Implement text, rich-text, and form-value mutations.
-  - Files/areas: `src/content/editor-bridge/visual-mutations.ts`, optional new `src/content/editor-bridge/inline-text-editing.ts`.
-  - Notes: Handle plain text via `textContent`, rich HTML via guarded `innerHTML`, and form controls via `value`/checked/selected state where applicable. Preserve mutation summaries for prompt export.
+- [ ] Add iframe-to-editor geometry conversion helpers for quick-action and floating panel placement.
+  - Files/areas: new `src/editor/bridge/geometry.ts`, `src/editor/bridge/bridgeClient.ts`, `src/editor/components/PreviewWorkspace.tsx`.
+  - Notes: Port the `ai-editor/src/editor/bridge/geometry.ts` idea, but account for the existing preview canvas transform/zoom, resize handles, and `registerPreviewFrame()` lifecycle.
+  - Parallelizable: no
+
+- [ ] Sync preview canvas zoom to visual/quick-action positioning code.
+  - Files/areas: `src/editor/components/PreviewWorkspace.tsx`, `src/editor/stores/useBreakpointStore.ts`, `src/content/editor-bridge/index.ts`.
+  - Notes: Existing `setCanvasZoom` message only updates overlay refresh; extend or reuse it so position math and box-model highlights stay aligned with scaled iframe content.
   - Parallelizable: yes
 
-- [ ] Implement curated image, link, and safe attribute mutations.
-  - Files/areas: `src/content/editor-bridge/visual-mutations.ts`, new `src/shared/visual-attributes.ts` if useful.
-  - Notes: Support curated fields such as `href`, `src`, `alt`, `title`, `aria-label`, and `placeholder`. Block dangerous URL schemes and executable attributes such as `on*`.
-  - Parallelizable: yes
+### Phase 5 - Visual edit stores and copy lifecycle
+- [ ] Add editor state for selected visual target and target snapshots.
+  - Files/areas: new `src/editor/stores/useVisualSelectionStore.ts` or combined visual store.
+  - Notes: Store hover target, active toolbar target, selected/open panel target, snapshot status/error, latest target rect, and stale state. Keep this separate from notebook-focused `useHighlightStore` unless a small extension is cleaner.
+  - Parallelizable: no
 
-- [ ] Implement delete/restore structure mutations.
-  - Files/areas: `src/content/editor-bridge/visual-mutations.ts`.
-  - Notes: Store enough local preview state to restore deleted elements through undo/redo. Prefer non-destructive hidden/deleted markers only if full removal makes restore or snapshot refresh unreliable.
-  - Parallelizable: yes
-
-- [ ] Implement page-builder structure actions: duplicate, move, insert HTML, wrap, convert tag, and replace element HTML.
-  - Files/areas: `src/content/editor-bridge/visual-mutations.ts`, optional `src/content/editor-bridge/visual-structure.ts`.
-  - Notes: Mirror `ai-editor/src/bridge/mutations.ts` behavior where practical, but keep output preview-only. After each structure mutation, rebuild layout-tree metadata and return updated target information when possible.
-  - Parallelizable: yes
-
-### Phase 4 - Editor-side visual edit state and history
-- [ ] Add an editor-side visual editing store.
+- [ ] Add editor state for accumulated preview-only visual edit records.
   - Files/areas: new `src/editor/stores/useVisualEditStore.ts`.
-  - Notes: Track selected visual target snapshot, pending visual changes, breakpoint-specific style state, mutation pending/error status, active Visual tab section, history stack, redo stack, and prompt-export order.
+  - Notes: Track ordered records, pending mutation state, error messages, undo/redo stacks if included in the first pass, and helper selectors for `hasVisualEdits` and exportable JSON.
   - Parallelizable: no
 
-- [ ] Connect selected highlight state to visual target snapshot loading.
-  - Files/areas: `src/editor/stores/useHighlightStore.ts`, `src/editor/bridge/bridgeClient.ts`, new visual store.
-  - Notes: When `highlightedTarget`/`highlightedNodeId` changes, request a snapshot from the bridge and update the visual store. Handle disconnected or stale targets gracefully.
+- [ ] Add mutation dispatch helpers for visual edits.
+  - Files/areas: new `src/editor/visual/visualMutationClient.ts`, `src/editor/bridge/bridgeClient.ts`.
+  - Notes: Centralize `nextMutationId`, optimistic record creation, bridge post, response reconciliation, snapshot updates, and record human summary generation. Do not copy `ai-editor` source-map/chat blockers.
   - Parallelizable: no
 
-- [ ] Add editor-side bridge helpers and response handlers for visual mutations.
-  - Files/areas: `src/editor/bridge/bridgeClient.ts`, possible new `src/editor/bridge/visualBridge.ts`.
-  - Notes: Provide functions for each mutation type and route bridge responses into `useVisualEditStore`. Preserve current iframe status, layout tree, keyboard shortcut, and highlight routing.
+- [ ] Tie visual edit records into the notebook copy lifecycle.
+  - Files/areas: `src/editor/notebook/copy.ts`, `src/editor/notebook/format.ts`, new `src/editor/notebook/visual-edits-export.ts`, `src/editor/stores/useNotebookStore.ts`, `src/editor/stores/useVisualEditStore.ts`.
+  - Notes: Allow copy when the note is empty but visual edits exist. Copy output should preserve existing `## Requests`, `## Targets`, and `## Rules`, and append hidden-on-screen `## Visual edits` with human-readable summaries plus fenced JSON. On copy success, clear note draft and visual edit records.
   - Parallelizable: no
 
-- [ ] Implement global undo/redo logic with focus-safe keyboard handling.
-  - Files/areas: `src/editor/stores/useVisualEditStore.ts`, `src/editor/keyboard.ts`, `src/editor/note-hover-guard.ts` or new focus guard helper.
-  - Notes: Add Visual tab buttons and Cmd/Ctrl+Z/Y support, but let native undo/redo pass through when focus is inside the Lexical notebook, text inputs, textareas, selects, or inline contenteditable editing.
+- [ ] Update reset behavior to clear both note draft and visual edit records.
+  - Files/areas: `src/editor/components/NotePanel.tsx`, `src/editor/stores/useNotebookStore.ts`, `src/editor/stores/useVisualEditStore.ts`.
+  - Notes: The Reset button should match the user's selected copy lifecycle: clear visible note and accumulated hidden visual prompt data. Decide whether preview DOM mutations also revert on Reset through stored before payloads.
+  - Parallelizable: no
+
+### Phase 6 - Editor-owned hover quick-action bar
+- [ ] Create an editor-owned quick-action bar component rendered over the preview iframe.
+  - Files/areas: new `src/editor/components/visual/QuickActionBar.tsx`, `src/editor/components/PreviewWorkspace.tsx`, `src/editor/App.tsx` if mounted globally.
+  - Notes: Use the source `ai-editor/src/bridge/quickActions.ts` button set and visual style as reference, but render in the editor Shadow DOM. Include categories `콘텐츠`, `레이아웃`, `간격`, `크기`, `스타일`, `선`, plus grip, duplicate, move up, move down, delete. Exclude `이미지` unless implemented later and exclude `생성`.
+  - Parallelizable: no
+
+- [ ] Implement hover-triggered toolbar show/hide behavior with pointer-safe persistence.
+  - Files/areas: `src/editor/components/visual/QuickActionBar.tsx`, `src/editor/stores/useVisualSelectionStore.ts`, `src/content/editor-bridge/highlight.ts`.
+  - Notes: Toolbar appears on preview hover, stays visible when the pointer moves from the element to the toolbar, and hides only after neither target nor toolbar is hovered or when the target becomes stale. Use a short hide delay to avoid flicker.
+  - Parallelizable: no
+
+- [ ] Compute quick-action bar placement from preview element rects.
+  - Files/areas: `QuickActionBar.tsx`, `geometry.ts`, `PreviewWorkspace.tsx`.
+  - Notes: Place above the element when space exists and below otherwise, matching `ai-editor` behavior. Keep visual size stable across preview zoom.
+  - Parallelizable: no
+
+- [ ] Wire quick-action category buttons to open the floating visual panel.
+  - Files/areas: `QuickActionBar.tsx`, `src/editor/stores/useFloatingVisualPanelStore.ts`, `src/editor/stores/useSectionJumpStore.ts`.
+  - Notes: Clicking a category opens the panel for the current target and queues a section jump to the matching control section.
+  - Parallelizable: no
+
+- [ ] Wire quick-action structure buttons and drag grip to preview-only structure operations.
+  - Files/areas: `QuickActionBar.tsx`, `src/editor/visual/structureActions.ts`, `src/content/editor-bridge/visual-structure.ts`.
+  - Notes: Duplicate, move up, move down, delete, and drag/drop should operate on arbitrary DOM preview nodes, not source files. Disable only when no valid sibling/drop target exists or the target is a protected extension-owned element.
+  - Parallelizable: no
+
+### Phase 7 - Floating visual panel shell and section navigation
+- [ ] Port the `ai-editor` floating visual panel shell without AI-generated tabs.
+  - Files/areas: new `src/editor/components/visual-panel/FloatingVisualPanel.tsx`, `src/editor/App.tsx`, `src/editor/stores/useFloatingVisualPanelStore.ts`.
+  - Notes: Match source layout, dark glass panel, header, category tabs, close button, breakpoint badge, and body scroll behavior. Categories: content, layout, spacing, size, style, border. No generated/advanced tab unless needed for copied controls.
+  - Parallelizable: no
+
+- [ ] Implement desktop and mobile/tablet panel placement.
+  - Files/areas: `FloatingVisualPanel.tsx`, `geometry.ts`, `src/shared/breakpoints.ts`, `src/editor/stores/useBreakpointStore.ts`.
+  - Notes: Desktop follows toolbar/target and opens above it when possible. Mobile/tablet breakpoints place the panel to the right of the preview iframe as requested. Clamp to editor viewport.
+  - Parallelizable: no
+
+- [ ] Port visual section primitives and section jump behavior.
+  - Files/areas: new `src/editor/components/visual/VisualSection.tsx`, `VisualControl.tsx`, `UnitValueInput.tsx`, `EdgeBoxControl.tsx`, `DropdownSelect.tsx`, `PresetSelect.tsx`, `ColorInput.tsx`, `sectionJump.ts`, new `src/editor/stores/useSectionJumpStore.ts`.
+  - Notes: Adapt source components to the new inline-style mutation API. Preserve `data-ai-id` hooks and source visual design. Do not import source-map/chat-specific stores.
   - Parallelizable: yes
 
-### Phase 5 - Right panel tabs and Visual panel shell
-- [ ] Refactor the right panel into Note / Visual tabs.
-  - Files/areas: `src/editor/components/MainArea.tsx`, `src/editor/components/NotePanel.tsx`, new `src/editor/components/RightPanel.tsx`, `src/editor/editor.css`.
-  - Notes: Preserve existing note UX and data-ai-id hooks. The Visual tab should share the existing right column width unless CSS changes are needed for page-builder controls.
-  - Parallelizable: no
-
-- [ ] Add `VisualEditPanel` shell with selection summary, pending status, history controls, and empty/error states.
-  - Files/areas: new `src/editor/components/visual/VisualEditPanel.tsx` and related components.
-  - Notes: Empty state should instruct the user to select an element in the preview or layout tree. Summary should show `data-ai-id` when present, otherwise fallback selector/path metadata.
-  - Parallelizable: no
-
-- [ ] Add reusable control UI primitives for visual editor fields.
-  - Files/areas: new `src/editor/components/visual/controls/*`, `src/editor/editor.css`.
-  - Notes: Include section chrome, row labels, unit inputs, select controls, color inputs, toggle groups, reset buttons, and compact helper/error text. Reuse `ToolbarButton`/`PanelChrome` only where it keeps code simple.
+- [ ] Port dropdown coordination and input selection helpers used by visual controls.
+  - Files/areas: `src/editor/components/visual/dropdownCoordinator.ts`, `inputSelection.ts`, `src/editor/utils/numericInput.ts`.
+  - Notes: These are mostly UI helpers and can be adapted with minimal project coupling.
   - Parallelizable: yes
 
-### Phase 6 - Style controls
-- [ ] Implement layout/display controls.
-  - Files/areas: `src/editor/components/visual/controls/LayoutControls.tsx`, visual store/bridge helpers.
-  - Notes: Cover display, flex/grid basics, alignment, justify, position, z-index, overflow, and gap where practical using inline/scoped style edits.
+- [ ] Add floating panel empty/stale/error states.
+  - Files/areas: `VisualPanelContent.tsx`, `useVisualSelectionStore.ts`, `useVisualEditStore.ts`.
+  - Notes: Empty state explains hover/select a preview element. Stale state asks user to hover the element again. Errors should not expose visual prompt text in the UI.
   - Parallelizable: yes
 
-- [ ] Implement spacing controls.
-  - Files/areas: `src/editor/components/visual/controls/SpacingControls.tsx`.
-  - Notes: Cover margin and padding sides with unit inputs and reset-per-property actions.
+### Phase 8 - Inline style controls
+- [ ] Implement a CSS-property style edit API for controls.
+  - Files/areas: new `src/editor/visual/useStyleEdit.ts`, `src/editor/forms/useVisualStyleForm.ts`.
+  - Notes: Replace `ai-editor`'s class-token `useClassEdit()` pipeline with `commitStyle(propertyId, cssValue)` that records before/after computed/inline values, posts inline-style mutations, and updates snapshots.
+  - Parallelizable: no
+
+- [ ] Implement layout controls using inline CSS properties.
+  - Files/areas: new/adapted `src/editor/components/controls/LayoutControls.tsx`.
+  - Notes: Cover display, flex direction, justify content, align items, grid template columns, position, overflow, and related layout properties where practical. Values should commit as CSS declarations on the target element.
+  - Parallelizable: yes
+
+- [ ] Implement spacing controls for padding, margin, and gap.
+  - Files/areas: `SpacingControls.tsx`, `EdgeBoxControl.tsx`, `UnitValueInput.tsx`, `useVisualStyleForm.ts`, preview box-model highlight handlers.
+  - Notes: Include padding top/right/bottom/left, margin top/right/bottom/left, row-gap, column-gap. Gap controls should be available when display is flex/grid, with helpful disabled text otherwise.
   - Parallelizable: yes
 
 - [ ] Implement size controls.
-  - Files/areas: `src/editor/components/visual/controls/SizeControls.tsx`.
-  - Notes: Cover width, min/max width, height, min/max height, box sizing, and object fit where relevant.
+  - Files/areas: `SizeControls.tsx`, `useVisualStyleForm.ts`.
+  - Notes: Cover width, height, min/max width, min/max height, box sizing, object fit/object position where applicable.
   - Parallelizable: yes
 
-- [ ] Implement typography controls.
-  - Files/areas: `src/editor/components/visual/controls/TypographyControls.tsx`.
-  - Notes: Cover font size, font weight, line height, letter spacing, text align, text decoration, text transform, white space, and color if not centralized elsewhere.
+- [ ] Implement style controls.
+  - Files/areas: `TextControls.tsx`, `TypographyControls.tsx`, `ColorControls.tsx`, `OpacityControls.tsx`, `ShadowControls.tsx`, `BackgroundImageControls.tsx` as applicable.
+  - Notes: Use CSS property mutations for typography, text color, background color/image, opacity, and shadow. Preserve source panel visuals but adapt data flow.
   - Parallelizable: yes
 
-- [ ] Implement color, background, opacity, border, radius, and shadow controls.
-  - Files/areas: `src/editor/components/visual/controls/ColorControls.tsx`, `BackgroundControls.tsx`, `OpacityControls.tsx`, `BorderControls.tsx`, `ShadowControls.tsx`.
-  - Notes: Keep controls inline-style based. Do not add Tailwind class generation.
+- [ ] Implement border controls.
+  - Files/areas: `BorderControls.tsx`, `useVisualStyleForm.ts`.
+  - Notes: Cover border width per edge, style, color, radius, outline where useful. Record per-property before/after values for export.
   - Parallelizable: yes
 
-- [ ] Add responsive/breakpoint indicators and reset behavior to style controls.
-  - Files/areas: visual controls, `src/editor/stores/useBreakpointStore.ts`, visual store.
-  - Notes: Active breakpoint edits should be visually distinguished from base edits and exported by breakpoint in the final prompt.
-  - Parallelizable: yes
-
-### Phase 7 - Content, media, link, attribute, and inline editing controls
-- [ ] Implement Text and Rich Text controls in the Visual tab.
-  - Files/areas: `src/editor/components/visual/controls/TextControls.tsx`, `RichTextControls.tsx`, bridge text mutation handlers.
-  - Notes: Support plain text and guarded rich HTML. Record before/after values in visual changes.
-  - Parallelizable: yes
-
-- [ ] Implement preview canvas inline contenteditable editing mode.
-  - Files/areas: new `src/content/editor-bridge/inline-text-editing.ts`, bridge router, editor visual store.
-  - Notes: Add start/commit/cancel messages, suppress conflicting preview shortcuts during inline editing, and commit edits into the same history/change pipeline as Visual tab text edits.
+- [ ] Add breakpoint-aware style records and export labeling.
+  - Files/areas: `useVisualEditStore.ts`, `useBreakpointStore.ts`, `visual-edits-export.ts`, visual control badges.
+  - Notes: At minimum record the active breakpoint id with each edit. If responsive scoped styles are implemented, inject preview-only scoped CSS; otherwise export breakpoint intent clearly while applying inline style for immediate preview.
   - Parallelizable: no
 
-- [ ] Implement Image controls.
-  - Files/areas: `src/editor/components/visual/controls/ImageControls.tsx`, bridge image mutations.
-  - Notes: Cover `src`, `alt`, width/height/object-fit where applicable. Treat image URL edits as preview-only and prompt-exportable.
-  - Parallelizable: yes
-
-- [ ] Implement Link controls.
-  - Files/areas: `src/editor/components/visual/controls/LinkControls.tsx`, bridge link/attribute mutations.
-  - Notes: Cover `href`, `target`, `rel`, and link text where applicable. Block dangerous URL schemes.
-  - Parallelizable: yes
-
-- [ ] Implement curated Attribute controls.
-  - Files/areas: `src/editor/components/visual/controls/AttributeControls.tsx`, shared curated attribute allowlist.
-  - Notes: Provide curated fields only, matching the user's selected scope. Do not add unrestricted freeform attributes.
-  - Parallelizable: yes
-
-### Phase 8 - Structure controls
-- [ ] Add Delete/Restore controls with history integration.
-  - Files/areas: `src/editor/components/visual/controls/DeleteElementControls.tsx`, visual store, bridge structure handlers.
-  - Notes: Deleted targets should remain restorable through undo/redo and should be represented clearly in `## Visual edits`.
-  - Parallelizable: yes
-
-- [ ] Add duplicate and move controls.
-  - Files/areas: `src/editor/components/visual/controls/StructureControls.tsx`, bridge structure handlers.
-  - Notes: Support duplicate, move up/down, and parent/sibling-safe moves where the DOM relationship is clear. Refresh layout tree after each action.
-  - Parallelizable: yes
-
-- [ ] Add insert, wrap, convert tag, and replace HTML controls.
-  - Files/areas: `src/editor/components/visual/controls/StructureControls.tsx`, bridge structure handlers.
-  - Notes: Use guarded HTML insertion/replacement. Preserve children when converting tags where feasible. Prompt export should describe the structural intent and include serialized diff data.
-  - Parallelizable: yes
-
-### Phase 9 - Notebook copy and prompt export
-- [ ] Extend notebook copy formatting with a `## Visual edits` section.
-  - Files/areas: `src/editor/notebook/copy.ts`, `src/editor/notebook/format.ts`, possible new `src/editor/notebook/visual-edits-export.ts`.
-  - Notes: Include human-readable summaries grouped by target and breakpoint, followed by fenced machine-readable JSON diff. Preserve existing `## Requests`, `## Targets`, and `## Rules` behavior.
+### Phase 9 - Content, rich text, attributes, and form values
+- [ ] Implement content controls for text and rich HTML editing.
+  - Files/areas: `TextControls.tsx`, optional `RichTextControls.tsx`, `src/content/editor-bridge/visual-mutations.ts`.
+  - Notes: The user requested rich-text editing with internal HTML tag detail and immediate preview updates. Provide a contenteditable editor and/or HTML fragment textarea. Commit rich HTML through sanitized `innerHTML` mutation; commit plain text/form values through text/value mutation.
   - Parallelizable: no
 
-- [ ] Add visual edit rules and warnings to copied prompt output.
-  - Files/areas: notebook export modules, `src/shared/i18n.ts` if copy text is localized.
-  - Notes: State that edits are preview-derived, should be applied to the referenced target, and should not remove or rename `data-ai-id` attributes.
+- [ ] Add safe rich-text sanitization.
+  - Files/areas: new `src/shared/sanitize.ts` or `src/shared/visual-html.ts`, `TextControls.tsx`, preview mutation module.
+  - Notes: Use `dompurify` or a strict allowlist for safe HTML fragments. Block scripts, event handlers, javascript URLs, extension-owned attributes, and runtime overlay artifacts.
   - Parallelizable: yes
 
-- [ ] Ensure copied visual changes use stable target descriptions.
-  - Files/areas: visual export helper, shared target serialization helper.
-  - Notes: For targets with `data-ai-id`, export that. For fallback targets, export selector, selector kind, path/fullPath, tag, text context, and accessibility metadata when available.
+- [ ] Implement link and curated attribute controls under the content category.
+  - Files/areas: `LinkControls.tsx`, `AttributeControls.tsx`, new `src/shared/visual-attributes.ts`, preview mutation module.
+  - Notes: Allow safe attributes such as `href`, `target`, `rel`, `src`, `alt`, `title`, `aria-label`, `placeholder`, `type` when safe. Block `on*`, `style` freeform if redundant with style controls, and dangerous URL schemes.
   - Parallelizable: yes
 
-### Phase 10 - Styling, i18n, docs, and permissions copy
-- [ ] Add editor CSS for the right-panel tabs and Visual controls.
-  - Files/areas: `src/editor/editor.css`.
-  - Notes: Keep styles within the existing Shadow DOM editor CSS. Do not add browser/UI automation or external rendering checks.
+- [ ] Implement form-control value editing.
+  - Files/areas: `TextControls.tsx`, `visual-targets.ts`, `visual-mutations.ts`.
+  - Notes: Handle `input`, `textarea`, `select`, checkbox/radio checked state, and contenteditable targets. Record value/checked/selected before and after separately from attributes.
   - Parallelizable: yes
 
-- [ ] Add i18n strings for Visual tab labels, controls, errors, history, and prompt export text.
-  - Files/areas: `src/shared/i18n.ts`, `_locales` if present or generated by existing build flow.
-  - Notes: Preserve existing English/Korean style where applicable.
+- [ ] Keep visual prompt text hidden while editing.
+  - Files/areas: `NotePanel.tsx`, `VisualPanelContent.tsx`, `useVisualEditStore.ts`.
+  - Notes: Do not append visual edit text into the visible Lexical notebook while editing. Only expose status/count if needed; actual prompt goes to clipboard export.
   - Parallelizable: yes
 
-- [ ] Update user-facing documentation for preview-only visual editing.
-  - Files/areas: `README.md`, `README.ko.md`, `docs/editor-usage.md`.
-  - Notes: Explain that edits are preview-only, copied into Markdown/prompt output, and not saved back to the page/source.
-  - Parallelizable: yes
-
-- [ ] Update Chrome Web Store / permissions documentation if behavior descriptions mention copy-only operation.
-  - Files/areas: `docs/chrome-web-store-permission-justifications.md` and nearby store/disclosure docs.
-  - Notes: No new permission is expected from DOM preview editing, but behavior copy should disclose preview DOM mutation and user-triggered clipboard export.
-  - Parallelizable: yes
-
-### Phase 11 - Build and completion hygiene
-- [ ] Run the required extension build after code changes and keep generated build artifacts consistent.
-  - Files/areas: `package.json`, `package-lock.json`, `dist/*` generated by `npm run build`.
-  - Notes: Run `npm run build` after implementation code changes. If dependencies are missing, use the existing lockfile with `npm ci` and retry the build once. Do not run browser/UI automation.
+### Phase 10 - Preview mutation handlers
+- [ ] Implement inline style mutation handlers in the preview bridge.
+  - Files/areas: new `src/content/editor-bridge/visual-mutations.ts`, `src/content/editor-bridge/index.ts`.
+  - Notes: Resolve target, capture before values, set/remove style declarations, post result with applied count and updated snapshot. Do not mutate extension-owned DOM.
   - Parallelizable: no
 
-- [ ] Keep checklist progress and unresolved issues accurate while implementing.
+- [ ] Implement text, rich-text, attribute, and form-value mutation handlers.
+  - Files/areas: `visual-mutations.ts`, shared sanitize/attribute helpers.
+  - Notes: Mirror source `ai-editor/src/bridge/mutations.ts` concepts, but adapt to `EditorTarget` and fallback target resolution. Post result messages with before/after payloads and rejection reasons.
+  - Parallelizable: no
+
+- [ ] Implement delete and restore mutations.
+  - Files/areas: `visual-mutations.ts`, `useVisualEditStore.ts`.
+  - Notes: Store enough removed node context in the preview bridge to restore for undo/reset if implemented. Export delete records as structure diffs.
+  - Parallelizable: yes
+
+- [ ] Implement duplicate and move up/down mutations.
+  - Files/areas: `visual-mutations.ts`, `QuickActionBar.tsx`, visual structure helpers.
+  - Notes: Duplicate should clone the target node and strip or mark runtime-only identifiers if needed. Move up/down should skip extension-owned overlay elements and operate among real siblings.
+  - Parallelizable: yes
+
+- [ ] Implement drag grip movement.
+  - Files/areas: new `src/editor/components/visual/quickActionDrag.ts` or bridge/editor drag helper, `visual-mutations.ts`.
+  - Notes: Since toolbar is editor-owned, decide drag hit-testing via iframe messages or pointer coordinate forwarding. Show a preview drop indicator and apply preview-only DOM move on drop. This ports the behavior of `ai-editor/src/bridge/dragAndDrop.ts` without source-file restrictions.
+  - Parallelizable: no
+
+- [ ] Refresh overlays, quick-action anchors, selected snapshots, and layout tree after mutations.
+  - Files/areas: `visual-mutations.ts`, `src/content/editor-bridge/overlay.ts`, `src/content/editor-bridge/highlight.ts`, `src/editor/bridge/bridgeClient.ts`.
+  - Notes: DOM-changing edits should not leave toolbar/floating panel anchored to stale rects.
+  - Parallelizable: no
+
+### Phase 11 - Box model and hover interaction polish
+- [ ] Extend box-model highlighting for padding, margin, content, and gap while editing spacing controls.
+  - Files/areas: `src/content/editor-bridge/box-model.ts`, `src/content/editor-bridge/overlay.ts`, `SpacingControls.tsx`, `useBoxModelStore.ts`.
+  - Notes: Source `ai-editor` sends `HIGHLIGHT_BOX_REGION`; adapt that pattern for the current copy-ai-id box-model overlay.
+  - Parallelizable: yes
+
+- [ ] Add toolbar/floating-panel focus and keyboard guards.
+  - Files/areas: `src/editor/keyboard.ts`, `src/content/editor-bridge/keyboard.ts`, `note-hover-guard.ts`, `keyboard-hover-guard.ts`, new visual focus guard helper.
+  - Notes: Typing in visual controls or rich-text editors must not trigger preview navigation, Space notebook insertion, Shift+Enter copy, or hover suppression side effects. Keep Lexical notebook behavior intact.
+  - Parallelizable: no
+
+- [ ] Add Escape behavior for visual panel and toolbar.
+  - Files/areas: `src/editor/keyboard.ts`, `FloatingVisualPanel.tsx`, `QuickActionBar.tsx`, visual stores.
+  - Notes: Escape should close the visual panel first, then clear toolbar/selection as appropriate, without deleting note draft or visual edit records.
+  - Parallelizable: yes
+
+- [ ] Add stale target handling for fallback and structure-edited elements.
+  - Files/areas: `useVisualSelectionStore.ts`, `visual-targets.ts`, `toast.ts`.
+  - Notes: If a target cannot be resolved after DOM changes, close panel or show a concise stale-state message and ask the user to hover/select again.
+  - Parallelizable: yes
+
+### Phase 12 - Notebook export format
+- [ ] Implement visual edit export formatting.
+  - Files/areas: new `src/editor/notebook/visual-edits-export.ts`.
+  - Notes: Output should include `## Visual edits`, grouped by target when helpful, with concise human summaries and a fenced JSON block containing ordered records. Include breakpoint id, target descriptor, mutation kind, before/after values, and safety notes for fallback targets.
+  - Parallelizable: no
+
+- [ ] Integrate visual edit export with existing notebook Markdown body.
+  - Files/areas: `src/editor/notebook/copy.ts`, `src/editor/notebook/lexical/chip-export.ts`, `src/editor/notebook/format.ts`.
+  - Notes: Preserve existing chip mention expansion and target details. If visual edits reference targets not present as note chips, include their target details in `## Visual edits` or append them to `## Targets` without requiring visible note chips.
+  - Parallelizable: no
+
+- [ ] Add copy eligibility for visual-edit-only sessions.
+  - Files/areas: `src/editor/notebook/copy.ts`, `NotePanel.tsx`, `useNotebookStore.ts`, `useVisualEditStore.ts`.
+  - Notes: If note is empty but visual edits exist, Copy should succeed and copy visual edits plus rules. Button label/status can reuse existing copy statuses.
+  - Parallelizable: no
+
+- [ ] Add visual edit warning/rule suffixes.
+  - Files/areas: `src/editor/notebook/format.ts`, `src/shared/i18n.ts`.
+  - Notes: Add rules stating visual edits are preview-derived instructions, should be applied to referenced targets, and should not remove/rename `data-ai-id` attributes. Include fallback-target reliability warning when fallback targets are present.
+  - Parallelizable: yes
+
+### Phase 13 - Styling, i18n, docs, and cleanup
+- [ ] Port source visual panel copy and labels into current i18n structure.
+  - Files/areas: `src/shared/i18n.ts`, possibly `public/_locales/*/messages.json` only if extension metadata changes.
+  - Notes: Add English/Korean labels for quick actions, categories, visual controls, errors, stale target states, copy warnings, and reset text. The visible UI can use Korean labels first to match source, but keep English coverage if existing app expects it.
+  - Parallelizable: yes
+
+- [ ] Style the quick-action bar and floating panel to match `ai-editor`.
+  - Files/areas: `src/editor/editor.css`, Tailwind config, new component class usage.
+  - Notes: Use Tailwind utilities for ported components where possible; keep existing `copy-ai-id-editor-*` layout styles intact. Ensure `[data-ai-editor-ui]` scoping contains all Tailwind utilities in the Shadow DOM.
+  - Parallelizable: yes
+
+- [ ] Update user documentation for preview-only visual editing.
+  - Files/areas: `README.md`, `README.ko.md`, `docs/editor-usage.md`, possibly Chrome Web Store disclosure docs.
+  - Notes: Explain that visual edits mutate only the preview iframe, are not saved to the source page, and become precise prompt instructions when copied.
+  - Parallelizable: yes
+
+- [ ] Remove or ignore obsolete references to the prior broad visual-editing checklist if any remain.
+  - Files/areas: docs and comments that reference `visual_editing.md` as an old full editor roadmap.
+  - Notes: Keep this file as implementation checklist; do not remove user-facing docs unless they become misleading.
+  - Parallelizable: yes
+
+### Phase 14 - Build and completion hygiene
+- [ ] Run the required extension build after implementation code changes.
+  - Files/areas: project root, `package.json`, `dist/*`.
+  - Notes: Per user defaults, run `npm run build` after code changes. If dependencies are missing, install from the detected lockfile and retry once. Do not run browser/UI automation or smoke checks.
+  - Parallelizable: no
+
+- [ ] Keep generated build artifacts consistent after the final implementation build.
+  - Files/areas: `dist/*`, `package-lock.json`.
+  - Notes: Because this is a Chrome extension project with tracked `dist`, include generated build updates only when they come from the required build step.
+  - Parallelizable: no
+
+- [ ] Keep this checklist updated while implementing.
   - Files/areas: `visual_editing.md`.
-  - Notes: Mark completed items only after implementation for that item is done. Keep `## Unresolved Issues` as `- None` unless a true implementation blocker appears.
+  - Notes: Mark items complete only when the corresponding code/content/config change is done. Keep `## Unresolved Issues` as `- None` unless a true implementation blocker appears.
   - Parallelizable: no
