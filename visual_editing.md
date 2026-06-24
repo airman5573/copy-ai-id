@@ -136,17 +136,17 @@
   - Parallelizable: no
 
 ### Phase 6 - Editor-owned hover quick-action bar
-- [ ] Create an editor-owned quick-action bar component rendered over the preview iframe.
+- [x] Create an editor-owned quick-action bar component rendered over the preview iframe.
   - Files/areas: new `src/editor/components/visual/QuickActionBar.tsx`, `src/editor/components/PreviewWorkspace.tsx`, `src/editor/App.tsx` if mounted globally.
-  - Notes: Use the source `ai-editor/src/bridge/quickActions.ts` button set and visual style as reference, but render in the editor Shadow DOM. Include categories `콘텐츠`, `레이아웃`, `간격`, `크기`, `스타일`, `선`, plus grip, duplicate, move up, move down, delete. Exclude `이미지` unless implemented later and exclude `생성`.
+  - Notes: Use the source `ai-editor/src/bridge/quickActions.ts` button set and visual style as reference, but render in the editor Shadow DOM. Include categories `콘텐츠`, `레이아웃`, `간격`, `크기`, `스타일`, `선`, plus grip, duplicate, move up, move down, delete. Exclude `이미지` unless implemented later and exclude `생성`. Structure buttons are present but disabled until the dedicated structure-operation slice wires the bridge mutations.
   - Parallelizable: no
 
-- [ ] Implement hover-triggered toolbar show/hide behavior with pointer-safe persistence.
+- [x] Implement hover-triggered toolbar show/hide behavior with pointer-safe persistence.
   - Files/areas: `src/editor/components/visual/QuickActionBar.tsx`, `src/editor/stores/useVisualSelectionStore.ts`, `src/content/editor-bridge/highlight.ts`.
   - Notes: Toolbar appears on preview hover, stays visible when the pointer moves from the element to the toolbar, and hides only after neither target nor toolbar is hovered or when the target becomes stale. Use a short hide delay to avoid flicker.
   - Parallelizable: no
 
-- [ ] Compute quick-action bar placement from preview element rects.
+- [x] Compute quick-action bar placement from preview element rects.
   - Files/areas: `QuickActionBar.tsx`, `geometry.ts`, `PreviewWorkspace.tsx`.
   - Notes: Place above the element when space exists and below otherwise, matching `ai-editor` behavior. Keep visual size stable across preview zoom.
   - Parallelizable: no

@@ -31,6 +31,7 @@ import {
 } from '../stores/useBreakpointStore';
 import { useBridgeStore } from '../stores/useBridgeStore';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
+import { QuickActionBar } from './visual/QuickActionBar';
 
 const BRIDGE_READY_TIMEOUT_MS = 6000;
 const PREVIEW_HEIGHT_KEYBOARD_STEP = 20;
@@ -432,6 +433,7 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
             </button>
           </div>
         </div>
+        <QuickActionBar />
       </div>
       {bridgeStatus !== 'ready' ? (
         <div className="copy-ai-id-editor-preview-status" data-ai-id="copy-ai-id-editor-preview-status">
