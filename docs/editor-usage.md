@@ -53,11 +53,12 @@ Visual editing is a prompt-building interface. It changes only the live preview 
 - Moving the pointer from the hovered element to the toolbar keeps the toolbar visible long enough to click it.
 - Category buttons open the floating visual panel for `content`, `layout`, `spacing`, `size`, `style`, and `border`.
 - Structure controls perform preview-only duplicate, move up, move down, delete, and drag-move operations.
-- The toolbar is rendered in the editor Shadow DOM, not injected into the page/iframe document.
+- The quick-action bar is runtime-owned DOM inside the preview iframe, so hovering from the selected element into the toolbar stays within the same preview interaction surface.
 
 ### Floating visual panel
 
-- Desktop placement follows the selected target/toolbar and clamps to the editor viewport.
+- The floating visual panel remains in the editor Shadow DOM.
+- Desktop placement follows the selected target and clamps to the editor viewport.
 - Mobile and tablet breakpoints place the panel beside the preview iframe where possible.
 - Content controls can edit plain text, rich HTML fragments, curated safe attributes/links, and form values.
 - Layout, spacing, size, style, and border controls apply CSS-property changes as inline preview mutations for immediate feedback. Style records keep the active breakpoint label as implementation intent.

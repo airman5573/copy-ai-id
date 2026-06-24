@@ -30,7 +30,8 @@ Some sites block iframe embedding with `X-Frame-Options` or `frame-ancestors` CS
 Visual editing is an interface for creating precise implementation prompts. It does not save changes back to the inspected page, project source, CMS, or remote service.
 
 - Hover an element in the preview to show the quick-action bar. The toolbar stays usable while the pointer moves from the element to the toolbar.
-- Category buttons open the floating visual panel. Desktop placement follows the selected element/toolbar; mobile and tablet breakpoints place the panel beside the preview iframe.
+- The quick-action bar is runtime-owned DOM inside the preview iframe; the floating visual panel remains in the editor Shadow DOM.
+- Category buttons open the floating visual panel. Desktop placement follows the selected element; mobile and tablet breakpoints place the panel beside the preview iframe.
 - The first supported categories are **Content**, **Layout**, **Spacing**, **Size**, **Style**, and **Border**. Content controls can edit text, rich HTML fragments, safe links/attributes, and form values. Style controls apply preview-only DOM/inline-style changes for immediate feedback.
 - Structure controls duplicate, move up/down, delete, and drag elements inside the preview DOM. These are still preview-only operations.
 - Elements without `data-ai-id` can be edited through fallback target metadata. The copied output marks these as less stable and includes selector/path/context details so an AI or developer can re-identify the element in source.
