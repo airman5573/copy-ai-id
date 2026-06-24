@@ -110,7 +110,7 @@
   - Parallelizable: yes
 
 ### Phase 5 - Visual edit stores and copy lifecycle
-- [ ] Add editor state for selected visual target and target snapshots.
+- [x] Add editor state for selected visual target and target snapshots.
   - Files/areas: new `src/editor/stores/useVisualSelectionStore.ts` or combined visual store.
   - Notes: Store hover target, active toolbar target, selected/open panel target, snapshot status/error, latest target rect, and stale state. Keep this separate from notebook-focused `useHighlightStore` unless a small extension is cleaner.
   - Parallelizable: no
