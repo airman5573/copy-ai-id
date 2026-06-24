@@ -1,0 +1,149 @@
+/**
+ * Shadow-aware DOM traversal helpers for Copy AI ID target discovery.
+ *
+ * These helpers intentionally support only open Shadow DOM. Closed shadow roots
+ * are not exposed through the platform APIs, so callers can only interact with
+ * their visible host elements.
+ */
+
+export function isShadowRoot(value: unknown): value is ShadowRoot {
+  return typeof ShadowRoot !== 'undefined' && value instanceof ShadowRoot;
+}
+
+export function getComposedParentElement(element: Element): Element | null {
+  if (element.parentElement) {
+    return element.parentElement;
+  }
+
+  const root = element.getRootNode();
+  return isShadowRoot(root) ? root.host : null;
+}
+
+export function* walkComposedAncestors(
+  element: Element | null,
+  options: { includeSelf?: boolean } = {},
+): Generator<Element> {
+  let current = options.includeSelf ? element : element ? getComposedParentElement(element) : null;
+
+  while (current) {
+    yield current;
+    current = getComposedParentElement(current);
+  }
+}
+
+export function closestComposedElementMatching(
+  element: Element | null,
+  predicate: (candidate: Element) => boolean,
+): Element | null {
+  for (const candidate of walkComposedAncestors(element, { includeSelf: true })) {
+    if (predicate(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+export function closestComposedElementMatchingSelector(
+  element: Element | null,
+  selector: string,
+): Element | null {
+  return closestComposedElementMatching(element, (candidate) => {
+    try {
+      return candidate.matches(selector);
+    } catch {
+      return false;
+    }
+  });
+}
+
+export function getDeepElementFromPoint(
+  x: number,
+  y: number,
+  root: Document | ShadowRoot = document,
+): Element | null {
+  let current = root.elementFromPoint(x, y);
+  const visited = new Set<Element>();
+
+  while (current && !visited.has(current)) {
+    visited.add(current);
+
+    const shadowRoot = getOpenShadowRoot(current);
+    const deeper = shadowRoot?.elementFromPoint(x, y) ?? null;
+    if (!deeper || deeper === current) {
+      break;
+    }
+
+    current = deeper;
+  }
+
+  return current;
+}
+
+export function hasComposedAncestorMatching(
+  element: Element | null,
+  predicate: (candidate: Element) => boolean,
+): boolean {
+  for (const candidate of walkComposedAncestors(element, { includeSelf: true })) {
+    if (predicate(candidate)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function getOpenShadowRoot(element: Element): ShadowRoot | null {
+  return element instanceof HTMLElement ? element.shadowRoot : null;
+}
+
+export function getDeepActiveElement(
+  root: Document | ShadowRoot = document,
+): Element | null {
+  let current = root.activeElement;
+  const visited = new Set<Element>();
+
+  while (current && !visited.has(current)) {
+    visited.add(current);
+
+    const shadowRoot = getOpenShadowRoot(current);
+    const shadowActiveElement = shadowRoot?.activeElement ?? null;
+    if (!shadowActiveElement || shadowActiveElement === current) {
+      break;
+    }
+
+    current = shadowActiveElement;
+  }
+
+  return current;
+}
+
+export function getComposedChildElements(element: Element): Element[] {
+  const shadowRoot = getOpenShadowRoot(element);
+  const shadowChildren = shadowRoot ? Array.from(shadowRoot.children) : [];
+  const lightChildren = Array.from(element.children);
+
+  return [...shadowChildren, ...lightChildren];
+}
+
+export function getComposedSiblingElement(
+  element: Element,
+  direction: 'previous' | 'next',
+): Element | null {
+  const parent = getComposedParentElement(element);
+  if (!parent) {
+    return null;
+  }
+
+  const siblings = getComposedChildElements(parent);
+  const currentIndex = siblings.indexOf(element);
+  if (currentIndex < 0) {
+    return null;
+  }
+
+  const siblingIndex = direction === 'previous'
+    ? currentIndex - 1
+    : currentIndex + 1;
+
+  return siblings[siblingIndex] ?? null;
+}

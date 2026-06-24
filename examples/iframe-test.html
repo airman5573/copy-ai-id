@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Copy AI ID iframe support test</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 24px; }
+      iframe { width: 100%; max-width: 720px; height: 260px; border: 2px solid #64748b; border-radius: 12px; }
+      .outer-card { padding: 16px; border: 1px solid #cbd5e1; border-radius: 12px; margin-bottom: 16px; }
+    </style>
+  </head>
+  <body data-ai-id="iframe-test-page">
+    <main class="outer-card" data-ai-id="iframe-test-outer-card">
+      <h1 data-ai-id="iframe-test-heading">Iframe support test</h1>
+      <p data-ai-id="iframe-test-description">Enable Copy AI ID, then hover/click the elements inside the iframe below.</p>
+    </main>
+
+    <iframe
+      data-ai-id="iframe-test-frame"
+      title="Copy AI ID iframe target fixture"
+      srcdoc='<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 20px; background: #f8fafc; }
+      .card { padding: 18px; border: 1px solid #94a3b8; border-radius: 12px; background: white; }
+      button { padding: 10px 14px; border: 0; border-radius: 8px; background: #2563eb; color: white; }
+    </style>
+  </head>
+  <body data-ai-id="iframe-inner-body">
+    <section class="card" data-ai-id="iframe-inner-card">
+      <h2 data-ai-id="iframe-inner-heading">Inner iframe card</h2>
+      <p data-ai-id="iframe-inner-copy">This paragraph lives inside iframe srcdoc.</p>
+      <button type="button" data-ai-id="iframe-inner-button">Select inner button</button>
+    </section>
+  </body>
+</html>'>
+    </iframe>
+  </body>
+</html>

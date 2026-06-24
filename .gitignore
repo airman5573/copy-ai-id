@@ -1,0 +1,19 @@
+node_modules/
+output/
+.playwright-cli/*.log
+.playwright-cli/page-*.yml
+
+# Archives / compressed packages
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.7z
+*.rar
+
+# Generated build output
+.DS_Store
+packages/*/dist/

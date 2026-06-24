@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Artisanal Digital Bakery | The Flourished Hearth</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "secondary": "#58624a",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#ffdcc5",
+                    "outline": "#83746b",
+                    "surface-tint": "#805533",
+                    "on-secondary-fixed-variant": "#414a34",
+                    "on-secondary-container": "#5b644d",
+                    "background": "#fcf9f3",
+                    "outline-variant": "#d5c3b8",
+                    "on-background": "#1c1c18",
+                    "on-secondary-fixed": "#161e0c",
+                    "on-primary-container": "#ffe3d1",
+                    "on-tertiary-fixed": "#241a0e",
+                    "tertiary-fixed-dim": "#d7c3b0",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#301400",
+                    "on-tertiary-container": "#f9e4d0",
+                    "surface-container-low": "#f6f3ed",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#f3f0ea",
+                    "surface": "#fcf9f3",
+                    "on-tertiary-fixed-variant": "#524436",
+                    "surface-container": "#f0eee8",
+                    "on-surface-variant": "#51443c",
+                    "inverse-surface": "#31312d",
+                    "inverse-primary": "#f4bb92",
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#5c4d3f",
+                    "secondary-fixed": "#dce6c9",
+                    "secondary-fixed-dim": "#c0caae",
+                    "surface-container-high": "#ebe8e2",
+                    "surface-container-highest": "#e5e2dc",
+                    "on-surface": "#1c1c18",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#fcf9f3",
+                    "tertiary-container": "#756555",
+                    "on-primary-fixed-variant": "#653d1e",
+                    "secondary-container": "#d7e1c3",
+                    "tertiary-fixed": "#f4dfcb",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "surface-dim": "#dcdad4",
+                    "primary-container": "#8b5e3c",
+                    "primary": "#6f4627",
+                    "surface-variant": "#e5e2dc",
+                    "primary-fixed-dim": "#f4bb92"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.5rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Noto Serif"],
+                    "body": ["Inter"],
+                    "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcf9f3; color: #1c1c18; }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-container selection:text-on-primary-container" data-ai-id="test-1-page">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f3]/80 dark:bg-stone-950/80 backdrop-blur-xl" data-ai-id="test-1-topbar">
+<div class="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto font-['Noto_Serif'] tracking-tight" data-ai-id="test-1-topbar-content">
+<a class="text-2xl font-serif italic text-[#6f4627] dark:text-[#f6f3ed]" data-ai-id="test-1-topbar-brand-link" href="#">The Artisanal Digital Bakery</a>
+<div class="hidden md:flex items-center space-x-8" data-ai-id="test-1-topbar-navigation-links">
+<a class="text-[#6f4627] dark:text-[#f6f3ed] border-b border-[#6f4627] pb-1 hover:opacity-80 transition-all duration-300" data-ai-id="test-1-topbar-our-story-link" href="#">Our Story</a>
+<a class="text-[#8b5e3c] dark:text-[#d5c3b8] hover:text-[#6f4627] hover:opacity-80 transition-all duration-300" data-ai-id="test-1-topbar-signature-breads-link" href="#">Signature Breads</a>
+<a class="text-[#8b5e3c] dark:text-[#d5c3b8] hover:text-[#6f4627] hover:opacity-80 transition-all duration-300" data-ai-id="test-1-topbar-pastries-link" href="#">Pastries</a>
+<a class="text-[#8b5e3c] dark:text-[#d5c3b8] hover:text-[#6f4627] hover:opacity-80 transition-all duration-300" data-ai-id="test-1-topbar-workshops-link" href="#">Workshops</a>
+<a class="text-[#8b5e3c] dark:text-[#d5c3b8] hover:text-[#6f4627] hover:opacity-80 transition-all duration-300" data-ai-id="test-1-topbar-find-us-link" href="#">Find Us</a>
+</div>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-full font-label text-sm uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all duration-200 shadow-sm" data-ai-id="test-1-topbar-order-now-button">
+                Order Now
+            </button>
+</div>
+</nav>
+<main data-ai-id="test-1-main">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex items-center pt-24 overflow-hidden" data-ai-id="test-1-hero-section">
+<div class="absolute inset-0 z-0" data-ai-id="test-1-hero-media">
+<img alt="Freshly baked sourdough" class="w-full h-full object-cover" data-ai-id="test-1-hero-image" data-alt="close-up of artisan sourdough bread on dark wooden table with dramatic steam rising in soft warm morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuTy8xUMlP8haBNI-EDFeyApmURMwnfTRuK4wNgtsPN_gPBHMKnbuJS9oUxlFP_h1An2AGCYpCiou97nNfdtYxDOovVvrLFQLFkDNkvvhTjiN-fiy-86mYg6NDns2gurLg6RpHznR4RQURS3B9iXoXBaoVzh52aNMtvX_ubH2_y0-hinrn_9NhP3MvdY2ShATMObOcNG2mUZpyzscMnYTvwjl9okAQ8679tlt7qB-GOK2kWBC0avsKzw5AMd1Td9A07B3j9ge58sEi"/>
+<div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/40 to-transparent" data-ai-id="test-1-hero-overlay"></div>
+</div>
+<div class="relative z-10 max-w-7xl mx-auto px-8 w-full" data-ai-id="test-1-hero-content">
+<div class="max-w-2xl" data-ai-id="test-1-hero-copy">
+<span class="inline-block px-4 py-1 mb-6 rounded-full bg-secondary-fixed text-on-secondary-fixed-variant font-label text-xs font-semibold tracking-wider" data-ai-id="test-1-hero-established-badge">
+                        ESTABLISHED 1924
+                    </span>
+<p class="text-xl text-on-surface-variant font-body leading-relaxed mb-12 max-w-lg hidden" data-ai-id="test-1-hero-description"></p>
+</div>
+</div>
+</section>
+<!-- Our Story Section -->
+<section class="py-32 bg-surface" data-ai-id="test-1-story-section">
+<div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 gap-20 items-center" data-ai-id="test-1-story-grid">
+<div class="relative" data-ai-id="test-1-story-media-column">
+<div class="aspect-[4/5] rounded-xl overflow-hidden shadow-2xl z-10 relative" data-ai-id="test-1-story-primary-image-frame">
+<img alt="Baker's hands" class="w-full h-full object-cover" data-ai-id="test-1-story-primary-image" data-alt="detail shot of baker's hands covered in flour gently kneading sourdough dough on a rustic wooden floured surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZTrEo2u0KnLhjjxVHQqjjz8GyDruo6xGOlSdvZKGBmhQN_fUwfaGw-MJIu5uFpWxSfgwAL5p24IyZZYOKVPMbJ1mUpbrKz6rn_fiXylcJXuVHVCSpTo3tZF0uX1dqQe9gjzOxo2wX7l97VTzNuHvgyUlFxK5fgtT3WYsBsRJXIGoEFv2ReEJ-Gu4MWXjPh9PHcLHhpoIs7OXK-rvsMOdF6hQ-oE-c0SAA-GTjYoP0-ZNqFuOA4D7btAWFnWQNCaun4CY8pg7iPYBu"/>
+</div>
+</div>
+<div class="flex flex-col justify-center" data-ai-id="test-1-story-copy-column">
+<h2 class="text-4xl md:text-5xl font-serif text-primary mb-8 italic" data-ai-id="test-1-story-title">The Flourished Hearth</h2>
+<div class="space-y-6 text-on-surface-variant text-lg leading-relaxed font-body" data-ai-id="test-1-story-body">
+<p data-ai-id="test-1-story-intro-paragraph">Our journey began with a simple wild yeast starter and a dream to bring the honest taste of slow-fermented bread to our community. Every loaf is a three-day labor of love, honoring traditions passed through generations.</p>
+<p data-ai-id="test-1-story-details-paragraph">We source our heritage grains from local organic farms, milling them stone-cold to preserve every nutrient and flavor profile. It's not just bread; it's a testament to patience, heat, and the flourished hearth.</p>
+<div class="pt-8 border-t border-outline-variant/30 flex items-center space-x-4" data-ai-id="test-1-story-commitment-row">
+<span class="material-symbols-outlined text-4xl text-secondary" data-ai-id="test-1-story-commitment-icon">eco</span>
+<span class="font-serif italic text-primary" data-ai-id="test-1-story-commitment-text">Committed to 100% Organic Sourcing &amp; Traditional Stone Milling</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Signature Breads (Bento Grid Style) -->
+<section class="py-32 bg-surface-container-low" data-ai-id="test-1-signature-breads-section">
+<div class="max-w-7xl mx-auto px-8" data-ai-id="test-1-signature-breads-container">
+<div class="mb-16 text-center max-w-3xl mx-auto" data-ai-id="test-1-signature-breads-header">
+<h2 class="text-4xl md:text-5xl font-serif text-primary mb-6" data-ai-id="test-1-signature-breads-title">Our Signature Breads</h2>
+<p class="text-on-surface-variant font-body" data-ai-id="test-1-signature-breads-description">Meticulously developed over decades, our signature recipes define the standard of artisanal excellence.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8" data-ai-id="test-1-signature-breads-grid">
+<!-- Sourdough (Featured) -->
+<div class="md:col-span-8 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col md:flex-row shadow-sm hover:shadow-xl transition-shadow duration-500" data-ai-id="test-1-heritage-sourdough-card">
+<div class="md:w-1/2 aspect-square md:aspect-auto" data-ai-id="test-1-heritage-sourdough-media">
+<img class="w-full h-full object-cover" data-ai-id="test-1-heritage-sourdough-image" data-alt="A large round artisanal sourdough loaf with a beautifully scored wheat pattern on a golden-brown crust" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3-1XFBR28NeDWqcLTnqLjGQj5mOwvY5n5t816xYoaR7gRBng7N6KbWGu2Q5ci_0iYV0lEYcXYSvOlFein147K535G0CNhFC2DGgOOMqZxEt2JNe3c4FOX2n2ggbgTf9Gwms4BsCB6xfO_Ywg8WXgSSPLP8wIanZhv4qHKVZDnmVmaxqNC0wmNXuCdHbJSuhVkaqGPEggRAkzlxwLDr0UmZZf73crzAN5dYW7WiPKoa2x5py8VTMCBot5np4mT4EnlqzTsXOmawiE3"/>
+</div>
+<div class="md:w-1/2 p-12 flex flex-col justify-center" data-ai-id="test-1-heritage-sourdough-copy">
+<span class="text-secondary font-label text-xs font-bold tracking-[0.2em] mb-4" data-ai-id="test-1-heritage-sourdough-badge">THE ANCHOR</span>
+<h3 class="text-3xl font-serif text-primary mb-4" style="font-weight: 400;" data-ai-id="test-1-heritage-sourdough-title">Heritage Sourdough</h3>
+<p class="text-on-surface-variant mb-3" data-ai-id="test-1-heritage-sourdough-description">Our 48-hour fermentation process creates a deep, complex flavor with a perfect chewy crumb and crackling crust.</p>
+
+</div>
+</div>
+<!-- Baguette -->
+<div class="md:col-span-4 bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow" data-ai-id="test-1-artisanal-baguette-card">
+<div class="aspect-[4/3]" data-ai-id="test-1-artisanal-baguette-media">
+<img class="w-full h-full object-cover" data-ai-id="test-1-artisanal-baguette-image" data-alt="Three long French baguettes arranged diagonally on a rustic linen cloth with scattered flour" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKA44UF_H08OYaBn7XqJumofo69bxK4D2b7AxkFxR4ziNPEJY72KldWPlntqJB-ZL7x3J9E6W4u5QHAIZ1wedFDdXBcQemVrppTDZj3Z1NXTMQaFAMGJlaN-uXlNcv6OBiuWr4dE-fnWHYuI7jW6L1hqZYBdf2q_HZTSZbxbTIdzQKTwyfGIfGgj-Zh7LJA6w7gbztzXU1ti5tn-E5tqpAQAn_btScJwjvsM4wWSn0_C5DB7Wa60ezPyLLPC_F80E9ESZ60saE5bBP"/>
+</div>
+<div class="p-8" data-ai-id="test-1-artisanal-baguette-copy">
+<h3 class="text-2xl font-serif text-primary mb-2" data-ai-id="test-1-artisanal-baguette-title">Artisanal Baguette</h3>
+<p class="text-on-surface-variant text-sm mb-6" data-ai-id="test-1-artisanal-baguette-description">Traditional French methods, stone-baked for a light, airy interior and golden shell.</p>
+
+</div>
+</div>
+<!-- Croissants -->
+<div class="md:col-span-4 bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow" data-ai-id="test-1-butter-croissants-card">
+<div class="aspect-[4/3]" data-ai-id="test-1-butter-croissants-media">
+<img class="w-full h-full object-cover" data-ai-id="test-1-butter-croissants-image" data-alt="Flaky golden brown croissants piled on a white ceramic plate in soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqI8ImUdXq5iUpFkmuQRkQhF39ZIqQtUEICuamj8K54WfGxFxbH5GaqNpeUx9A9WXpIrnBWKaDnmyio3Bn0hTRrIAxb08wsGsRKdJbnhT_1_AOv2QSAIQLqshzufR5nBRsOrkMWEROAexKR3Qpvpky11Sf0LF-acKp0lVTCsDdLt_T_wm4PDmBzdTD8j_PZqmLnv81Y3Dkddy4P4dFYtVekBR36AKNjLrTWdlb-SwmNILDBXXdNIzCK8XdPMciiX9It-jrbBfy9r5G"/>
+</div>
+<div class="p-8" data-ai-id="test-1-butter-croissants-copy">
+<h3 class="text-2xl font-serif text-primary mb-2" data-ai-id="test-1-butter-croissants-title">Butter Croissants</h3>
+<p class="text-on-surface-variant text-sm mb-6" data-ai-id="test-1-butter-croissants-description">96 delicate layers of organic butter and pastry flour. A morning masterpiece.</p>
+
+</div>
+</div>
+<!-- Seasonal -->
+<div class="md:col-span-8 bg-tertiary-fixed rounded-xl overflow-hidden flex flex-col md:flex-row-reverse shadow-sm hover:shadow-xl transition-shadow" data-ai-id="test-1-dark-rye-molasses-card">
+<div class="md:w-1/2 aspect-square md:aspect-auto" data-ai-id="test-1-dark-rye-molasses-media">
+<img class="w-full h-full object-cover" data-ai-id="test-1-dark-rye-molasses-image" data-alt="dark chocolate and sea salt rustic bread loaf sliced to reveal rich dark interior textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBweh8nCC7DhdNU-880WlGktNmbl0cSN9RuWGwQ1rpWNHIUlxZ9SC23Re37hTZlTvkRmgX8ct25G3FAeIwgf-6dETwjKXnabf3iJR54s091frIVuO-vV09aueumqOLcQ3eRqCXcBBVirDWX0B9x2OUCn-7HshdCnIhibJ0G9INMGDykbqlDOfBOKIEN2-mq0jDEZpn5sEJMVYuKmHf1oeAfgDVqkfu50ZPhUk1fi2_HR33AEPVTaGjls8M_kcFoa1qgBvIkmoPNQzT-"/>
+</div>
+<div class="md:w-1/2 p-12 flex flex-col justify-center" data-ai-id="test-1-dark-rye-molasses-copy">
+<span class="text-on-tertiary-fixed-variant font-label text-xs font-bold tracking-[0.2em] mb-4" data-ai-id="test-1-dark-rye-molasses-badge">SEASONAL SPECIAL</span>
+<h3 class="text-3xl font-serif text-primary mb-4" data-ai-id="test-1-dark-rye-molasses-title">Dark Rye &amp; Molasses</h3>
+<p class="text-on-tertiary-fixed-variant mb-8" data-ai-id="test-1-dark-rye-molasses-description">Earthly rye grains infused with dark molasses and toasted caraway seeds. Robust and heartwarming.</p>
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonials -->
+<section class="py-32 bg-surface" data-ai-id="test-1-testimonials-section">
+<div class="max-w-7xl mx-auto px-8" data-ai-id="test-1-testimonials-container">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12" data-ai-id="test-1-testimonials-grid">
+<div class="space-y-6 italic text-on-surface-variant" data-ai-id="test-1-elara-vance-testimonial-card">
+<span class="material-symbols-outlined text-4xl text-primary-container opacity-50" data-ai-id="test-1-elara-vance-testimonial-quote-icon" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<p class="text-xl font-serif leading-relaxed" data-ai-id="test-1-elara-vance-testimonial-quote-text">"Walking into the bakery is like stepping back in time. The sourdough isn't just food; it's a piece of art that makes every breakfast feel special."</p>
+<div class="not-italic" data-ai-id="test-1-elara-vance-testimonial-author-block">
+<p class="font-label text-sm font-bold text-primary tracking-widest" data-ai-id="test-1-elara-vance-testimonial-author-name">ELARA VANCE</p>
+<p class="text-xs text-outline tracking-wider" data-ai-id="test-1-elara-vance-testimonial-author-role">Lifestyle Journalist</p>
+</div>
+</div>
+<div class="space-y-6 italic text-on-surface-variant" data-ai-id="test-1-marcus-chen-testimonial-card">
+<span class="material-symbols-outlined text-4xl text-primary-container opacity-50" data-ai-id="test-1-marcus-chen-testimonial-quote-icon" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+<p class="text-xl font-serif leading-relaxed" data-ai-id="test-1-marcus-chen-testimonial-quote-text">"The baguettes here are the closest I've found to the streets of Paris. Crispy, airy, and full of flavor. Simply incomparable."</p>
+<div class="not-italic" data-ai-id="test-1-marcus-chen-testimonial-author-block">
+<p class="font-label text-sm font-bold text-primary tracking-widest" data-ai-id="test-1-marcus-chen-testimonial-author-name">MARCUS CHEN</p>
+<p class="text-xs text-outline tracking-wider" data-ai-id="test-1-marcus-chen-testimonial-author-role">Head Chef, L'Etoile</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Location & Hours Section -->
+<section class="py-32 bg-surface-container-high" data-ai-id="test-1-visit-section">
+<div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 gap-16 items-stretch" data-ai-id="test-1-visit-grid">
+<div class="bg-surface-container-lowest p-12 rounded-xl shadow-sm border border-outline-variant/10" data-ai-id="test-1-visit-card">
+<h2 class="text-4xl font-serif text-primary mb-12" data-ai-id="test-1-visit-title">Visit Our Hearth</h2>
+<div class="space-y-10" data-ai-id="test-1-visit-details">
+<div class="flex items-start space-x-6" data-ai-id="test-1-visit-address-row">
+<span class="material-symbols-outlined text-primary text-2xl" data-ai-id="test-1-visit-address-icon">location_on</span>
+<div data-ai-id="test-1-visit-address-copy">
+<p class="font-label text-xs font-bold text-outline tracking-widest mb-2 uppercase" data-ai-id="test-1-visit-address-label">Our Address</p>
+<p class="text-lg text-on-surface font-body" data-ai-id="test-1-visit-address-value">124 Artisans Row, Baker's District<br/>Old Town, VT 05401</p>
+</div>
+</div>
+<div class="flex items-start space-x-6" data-ai-id="test-1-visit-hours-row">
+<span class="material-symbols-outlined text-primary text-2xl" data-ai-id="test-1-visit-hours-icon">schedule</span>
+<div data-ai-id="test-1-visit-hours-copy">
+<p class="font-label text-xs font-bold text-outline tracking-widest mb-2 uppercase" data-ai-id="test-1-visit-hours-label">Baking Hours</p>
+<div class="grid grid-cols-2 gap-x-8 gap-y-1 text-on-surface font-body" data-ai-id="test-1-visit-hours-grid">
+<span data-ai-id="test-1-visit-hours-1-day">Tuesday - Friday</span> <span class="font-semibold text-right" data-ai-id="test-1-visit-hours-2-time">11:00 ~ 19:00</span>
+<span data-ai-id="test-1-visit-hours-3-day">Saturday - Sunday</span> <span class="font-semibold text-right" data-ai-id="test-1-visit-hours-4-time">09:00 ~ 15:00</span>
+<span class="opacity-50 italic" data-ai-id="test-1-visit-hours-5-day">Monday</span> <span class="opacity-50 text-right" data-ai-id="test-1-visit-hours-6-time">Closed (Resting)</span>
+</div>
+</div>
+</div>
+<div class="flex items-start space-x-6" data-ai-id="test-1-visit-contact-row">
+<span class="material-symbols-outlined text-primary text-2xl" data-ai-id="test-1-visit-contact-icon">phone_in_talk</span>
+<div data-ai-id="test-1-visit-contact-copy">
+<p class="font-label text-xs font-bold text-outline tracking-widest mb-2 uppercase" data-ai-id="test-1-visit-contact-label">Get in Touch</p>
+<p class="text-lg text-on-surface font-body" data-ai-id="test-1-visit-contact-value">(555) 234-5678<br/>hello@flourishedhearth.com</p>
+</div>
+</div>
+</div>
+</div>
+<div class="rounded-xl overflow-hidden shadow-2xl min-h-[400px] grayscale hover:grayscale-0 transition-all duration-700" data-ai-id="test-1-visit-map-card">
+<img alt="Map location" class="w-full h-full object-cover" data-ai-id="test-1-visit-map-image" data-alt="abstract artistic overhead view of a clean minimalist city map showing the bakery location in a historic district" data-location="Burlington, VT" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKFCZ2ckFjE7haSb_g1hv_u3AlWeNCv8wEu2-adDSTcuKGR6nVVfzrTZHODRt2v2y1-P5MWH2gFdMqNvA48tlXy3ROkBr3tPPw7NZy9OLJHK-E4Q7Ulhu7rvKwawjRvtmJNSuH0X7qvH5T3GZd8PJf7iOu53MoRrhKbxtX8H9R2s9RKQvP_rYlp5YEKp1eLxUmqW9O1NFLJ5HP6gRp-LBUKZA88zfT98tRO6zaeMBtzstzpPiwzxm94x791UxTfPJGD6OUZYWt-vXH"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#ebe8e2] dark:bg-stone-900 font-['Inter'] text-sm leading-relaxed" data-ai-id="test-1-footer">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 px-12 py-20 w-full max-w-7xl mx-auto" data-ai-id="test-1-footer-main">
+<div class="col-span-1 md:col-span-1" data-ai-id="test-1-footer-brand-column">
+<span class="text-xl font-serif text-[#6f4627] dark:text-[#f6f3ed] mb-4 block" data-ai-id="test-1-footer-brand-title">The Artisanal Digital Bakery</span>
+<p class="text-[#8b5e3c] dark:text-[#d5c3b8] mb-6" data-ai-id="test-1-footer-brand-description">Honoring the heritage of slow fermentation and organic grain craft since 1924.</p>
+<div class="flex space-x-4" data-ai-id="test-1-footer-social-links">
+<a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors" data-ai-id="test-1-footer-public-link" href="#">
+<span class="material-symbols-outlined" data-ai-id="test-1-footer-public-icon" style="font-size: 1.25rem;">public</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors" data-ai-id="test-1-footer-community-link" href="#">
+<span class="material-symbols-outlined" data-ai-id="test-1-footer-community-icon" style="font-size: 1.25rem;">diversity_1</span>
+</a>
+</div>
+</div>
+<div data-ai-id="test-1-footer-navigation-column">
+<p class="font-bold text-[#6f4627] mb-6" data-ai-id="test-1-footer-navigation-title">Navigation</p>
+<ul class="space-y-4" data-ai-id="test-1-footer-navigation-list">
+<li data-ai-id="test-1-footer-navigation-our-story-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-navigation-our-story-link" href="#">Our Story</a></li>
+<li data-ai-id="test-1-footer-navigation-signature-breads-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-navigation-signature-breads-link" href="#">Signature Breads</a></li>
+<li data-ai-id="test-1-footer-navigation-pastries-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-navigation-pastries-link" href="#">Pastries</a></li>
+<li data-ai-id="test-1-footer-navigation-workshops-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-navigation-workshops-link" href="#">Workshops</a></li>
+</ul>
+</div>
+<div data-ai-id="test-1-footer-company-column">
+<p class="font-bold text-[#6f4627] mb-6" data-ai-id="test-1-footer-company-title">Company</p>
+<ul class="space-y-4" data-ai-id="test-1-footer-company-list">
+<li data-ai-id="test-1-footer-company-privacy-policy-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-company-privacy-policy-link" href="#">Privacy Policy</a></li>
+<li data-ai-id="test-1-footer-company-sourcing-ethics-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-company-sourcing-ethics-link" href="#">Sourcing Ethics</a></li>
+<li data-ai-id="test-1-footer-company-wholesale-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-company-wholesale-link" href="#">Wholesale</a></li>
+<li data-ai-id="test-1-footer-company-careers-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-company-careers-link" href="#">Careers</a></li>
+<li data-ai-id="test-1-footer-company-press-kit-item"><a class="text-[#8b5e3c] hover:underline decoration-[#8b5e3c] underline-offset-4 transition-colors" data-ai-id="test-1-footer-company-press-kit-link" href="#">Press Kit</a></li>
+</ul>
+</div>
+<div data-ai-id="test-1-footer-newsletter-column">
+<p class="font-bold text-[#6f4627] mb-6" data-ai-id="test-1-footer-newsletter-title">The Hearth Letter</p>
+<p class="text-xs text-[#8b5e3c] mb-4" data-ai-id="test-1-footer-newsletter-description">Receive recipes, early access to workshops, and seasonal bread releases.</p>
+<form class="flex flex-col space-y-2" data-ai-id="test-1-footer-newsletter-form">
+<input class="bg-surface-container-highest border-none rounded px-4 py-2 text-sm focus:ring-1 focus:ring-primary" data-ai-id="test-1-footer-newsletter-email-input" placeholder="Email address" type="email"/>
+<button class="bg-primary text-on-primary py-2 rounded font-label text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity" data-ai-id="test-1-footer-newsletter-subscribe-button">Subscribe</button>
+</form>
+</div>
+</div>
+<div class="border-t border-[#d5c3b8]/20 px-12 py-8 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto" data-ai-id="test-1-footer-bottom">
+<p class="text-xs text-[#8b5e3c]" data-ai-id="test-1-footer-copyright">© 2024 The Artisanal Digital Bakery. Crafted for the Flourished Hearth.</p>
+<p class="text-xs text-[#8b5e3c] mt-4 md:mt-0 italic font-serif" data-ai-id="test-1-footer-tagline">Patience is the main ingredient.</p>
+</div>
+</footer>
+</body></html>

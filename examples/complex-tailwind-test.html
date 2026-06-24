@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Complex Tailwind Test Page</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              surface: {
+                950: '#020617',
+                900: '#0f172a',
+                800: '#172554',
+                700: '#1e293b',
+              },
+            },
+            boxShadow: {
+              glow: '0 0 0 1px rgba(148,163,184,.12), 0 24px 60px rgba(15,23,42,.35)',
+            },
+          },
+        },
+      };
+    </script>
+<style>
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          'Segoe UI', sans-serif;
+      }
+
+      .glass {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.72));
+        backdrop-filter: blur(16px);
+      }
+
+      .grid-pattern {
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+
+      .tab-panel {
+        display: none;
+      }
+
+      .tab-panel.is-active {
+        display: block;
+      }
+
+      .profile-menu,
+      .command-palette,
+      .notification-drawer,
+      .release-body,
+      .toast {
+        transition: all 180ms ease;
+      }
+
+      .profile-menu,
+      .command-palette,
+      .release-body,
+      .toast {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+      }
+
+      .profile-menu.is-open,
+      .command-palette.is-open,
+      .release-body.is-open,
+      .toast.is-open {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .notification-drawer {
+        transform: translateX(100%);
+      }
+
+      .notification-drawer.is-open {
+        transform: translateX(0);
+      }
+
+      .scrim {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .scrim.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased" data-ai-id="complex-tailwind-test-page">
+<div class="fixed inset-0 -z-10 overflow-hidden" data-ai-id="complex-tailwind-test-background">
+<div class="absolute inset-0 grid-pattern" data-ai-id="complex-tailwind-test-background-grid-pattern"></div>
+<div class="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-cyan-500/10 blur-3xl" data-ai-id="complex-tailwind-test-background-center-glow"></div>
+<div class="absolute right-0 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/10 blur-3xl" data-ai-id="complex-tailwind-test-background-right-glow"></div>
+<div class="absolute bottom-0 left-16 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" data-ai-id="complex-tailwind-test-background-left-glow"></div>
+</div>
+<div class="flex min-h-screen" data-ai-id="complex-tailwind-test-layout">
+<aside class="hidden w-80 shrink-0 border-r border-white/10 bg-slate-950/70 xl:block" data-ai-id="complex-tailwind-test-sidebar">
+<div class="sticky top-0 flex h-screen flex-col" data-ai-id="complex-tailwind-test-sidebar-shell">
+<div class="border-b border-white/10 px-6 py-6" data-ai-id="complex-tailwind-test-sidebar-header">
+<div class="flex items-center gap-3" data-ai-id="complex-tailwind-test-workspace-brand">
+<div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/20 text-lg font-semibold text-cyan-200" data-ai-id="complex-tailwind-test-workspace-brand-badge">
+                QX
+              </div>
+<div>
+<p class="text-xs uppercase tracking-[0.28em] text-slate-400" data-ai-id="complex-tailwind-test-workspace-label">Workspace</p>
+<h1 class="mt-1 text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-workspace-title">Quantum Ops</h1>
+</div>
+</div>
+<div class="mt-5 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 shadow-glow" data-ai-id="complex-tailwind-test-current-sprint-card">
+<p class="text-xs uppercase tracking-[0.24em] text-cyan-200/80" data-ai-id="complex-tailwind-test-current-sprint-label">Current sprint</p>
+<div class="mt-3 flex items-end justify-between gap-4">
+<div data-ai-id="complex-tailwind-test-current-sprint-details">
+<p class="text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-current-sprint-title">Launch Readiness</p>
+<p class="mt-1 text-sm text-slate-300" data-ai-id="complex-tailwind-test-current-sprint-summary">14 blockers · 8 reviews · 3 approvals left</p>
+</div>
+<span class="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200" data-ai-id="complex-tailwind-test-current-sprint-status">
+                  82% complete
+                </span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-6" data-ai-id="complex-tailwind-test-sidebar-scroll">
+<nav class="space-y-8" data-ai-id="complex-tailwind-test-sidebar-navigation">
+<section data-ai-id="complex-tailwind-test-sidebar-navigation-section">
+<p class="px-2 text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-sidebar-navigation-heading">Navigation</p>
+<div class="mt-3 space-y-1" data-ai-id="complex-tailwind-test-sidebar-navigation-links">
+<a class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm text-slate-200 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-sidebar-overview-link" href="#overview">
+<span data-ai-id="complex-tailwind-test-sidebar-overview-link-label">Overview</span>
+<span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400" data-ai-id="complex-tailwind-test-sidebar-overview-link-badge">Home</span>
+</a>
+<a class="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm text-white ring-1 ring-white/10" data-ai-id="complex-tailwind-test-sidebar-execution-board-link" href="#board">
+<span data-ai-id="complex-tailwind-test-sidebar-execution-board-link-label">Execution Board</span>
+<span class="rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-200" data-ai-id="complex-tailwind-test-sidebar-execution-board-link-badge">Live</span>
+</a>
+<a class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm text-slate-200 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-sidebar-backlog-table-link" href="#table">
+<span data-ai-id="complex-tailwind-test-sidebar-backlog-table-link-label">Backlog Table</span>
+<span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400" data-ai-id="complex-tailwind-test-sidebar-backlog-table-link-badge">129</span>
+</a>
+<a class="flex items-center justify-between rounded-2xl px-4 py-3 text-sm text-slate-200 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-sidebar-insights-team-link" href="#right-rail">
+<span data-ai-id="complex-tailwind-test-sidebar-insights-team-link-label">Insights &amp; Team</span>
+<span class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400" data-ai-id="complex-tailwind-test-sidebar-insights-team-link-badge">5</span>
+</a>
+</div>
+</section>
+<section data-ai-id="complex-tailwind-test-pinned-squads-section">
+<p class="px-2 text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-pinned-squads-heading">Pinned squads</p>
+<div class="mt-3 space-y-3" data-ai-id="complex-tailwind-test-pinned-squads-list">
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-platform-reliability-card">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-platform-reliability-card-header">
+<div data-ai-id="complex-tailwind-test-platform-reliability-card-copy">
+<h2 class="font-medium text-white" data-ai-id="complex-tailwind-test-platform-reliability-card-title">Platform Reliability</h2>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-platform-reliability-card-description">API, infra, observability</p>
+</div>
+<span class="rounded-full border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-xs text-amber-200" data-ai-id="complex-tailwind-test-platform-reliability-card-badge">Attention</span>
+</div>
+<div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-platform-reliability-card-progress-track">
+<div class="h-full w-2/3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" data-ai-id="complex-tailwind-test-platform-reliability-card-progress-value"></div>
+</div>
+<div class="mt-3 flex items-center justify-between text-xs text-slate-400" data-ai-id="complex-tailwind-test-platform-reliability-card-metadata">
+<span data-ai-id="complex-tailwind-test-platform-reliability-card-metadata-label">Velocity</span>
+<span data-ai-id="complex-tailwind-test-platform-reliability-card-metadata-value">24 pts / week</span>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-growth-systems-card">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-growth-systems-card-header">
+<div data-ai-id="complex-tailwind-test-growth-systems-card-copy">
+<h2 class="font-medium text-white" data-ai-id="complex-tailwind-test-growth-systems-card-title">Growth Systems</h2>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-growth-systems-card-description">Activation, CRM, experiments</p>
+</div>
+<span class="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-xs text-emerald-200" data-ai-id="complex-tailwind-test-growth-systems-card-badge">Stable</span>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs" data-ai-id="complex-tailwind-test-growth-systems-metrics">
+<div class="rounded-xl bg-slate-900/80 p-3" data-ai-id="complex-tailwind-test-growth-systems-tests-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-growth-systems-tests-metric-label">Tests</p>
+<p class="mt-1 text-sm font-semibold text-white" data-ai-id="complex-tailwind-test-growth-systems-tests-metric-value">18</p>
+</div>
+<div class="rounded-xl bg-slate-900/80 p-3" data-ai-id="complex-tailwind-test-growth-systems-win-rate-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-growth-systems-win-rate-metric-label">Win rate</p>
+<p class="mt-1 text-sm font-semibold text-white" data-ai-id="complex-tailwind-test-growth-systems-win-rate-metric-value">61%</p>
+</div>
+<div class="rounded-xl bg-slate-900/80 p-3" data-ai-id="complex-tailwind-test-growth-systems-mrr-lift-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-growth-systems-mrr-lift-metric-label">MRR lift</p>
+<p class="mt-1 text-sm font-semibold text-white" data-ai-id="complex-tailwind-test-growth-systems-mrr-lift-metric-value">+$42k</p>
+</div>
+</div>
+</article>
+</div>
+</section>
+<section data-ai-id="complex-tailwind-test-storage-health-section">
+<p class="px-2 text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-storage-health-heading">Storage health</p>
+<div class="mt-3 space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-storage-health-list">
+<div data-ai-id="complex-tailwind-test-storage-health-assets-cdn-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-storage-health-assets-cdn-meta">
+<span data-ai-id="complex-tailwind-test-storage-health-assets-cdn-label">Assets CDN</span>
+<span data-ai-id="complex-tailwind-test-storage-health-assets-cdn-value">74%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-storage-health-assets-cdn-track">
+<div class="h-full w-3/4 rounded-full bg-cyan-400" data-ai-id="complex-tailwind-test-storage-health-assets-cdn-fill"></div>
+</div>
+</div>
+<div data-ai-id="complex-tailwind-test-storage-health-logs-retention-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-storage-health-logs-retention-meta">
+<span data-ai-id="complex-tailwind-test-storage-health-logs-retention-label">Logs retention</span>
+<span data-ai-id="complex-tailwind-test-storage-health-logs-retention-value">49%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-storage-health-logs-retention-track">
+<div class="h-full w-1/2 rounded-full bg-violet-400" data-ai-id="complex-tailwind-test-storage-health-logs-retention-fill"></div>
+</div>
+</div>
+<div data-ai-id="complex-tailwind-test-storage-health-media-archive-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-storage-health-media-archive-meta">
+<span data-ai-id="complex-tailwind-test-storage-health-media-archive-label">Media archive</span>
+<span data-ai-id="complex-tailwind-test-storage-health-media-archive-value">91%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-storage-health-media-archive-track">
+<div class="h-full w-11/12 rounded-full bg-amber-400" data-ai-id="complex-tailwind-test-storage-health-media-archive-fill"></div>
+</div>
+</div>
+</div>
+</section>
+</nav>
+</div>
+</div>
+</aside>
+<main class="min-w-0 flex-1" data-ai-id="complex-tailwind-test-main">
+<header class="sticky top-0 z-30 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl" data-ai-id="complex-tailwind-test-topbar">
+<div class="mx-auto flex max-w-[1800px] items-center gap-4 px-4 py-4 sm:px-6 lg:px-8" data-ai-id="complex-tailwind-test-topbar-inner">
+<button aria-label="Open navigation" class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 xl:hidden" data-ai-id="complex-tailwind-test-mobile-sidebar-button" id="openMobileSidebarButton" type="button">
+              ☰
+            </button>
+<label class="group relative flex min-w-0 flex-1 items-center" data-ai-id="complex-tailwind-test-global-search-field">
+<span class="pointer-events-none absolute left-4 text-slate-500 transition group-focus-within:text-cyan-300" data-ai-id="complex-tailwind-test-global-search-hotkey">⌘K</span>
+<input class="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-16 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/50 focus:bg-white/10" data-ai-id="complex-tailwind-test-global-search-input" id="globalSearchInput" placeholder="Search issues, squads, deploys, docs, or people" type="search"/>
+</label>
+<div class="hidden items-center gap-3 lg:flex" data-ai-id="complex-tailwind-test-topbar-actions">
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-simulate-sync-button" id="showToastButton" type="button">
+                Simulate Sync
+              </button>
+<button class="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20" data-ai-id="complex-tailwind-test-open-command-palette-button" id="openCommandButton" type="button">
+                Command Palette
+              </button>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-open-notifications-button" id="openDrawerButton" type="button">
+                Notifications
+              </button>
+</div>
+<div class="relative" data-ai-id="complex-tailwind-test-profile-menu-wrap">
+<button aria-expanded="false" class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 transition hover:bg-white/10" data-ai-id="complex-tailwind-test-profile-menu-button" id="profileMenuButton" type="button">
+<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-semibold text-slate-950" data-ai-id="complex-tailwind-test-profile-menu-button-avatar">
+                  YN
+                </div>
+<div class="hidden text-left sm:block" data-ai-id="complex-tailwind-test-profile-menu-button-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-profile-menu-button-name">Yoon N.</p>
+<p class="text-xs text-slate-400" data-ai-id="complex-tailwind-test-profile-menu-button-role">Staff product engineer</p>
+</div>
+</button>
+<div class="profile-menu absolute right-0 mt-3 w-72 rounded-3xl border border-white/10 bg-slate-900/95 p-3 shadow-2xl" data-ai-id="complex-tailwind-test-profile-menu-panel" id="profileMenu">
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-profile-menu-summary">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-profile-menu-summary-title">Signed in as yoon@example.com</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-profile-menu-summary-meta">Access: org admin · 12 projects · 3 environments</p>
+</div>
+<div class="mt-3 space-y-1 text-sm text-slate-200" data-ai-id="complex-tailwind-test-profile-menu-actions">
+<button class="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:bg-white/5" data-ai-id="complex-tailwind-test-profile-menu-profile-settings-button" type="button">
+<span data-ai-id="complex-tailwind-test-profile-menu-profile-settings-button-label">Profile settings</span>
+<span data-ai-id="complex-tailwind-test-profile-menu-profile-settings-button-meta">›</span>
+</button>
+<button class="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:bg-white/5" data-ai-id="complex-tailwind-test-profile-menu-keyboard-shortcuts-button" type="button">
+<span data-ai-id="complex-tailwind-test-profile-menu-keyboard-shortcuts-button-label">Keyboard shortcuts</span>
+<span data-ai-id="complex-tailwind-test-profile-menu-keyboard-shortcuts-button-meta">⌥/</span>
+</button>
+<button class="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:bg-white/5" data-ai-id="complex-tailwind-test-profile-menu-billing-and-limits-button" type="button">
+<span data-ai-id="complex-tailwind-test-profile-menu-billing-and-limits-button-label">Billing &amp; limits</span>
+<span data-ai-id="complex-tailwind-test-profile-menu-billing-and-limits-button-meta">›</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</header>
+<div class="mx-auto max-w-[1800px] px-4 py-8 sm:px-6 lg:px-8" data-ai-id="complex-tailwind-test-content">
+<section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]" data-ai-id="complex-tailwind-test-overview-section" id="overview">
+<div class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow sm:p-8" data-ai-id="complex-tailwind-test-hero-panel">
+<div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between" data-ai-id="complex-tailwind-test-hero-panel-inner">
+<div data-ai-id="complex-tailwind-test-hero-copy">
+<p class="text-xs uppercase tracking-[0.34em] text-cyan-200/80" data-ai-id="complex-tailwind-test-hero-label">Live control center</p>
+<h2 class="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl" data-ai-id="complex-tailwind-test-hero-title">
+                    Complex, nested, scrollable UI surface for extension QA and selector stress tests.
+                  </h2>
+<p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base" data-ai-id="complex-tailwind-test-hero-description">
+                    This page intentionally mixes dashboards, forms, tabs, tables, boards, drawers, menus,
+                    charts, cards, accordions, sticky regions, and long scrolling content so you can test
+                    hover behavior on a realistic application shell.
+                  </p>
+</div>
+<div class="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:w-[430px]" data-ai-id="complex-tailwind-test-hero-metrics">
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-hero-events-card">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-hero-events-label">Events</p>
+<p class="mt-3 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-hero-events-value">1,842</p>
+<p class="mt-1 text-xs text-emerald-300" data-ai-id="complex-tailwind-test-hero-events-meta">+18.4% today</p>
+</div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-hero-latency-card">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-hero-latency-label">Latency</p>
+<p class="mt-3 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-hero-latency-value">212ms</p>
+<p class="mt-1 text-xs text-amber-300" data-ai-id="complex-tailwind-test-hero-latency-meta">p95 warning</p>
+</div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-hero-approvals-card">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-hero-approvals-label">Approvals</p>
+<p class="mt-3 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-hero-approvals-value">37</p>
+<p class="mt-1 text-xs text-cyan-300" data-ai-id="complex-tailwind-test-hero-approvals-meta">9 pending</p>
+</div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-hero-deploy-risk-card">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-hero-deploy-risk-label">Deploy risk</p>
+<p class="mt-3 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-hero-deploy-risk-value">Medium</p>
+<p class="mt-1 text-xs text-violet-300" data-ai-id="complex-tailwind-test-hero-deploy-risk-meta">4 checks gated</p>
+</div>
+</div>
+</div>
+</div>
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-environment-pulse-panel">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-environment-pulse-header">
+<div data-ai-id="complex-tailwind-test-environment-pulse-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-environment-pulse-label">Environment pulse</p>
+<h3 class="mt-2 text-xl font-semibold text-white" data-ai-id="complex-tailwind-test-environment-pulse-title">Production Europe</h3>
+</div>
+<span class="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-medium text-emerald-200" data-ai-id="complex-tailwind-test-environment-pulse-status-badge">Healthy</span>
+</div>
+<div class="mt-6 space-y-5" data-ai-id="complex-tailwind-test-environment-pulse-metrics">
+<div data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-meta">
+<span data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-label">CPU saturation</span>
+<span data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-value">58%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-track">
+<div class="h-full w-[58%] rounded-full bg-cyan-400" data-ai-id="complex-tailwind-test-environment-pulse-cpu-saturation-fill"></div>
+</div>
+</div>
+<div data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-meta">
+<span data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-label">Queue depth</span>
+<span data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-value">31%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-track">
+<div class="h-full w-[31%] rounded-full bg-violet-400" data-ai-id="complex-tailwind-test-environment-pulse-queue-depth-fill"></div>
+</div>
+</div>
+<div data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-row">
+<div class="mb-2 flex items-center justify-between text-sm text-slate-300" data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-meta">
+<span data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-label">Region failover readiness</span>
+<span data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-value">94%</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-track">
+<div class="h-full w-[94%] rounded-full bg-emerald-400" data-ai-id="complex-tailwind-test-environment-pulse-failover-readiness-fill"></div>
+</div>
+</div>
+</div>
+<div class="mt-6 rounded-2xl border border-white/10 bg-slate-950/70 p-4" data-ai-id="complex-tailwind-test-environment-pulse-incident-card">
+<div class="flex items-center justify-between text-sm" data-ai-id="complex-tailwind-test-environment-pulse-incident-meta">
+<span class="text-slate-400" data-ai-id="complex-tailwind-test-environment-pulse-incident-label">Last incident drill</span>
+<span class="text-white" data-ai-id="complex-tailwind-test-environment-pulse-incident-value">18 minutes ago</span>
+</div>
+<div class="mt-4 flex items-center gap-3 text-xs text-slate-400" data-ai-id="complex-tailwind-test-environment-pulse-incident-tags">
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-environment-pulse-incident-kafka-tag">Kafka</span>
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-environment-pulse-incident-cdn-tag">CDN</span>
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-environment-pulse-incident-payments-tag">Payments</span>
+</div>
+</div>
+</section>
+</section>
+<section class="mt-8" data-ai-id="complex-tailwind-test-tabs-section">
+<div class="flex flex-wrap items-center gap-3" data-ai-id="complex-tailwind-test-tab-list">
+<button aria-controls="tab-overview-panel" class="tab-trigger rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white" data-ai-id="complex-tailwind-test-tab-overview-button" type="button">
+                Overview
+              </button>
+<button aria-controls="tab-ops-panel" class="tab-trigger rounded-full border border-white/10 bg-transparent px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-tab-operations-button" type="button">
+                Operations
+              </button>
+<button aria-controls="tab-design-panel" class="tab-trigger rounded-full border border-white/10 bg-transparent px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-tab-design-review-button" type="button">
+                Design Review
+              </button>
+<button aria-controls="tab-research-panel" class="tab-trigger rounded-full border border-white/10 bg-transparent px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-tab-research-button" type="button">
+                Research
+              </button>
+</div>
+<div class="mt-6 tab-panel is-active" data-ai-id="complex-tailwind-test-tab-overview-panel" id="tab-overview-panel">
+<div class="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_400px]" data-ai-id="complex-tailwind-test-overview-panel-grid">
+<div class="space-y-6" data-ai-id="complex-tailwind-test-overview-panel-main-column">
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-sprint-board-section" id="board">
+<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between" data-ai-id="complex-tailwind-test-sprint-board-header">
+<div data-ai-id="complex-tailwind-test-sprint-board-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-sprint-board-label">Execution board</p>
+<h3 class="mt-2 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-sprint-board-title">Sprint board</h3>
+</div>
+<div class="flex flex-wrap gap-2 text-sm" data-ai-id="complex-tailwind-test-sprint-board-filters">
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-slate-300 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-sprint-board-all-squads-button" type="button">All squads</button>
+<button class="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-cyan-100 transition hover:bg-cyan-400/20" data-ai-id="complex-tailwind-test-sprint-board-critical-path-button" type="button">Critical path</button>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-slate-300 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-sprint-board-needs-review-button" type="button">Needs review</button>
+</div>
+</div>
+<div class="mt-6 grid gap-4 xl:grid-cols-3" data-ai-id="complex-tailwind-test-sprint-board-lanes">
+<section class="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-4" data-ai-id="complex-tailwind-test-sprint-board-queued-lane">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-sprint-board-queued-lane-header">
+<div data-ai-id="complex-tailwind-test-sprint-board-queued-lane-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-sprint-board-queued-lane-title">Queued</p>
+<p class="text-xs text-slate-500" data-ai-id="complex-tailwind-test-sprint-board-queued-lane-count">12 issues</p>
+</div>
+<span class="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-sprint-board-queued-lane-badge">WIP 6</span>
+</div>
+<div class="mt-4 space-y-3" data-ai-id="complex-tailwind-test-sprint-board-queued-lane-content">
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-retry-scheduler-card">
+<div class="flex items-start justify-between gap-3" data-ai-id="complex-tailwind-test-retry-scheduler-card-header">
+<div data-ai-id="complex-tailwind-test-retry-scheduler-card-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-retry-scheduler-card-title">Refactor retry scheduler</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-retry-scheduler-card-description">Retry bursts are starving analytics workers on peak load.</p>
+</div>
+<span class="rounded-full border border-amber-300/20 bg-amber-300/10 px-2 py-1 text-[11px] text-amber-200" data-ai-id="complex-tailwind-test-retry-scheduler-card-priority-badge">High</span>
+</div>
+<div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400" data-ai-id="complex-tailwind-test-retry-scheduler-card-tags">
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-retry-scheduler-card-infra-tag">Infra</span>
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-retry-scheduler-card-backend-tag">Backend</span>
+<span class="rounded-full bg-slate-800 px-2.5 py-1" data-ai-id="complex-tailwind-test-retry-scheduler-card-observability-tag">Observability</span>
+</div>
+<div class="mt-4 flex items-center justify-between" data-ai-id="complex-tailwind-test-retry-scheduler-card-footer">
+<div class="flex -space-x-2" data-ai-id="complex-tailwind-test-retry-scheduler-card-assignees">
+<div class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-950 bg-cyan-400 text-xs font-semibold text-slate-950" data-ai-id="complex-tailwind-test-retry-scheduler-card-assignee-an">AN</div>
+<div class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-950 bg-violet-400 text-xs font-semibold text-slate-950" data-ai-id="complex-tailwind-test-retry-scheduler-card-assignee-jt">JT</div>
+</div>
+<button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/5" data-ai-id="complex-tailwind-test-retry-scheduler-card-open-button" type="button">Open task</button>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card">
+<div class="flex items-start justify-between gap-3" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-header">
+<div data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-title">Deprecation audit for legacy checkout</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-description">Multiple internal hooks are still consuming deprecated payload fields.</p>
+</div>
+<span class="rounded-full border border-rose-300/20 bg-rose-300/10 px-2 py-1 text-[11px] text-rose-200" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-priority-badge">Urgent</span>
+</div>
+<div class="mt-4 space-y-2 text-xs text-slate-400" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress-meta">
+<span data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress-label">Audit progress</span>
+<span data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress-value">7 / 11 modules</span>
+</div>
+<div class="h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress-track">
+<div class="h-full w-[64%] rounded-full bg-rose-400" data-ai-id="complex-tailwind-test-legacy-checkout-audit-card-progress-fill"></div>
+</div>
+</div>
+</article>
+</div>
+</section>
+<section class="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-4" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-header">
+<div data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-title">In progress</p>
+<p class="text-xs text-slate-500" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-count">8 issues</p>
+</div>
+<span class="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-200" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-badge">Focus lane</span>
+</div>
+<div class="mt-4 space-y-3" data-ai-id="complex-tailwind-test-sprint-board-in-progress-lane-content">
+<article class="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 ring-1 ring-cyan-400/10" data-ai-id="complex-tailwind-test-media-pipeline-card">
+<div class="flex items-center justify-between gap-3" data-ai-id="complex-tailwind-test-media-pipeline-card-header">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-media-pipeline-card-title">Containerized media pipeline</p>
+<span class="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-[11px] text-cyan-100" data-ai-id="complex-tailwind-test-media-pipeline-card-owner-badge">Owner: Media</span>
+</div>
+<div class="mt-4 grid gap-3 sm:grid-cols-2" data-ai-id="complex-tailwind-test-media-pipeline-card-detail-panels">
+<div class="rounded-2xl bg-slate-950/70 p-3" data-ai-id="complex-tailwind-test-media-pipeline-card-status-panel">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-media-pipeline-card-status-label">Status</p>
+<p class="mt-2 text-sm text-white" data-ai-id="complex-tailwind-test-media-pipeline-card-status-value">Transcoder migration blocked by IAM policy review.</p>
+</div>
+<div class="rounded-2xl bg-slate-950/70 p-3" data-ai-id="complex-tailwind-test-media-pipeline-card-next-step-panel">
+<p class="text-xs uppercase tracking-[0.2em] text-slate-500" data-ai-id="complex-tailwind-test-media-pipeline-card-next-step-label">Next step</p>
+<p class="mt-2 text-sm text-white" data-ai-id="complex-tailwind-test-media-pipeline-card-next-step-value">Finalize policy exceptions with security and legal.</p>
+</div>
+</div>
+<div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-300" data-ai-id="complex-tailwind-test-media-pipeline-card-actions">
+<button class="rounded-xl border border-white/10 px-3 py-1.5 transition hover:bg-white/5" data-ai-id="complex-tailwind-test-media-pipeline-card-spec-button" type="button">Spec</button>
+<button class="rounded-xl border border-white/10 px-3 py-1.5 transition hover:bg-white/5" data-ai-id="complex-tailwind-test-media-pipeline-card-logs-button" type="button">Logs</button>
+<button class="rounded-xl border border-white/10 px-3 py-1.5 transition hover:bg-white/5" data-ai-id="complex-tailwind-test-media-pipeline-card-reviewers-button" type="button">Reviewers</button>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-runbook-polish-card">
+<div class="flex items-start justify-between gap-3" data-ai-id="complex-tailwind-test-runbook-polish-card-header">
+<div data-ai-id="complex-tailwind-test-runbook-polish-card-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-runbook-polish-card-title">On-call runbook polish</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-runbook-polish-card-description">Add screenshots, alert routing, and failover call tree.</p>
+</div>
+<span class="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-1 text-[11px] text-emerald-200" data-ai-id="complex-tailwind-test-runbook-polish-card-risk-badge">Low risk</span>
+</div>
+<ul class="mt-4 space-y-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-runbook-polish-card-checklist">
+<li class="flex items-center gap-3 rounded-xl bg-slate-950/60 px-3 py-2" data-ai-id="complex-tailwind-test-runbook-polish-card-escalation-paths-item"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-runbook-polish-card-escalation-paths-checkbox" type="checkbox"/> Escalation paths verified</li>
+<li class="flex items-center gap-3 rounded-xl bg-slate-950/60 px-3 py-2" data-ai-id="complex-tailwind-test-runbook-polish-card-pager-rotations-item"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-runbook-polish-card-pager-rotations-checkbox" type="checkbox"/> Pager rotations refreshed</li>
+<li class="flex items-center gap-3 rounded-xl bg-slate-950/60 px-3 py-2" data-ai-id="complex-tailwind-test-runbook-polish-card-gif-walkthrough-item"><input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-runbook-polish-card-gif-walkthrough-checkbox" type="checkbox"/> GIF walkthrough pending</li>
+</ul>
+</article>
+</div>
+</section>
+<section class="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-4" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-header">
+<div data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-title">Review &amp; ship</p>
+<p class="text-xs text-slate-500" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-count">5 issues</p>
+</div>
+<span class="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-200" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-badge">Shipping soon</span>
+</div>
+<div class="mt-4 space-y-3" data-ai-id="complex-tailwind-test-sprint-board-review-and-ship-lane-content">
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-localized-billing-card">
+<div class="flex items-start justify-between gap-3" data-ai-id="complex-tailwind-test-localized-billing-card-header">
+<div data-ai-id="complex-tailwind-test-localized-billing-card-copy">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-localized-billing-card-title">Localized billing summary</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-localized-billing-card-description">Ready for FR/DE content QA and final screenshot pass.</p>
+</div>
+<button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/5" data-ai-id="complex-tailwind-test-localized-billing-card-preview-button" type="button">Preview</button>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs" data-ai-id="complex-tailwind-test-localized-billing-card-metrics">
+<div class="rounded-xl bg-slate-950/60 p-3" data-ai-id="complex-tailwind-test-localized-billing-card-locales-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-localized-billing-card-locales-metric-label">Locales</p>
+<p class="mt-1 font-semibold text-white" data-ai-id="complex-tailwind-test-localized-billing-card-locales-metric-value">12</p>
+</div>
+<div class="rounded-xl bg-slate-950/60 p-3" data-ai-id="complex-tailwind-test-localized-billing-card-qa-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-localized-billing-card-qa-metric-label">QA</p>
+<p class="mt-1 font-semibold text-white" data-ai-id="complex-tailwind-test-localized-billing-card-qa-metric-value">91%</p>
+</div>
+<div class="rounded-xl bg-slate-950/60 p-3" data-ai-id="complex-tailwind-test-localized-billing-card-signoff-metric">
+<p class="text-slate-500" data-ai-id="complex-tailwind-test-localized-billing-card-signoff-metric-label">Signoff</p>
+<p class="mt-1 font-semibold text-white" data-ai-id="complex-tailwind-test-localized-billing-card-signoff-metric-value">2/3</p>
+</div>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-growth-prompts-card">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-growth-prompts-card-title">Growth prompt templates</p>
+<p class="mt-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-growth-prompts-card-description">Legal copy approved. Waiting on knowledge base links.</p>
+<div class="mt-4 flex flex-wrap gap-2" data-ai-id="complex-tailwind-test-growth-prompts-card-tags">
+<span class="rounded-full border border-white/10 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300" data-ai-id="complex-tailwind-test-growth-prompts-card-ai-tag">AI</span>
+<span class="rounded-full border border-white/10 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300" data-ai-id="complex-tailwind-test-growth-prompts-card-copy-tag">Copy</span>
+<span class="rounded-full border border-white/10 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300" data-ai-id="complex-tailwind-test-growth-prompts-card-support-tag">Support</span>
+<span class="rounded-full border border-white/10 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300" data-ai-id="complex-tailwind-test-growth-prompts-card-go-to-market-tag">Go to market</span>
+</div>
+</article>
+</div>
+</section>
+</div>
+</section>
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-release-planning-section">
+<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between" data-ai-id="complex-tailwind-test-release-planning-header">
+<div data-ai-id="complex-tailwind-test-release-planning-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-release-planning-label">Planning</p>
+<h3 class="mt-2 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-release-planning-title">Release checklist</h3>
+</div>
+<div class="flex flex-wrap gap-3 text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-planning-filters">
+<label class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2" data-ai-id="complex-tailwind-test-release-planning-blockers-only-filter">
+<input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-release-planning-blockers-only-checkbox" type="checkbox"/>
+                          Blockers only
+                        </label>
+<label class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2" data-ai-id="complex-tailwind-test-release-planning-include-docs-filter">
+<input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-release-planning-include-docs-checkbox" type="checkbox"/>
+                          Include docs
+                        </label>
+</div>
+</div>
+<div class="mt-6 grid gap-4 lg:grid-cols-2" data-ai-id="complex-tailwind-test-release-planning-grid">
+<div class="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-5" data-ai-id="complex-tailwind-test-launch-criteria-card">
+<h4 class="text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-launch-criteria-card-title">Launch criteria</h4>
+<ul class="mt-4 space-y-3 text-sm text-slate-300" data-ai-id="complex-tailwind-test-launch-criteria-list">
+<li class="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-3" data-ai-id="complex-tailwind-test-launch-criteria-zero-critical-incidents-item">
+<input checked="" class="mt-1 rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-launch-criteria-zero-critical-incidents-checkbox" type="checkbox"/>
+<div data-ai-id="complex-tailwind-test-launch-criteria-zero-critical-incidents-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-launch-criteria-zero-critical-incidents-title">Zero critical incidents in the last 72 hours</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-launch-criteria-zero-critical-incidents-description">Observed across all target regions and channels.</p>
+</div>
+</li>
+<li class="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-3" data-ai-id="complex-tailwind-test-launch-criteria-billing-backfills-item">
+<input checked="" class="mt-1 rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-launch-criteria-billing-backfills-checkbox" type="checkbox"/>
+<div data-ai-id="complex-tailwind-test-launch-criteria-billing-backfills-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-launch-criteria-billing-backfills-title">Billing and entitlement backfills reconciled</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-launch-criteria-billing-backfills-description">Validation job completed with &lt; 0.5% discrepancy.</p>
+</div>
+</li>
+<li class="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-3" data-ai-id="complex-tailwind-test-launch-criteria-executive-review-deck-item">
+<input class="mt-1 rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-launch-criteria-executive-review-deck-checkbox" type="checkbox"/>
+<div data-ai-id="complex-tailwind-test-launch-criteria-executive-review-deck-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-launch-criteria-executive-review-deck-title">Executive review deck finalized</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-launch-criteria-executive-review-deck-description">Pending narrative alignment with support and finance.</p>
+</div>
+</li>
+</ul>
+</div>
+<form class="rounded-[1.5rem] border border-white/10 bg-slate-950/50 p-5" data-ai-id="complex-tailwind-test-release-planning-form">
+<div class="grid gap-4 sm:grid-cols-2" data-ai-id="complex-tailwind-test-release-planning-form-fields">
+<label class="space-y-2" data-ai-id="complex-tailwind-test-release-planning-owner-field">
+<span class="text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-planning-owner-label">Owner</span>
+<input class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/40" data-ai-id="complex-tailwind-test-release-planning-owner-input" type="text" value="Product Operations"/>
+</label>
+<label class="space-y-2" data-ai-id="complex-tailwind-test-release-planning-approval-sla-field">
+<span class="text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-planning-approval-sla-label">Approval SLA</span>
+<select class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/40" data-ai-id="complex-tailwind-test-release-planning-approval-sla-select">
+<option>Same day</option>
+<option>24 hours</option>
+<option>48 hours</option>
+</select>
+</label>
+<label class="space-y-2 sm:col-span-2" data-ai-id="complex-tailwind-test-release-planning-launch-narrative-field">
+<span class="text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-planning-launch-narrative-label">Launch narrative</span>
+<textarea class="w-full rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400/40" data-ai-id="complex-tailwind-test-release-planning-launch-narrative-textarea" rows="5">We are consolidating launch blockers into a single coordinated release train while preserving rollback readiness and clear ownership.</textarea>
+</label>
+<label class="space-y-2 sm:col-span-2" data-ai-id="complex-tailwind-test-release-planning-rollout-confidence-field">
+<span class="text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-planning-rollout-confidence-label">Rollout confidence</span>
+<input class="w-full accent-cyan-400" data-ai-id="complex-tailwind-test-release-planning-rollout-confidence-slider" max="100" min="0" type="range" value="72"/>
+</label>
+</div>
+<div class="mt-5 flex flex-wrap gap-3" data-ai-id="complex-tailwind-test-release-planning-actions">
+<button class="rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-200" data-ai-id="complex-tailwind-test-release-planning-save-draft-button" type="button">Save draft</button>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-release-planning-request-review-button" type="button">Request review</button>
+</div>
+</form>
+</div>
+</section>
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-workstream-table-section" id="table">
+<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between" data-ai-id="complex-tailwind-test-workstream-table-header">
+<div data-ai-id="complex-tailwind-test-workstream-table-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-label">Backlog inventory</p>
+<h3 class="mt-2 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-workstream-table-title">Workstream table</h3>
+</div>
+<div class="flex flex-wrap gap-3" data-ai-id="complex-tailwind-test-workstream-table-actions">
+<label class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-workstream-table-show-blocked-filter">
+<input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-show-blocked-checkbox" type="checkbox"/>
+                          Show blocked only
+                        </label>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-workstream-table-export-button" type="button">Export CSV</button>
+</div>
+</div>
+<div class="mt-6 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/40" data-ai-id="complex-tailwind-test-workstream-table-wrapper">
+<div class="overflow-x-auto" data-ai-id="complex-tailwind-test-workstream-table-scroll">
+<table class="min-w-full divide-y divide-white/10 text-left text-sm" data-ai-id="complex-tailwind-test-workstream-table">
+<thead class="bg-white/5 text-slate-400" data-ai-id="complex-tailwind-test-workstream-table-head">
+<tr data-ai-id="complex-tailwind-test-workstream-table-head-row">
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-select"><input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-head-select-checkbox" type="checkbox"/></th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-issue">Issue</th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-squad">Squad</th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-priority">Priority</th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-eta">ETA</th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-status">Status</th>
+<th class="px-4 py-3 font-medium" data-ai-id="complex-tailwind-test-workstream-table-head-owner">Owner</th>
+<th class="px-4 py-3 font-medium text-right" data-ai-id="complex-tailwind-test-workstream-table-head-action">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5 text-slate-200" data-ai-id="complex-tailwind-test-workstream-table-body">
+<tr class="hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-row">
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-select-cell"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-select-checkbox" type="checkbox"/></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-issue-cell">
+<div data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-issue-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-issue-title">API token rotation banner</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-issue-description">Security messaging for expiring enterprise integrations.</p>
+</div>
+</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-squad-cell">Trust</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-priority-cell"><span class="rounded-full bg-rose-400/10 px-2.5 py-1 text-xs text-rose-200" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-priority-badge">P0</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-eta-cell">Today, 18:00</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-status-cell"><span class="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs text-amber-200" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-status-badge">Blocked</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-owner-cell">Mina</td>
+<td class="px-4 py-3 text-right" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-action-cell"><button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs transition hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-api-token-rotation-banner-open-button" type="button">Open</button></td>
+</tr>
+<tr class="hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-row">
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-select-cell"><input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-select-checkbox" type="checkbox"/></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-issue-cell">
+<div data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-issue-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-issue-title">Regional tax copy review</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-issue-description">Waiting for legal sign-off in Canada and Australia.</p>
+</div>
+</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-squad-cell">Finance</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-priority-cell"><span class="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs text-amber-200" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-priority-badge">P1</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-eta-cell">Apr 14</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-status-cell"><span class="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-200" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-status-badge">Review</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-owner-cell">Aria</td>
+<td class="px-4 py-3 text-right" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-action-cell"><button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs transition hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-regional-tax-copy-review-open-button" type="button">Open</button></td>
+</tr>
+<tr class="hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-row">
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-select-cell"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-select-checkbox" type="checkbox"/></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-issue-cell">
+<div data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-issue-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-issue-title">Fallback image renderer</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-issue-description">Raster conversion spikes memory for long PDFs.</p>
+</div>
+</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-squad-cell">Docs AI</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-priority-cell"><span class="rounded-full bg-rose-400/10 px-2.5 py-1 text-xs text-rose-200" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-priority-badge">P0</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-eta-cell">Today, 20:30</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-status-cell"><span class="rounded-full bg-rose-400/10 px-2.5 py-1 text-xs text-rose-200" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-status-badge">Critical</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-owner-cell">Dae</td>
+<td class="px-4 py-3 text-right" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-action-cell"><button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs transition hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-fallback-image-renderer-open-button" type="button">Open</button></td>
+</tr>
+<tr class="hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-row">
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-select-cell"><input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-select-checkbox" type="checkbox"/></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-issue-cell">
+<div data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-issue-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-issue-title">Admin bulk invite UX</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-issue-description">Needs empty, partial-failure, and CSV validation states.</p>
+</div>
+</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-squad-cell">Growth</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-priority-cell"><span class="rounded-full bg-violet-400/10 px-2.5 py-1 text-xs text-violet-200" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-priority-badge">P2</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-eta-cell">Apr 17</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-status-cell"><span class="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-200" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-status-badge">On track</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-owner-cell">Leo</td>
+<td class="px-4 py-3 text-right" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-action-cell"><button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs transition hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-admin-bulk-invite-ux-open-button" type="button">Open</button></td>
+</tr>
+<tr class="hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-row">
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-select-cell"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-select-checkbox" type="checkbox"/></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-issue-cell">
+<div data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-issue-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-issue-title">Rollback decision matrix</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-issue-description">Final stakeholder review pending with support leadership.</p>
+</div>
+</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-squad-cell">Operations</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-priority-cell"><span class="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs text-amber-200" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-priority-badge">P1</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-eta-cell">Apr 11</td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-status-cell"><span class="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs text-amber-200" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-status-badge">Waiting</span></td>
+<td class="px-4 py-3" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-owner-cell">Noah</td>
+<td class="px-4 py-3 text-right" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-action-cell"><button class="rounded-xl border border-white/10 px-3 py-1.5 text-xs transition hover:bg-white/5" data-ai-id="complex-tailwind-test-workstream-table-rollback-decision-matrix-open-button" type="button">Open</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+<aside class="space-y-6" data-ai-id="complex-tailwind-test-overview-panel-right-rail" id="right-rail">
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-activity-section">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-activity-header">
+<div data-ai-id="complex-tailwind-test-activity-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-activity-label">Activity</p>
+<h3 class="mt-2 text-xl font-semibold text-white" data-ai-id="complex-tailwind-test-activity-title">Recent events</h3>
+</div>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-activity-filter-button" type="button">Filter</button>
+</div>
+<div class="mt-6 space-y-4" data-ai-id="complex-tailwind-test-activity-list">
+<article class="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-activity-infra-bot-event-item">
+<div class="mt-1 h-3 w-3 shrink-0 rounded-full bg-emerald-400" data-ai-id="complex-tailwind-test-activity-infra-bot-event-dot"></div>
+<div data-ai-id="complex-tailwind-test-activity-infra-bot-event-copy">
+<p class="text-sm text-white" data-ai-id="complex-tailwind-test-activity-infra-bot-event-message"><span class="font-medium">Infra bot</span> completed rollback rehearsal in eu-west-1.</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-activity-infra-bot-event-meta">4 minutes ago · automation</p>
+</div>
+</article>
+<article class="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-activity-mina-review-event-item">
+<div class="mt-1 h-3 w-3 shrink-0 rounded-full bg-amber-400" data-ai-id="complex-tailwind-test-activity-mina-review-event-dot"></div>
+<div data-ai-id="complex-tailwind-test-activity-mina-review-event-copy">
+<p class="text-sm text-white" data-ai-id="complex-tailwind-test-activity-mina-review-event-message"><span class="font-medium">Mina</span> requested final legal review for regional pricing disclosures.</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-activity-mina-review-event-meta">19 minutes ago · comment</p>
+</div>
+</article>
+<article class="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-activity-support-ops-upload-event-item">
+<div class="mt-1 h-3 w-3 shrink-0 rounded-full bg-cyan-400" data-ai-id="complex-tailwind-test-activity-support-ops-upload-event-dot"></div>
+<div data-ai-id="complex-tailwind-test-activity-support-ops-upload-event-copy">
+<p class="text-sm text-white" data-ai-id="complex-tailwind-test-activity-support-ops-upload-event-message"><span class="font-medium">Support Ops</span> uploaded an updated FAQ pack with 12 screenshots.</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-activity-support-ops-upload-event-meta">44 minutes ago · docs</p>
+</div>
+</article>
+</div>
+</section>
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-team-availability-section">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-team-availability-label">Team availability</p>
+<h3 class="mt-2 text-xl font-semibold text-white" data-ai-id="complex-tailwind-test-team-availability-title">Coverage map</h3>
+<div class="mt-5 space-y-4" data-ai-id="complex-tailwind-test-team-availability-list">
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-core-platform-coverage-card">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-core-platform-coverage-header">
+<div data-ai-id="complex-tailwind-test-core-platform-coverage-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-core-platform-coverage-title">Core platform</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-core-platform-coverage-description">APAC / EU overlap</p>
+</div>
+<span class="text-xs text-emerald-300" data-ai-id="complex-tailwind-test-core-platform-coverage-status">Online</span>
+</div>
+<div class="mt-4 flex h-2 overflow-hidden rounded-full bg-slate-800" data-ai-id="complex-tailwind-test-core-platform-coverage-bar">
+<div class="h-full w-1/3 bg-cyan-400" data-ai-id="complex-tailwind-test-core-platform-coverage-apac-segment"></div>
+<div class="h-full w-1/3 bg-emerald-400" data-ai-id="complex-tailwind-test-core-platform-coverage-eu-segment"></div>
+<div class="h-full w-1/3 bg-violet-400" data-ai-id="complex-tailwind-test-core-platform-coverage-us-segment"></div>
+</div>
+</div>
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-customer-systems-coverage-card">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-customer-systems-coverage-header">
+<div data-ai-id="complex-tailwind-test-customer-systems-coverage-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-customer-systems-coverage-title">Customer systems</p>
+<p class="mt-1 text-xs text-slate-500" data-ai-id="complex-tailwind-test-customer-systems-coverage-description">US West heavy</p>
+</div>
+<span class="text-xs text-amber-300" data-ai-id="complex-tailwind-test-customer-systems-coverage-status">Thin coverage</span>
+</div>
+<div class="mt-4 grid grid-cols-7 gap-2 text-center text-[11px] text-slate-500" data-ai-id="complex-tailwind-test-customer-systems-coverage-days">
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-monday">M</span>
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-tuesday">T</span>
+<span class="rounded-lg bg-cyan-400/20 px-2 py-2 text-cyan-100" data-ai-id="complex-tailwind-test-customer-systems-coverage-wednesday">W</span>
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-thursday">T</span>
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-friday">F</span>
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-saturday">S</span>
+<span class="rounded-lg bg-slate-900 px-2 py-2" data-ai-id="complex-tailwind-test-customer-systems-coverage-sunday">S</span>
+</div>
+</div>
+</div>
+</section>
+<section class="glass rounded-[2rem] border border-white/10 p-6 shadow-glow" data-ai-id="complex-tailwind-test-release-notes-section">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-release-notes-label">Release notes</p>
+<h3 class="mt-2 text-xl font-semibold text-white" data-ai-id="complex-tailwind-test-release-notes-title">Accordion section</h3>
+<div class="mt-5 space-y-3" data-ai-id="complex-tailwind-test-release-notes-list">
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-item">
+<button aria-controls="release-1-body" class="release-toggle flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-white" data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-toggle" type="button">
+<span data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-toggle-label">API gateway hardening</span>
+<span data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-toggle-icon">+</span>
+</button>
+<div class="release-body mt-0 max-h-0 overflow-hidden text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-body" id="release-1-body">
+<p class="pt-4" data-ai-id="complex-tailwind-test-release-note-api-gateway-hardening-description">Rate-limit smoothing, stricter cache invalidation, and emergency bypass docs are now ready for the final incident review.</p>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-item">
+<button aria-controls="release-2-body" class="release-toggle flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-white" data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-toggle" type="button">
+<span data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-toggle-label">Billing statements refresh</span>
+<span data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-toggle-icon">+</span>
+</button>
+<div class="release-body mt-0 max-h-0 overflow-hidden text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-body" id="release-2-body">
+<p class="pt-4" data-ai-id="complex-tailwind-test-release-note-billing-statements-refresh-description">Simplified totals, clearer discount naming, and improved failure recovery states are included in this batch.</p>
+</div>
+</article>
+<article class="rounded-2xl border border-white/10 bg-white/5 p-4" data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-item">
+<button aria-controls="release-3-body" class="release-toggle flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-white" data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-toggle" type="button">
+<span data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-toggle-label">Support playbook packaging</span>
+<span data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-toggle-icon">+</span>
+</button>
+<div class="release-body mt-0 max-h-0 overflow-hidden text-sm text-slate-300" data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-body" id="release-3-body">
+<p class="pt-4" data-ai-id="complex-tailwind-test-release-note-support-playbook-packaging-description">Includes macros, escalation snippets, response trees, and customer-facing screenshots for all core entry points.</p>
+</div>
+</article>
+</div>
+</section>
+</aside>
+</div>
+</div>
+<div class="tab-panel" data-ai-id="complex-tailwind-test-tab-operations-panel" id="tab-ops-panel">
+<section class="glass rounded-[2rem] border border-white/10 p-8 shadow-glow" data-ai-id="complex-tailwind-test-operations-section">
+<h3 class="text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-operations-section-title">Operations view</h3>
+<p class="mt-3 max-w-3xl text-sm leading-7 text-slate-300" data-ai-id="complex-tailwind-test-operations-section-description">
+                  This tab exists to add another branch of nested UI. It includes dense summary cards, command buttons, and a mock timeline.</p>
+<div class="mt-8 grid gap-4 lg:grid-cols-4" data-ai-id="complex-tailwind-test-operations-section-metrics">
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-operations-deploy-train-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-deploy-train-label">Deploy train</p>
+<p class="mt-2 text-3xl font-semibold text-white" data-ai-id="complex-tailwind-test-operations-deploy-train-value">4 / 6</p>
+</div>
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-operations-pending-ack-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-pending-ack-label">Pending ack</p>
+<p class="mt-2 text-3xl font-semibold text-white" data-ai-id="complex-tailwind-test-operations-pending-ack-value">11</p>
+</div>
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-operations-watchlist-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-watchlist-label">Watchlist</p>
+<p class="mt-2 text-3xl font-semibold text-white" data-ai-id="complex-tailwind-test-operations-watchlist-value">28</p>
+</div>
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-operations-recovery-sla-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-recovery-sla-label">Recovery SLA</p>
+<p class="mt-2 text-3xl font-semibold text-white" data-ai-id="complex-tailwind-test-operations-recovery-sla-value">19m</p>
+</div>
+</div>
+<div class="mt-8 grid gap-4 lg:grid-cols-12" data-ai-id="complex-tailwind-test-operations-section-grid">
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5 lg:col-span-8" data-ai-id="complex-tailwind-test-operations-timeline-card">
+<h4 class="text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-operations-timeline-title">Timeline</h4>
+<div class="mt-6 space-y-6" data-ai-id="complex-tailwind-test-operations-timeline-list">
+<div class="flex items-start gap-4" data-ai-id="complex-tailwind-test-operations-timeline-gate-review-opened-item">
+<div class="mt-1 h-3 w-3 rounded-full bg-cyan-400" data-ai-id="complex-tailwind-test-operations-timeline-gate-review-opened-dot"></div>
+<div data-ai-id="complex-tailwind-test-operations-timeline-gate-review-opened-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-operations-timeline-gate-review-opened-title">08:30 UTC · Gate review opened</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-timeline-gate-review-opened-description">Stakeholders from product, trust, infra, and support joined the release call.</p>
+</div>
+</div>
+<div class="flex items-start gap-4" data-ai-id="complex-tailwind-test-operations-timeline-latency-spike-item">
+<div class="mt-1 h-3 w-3 rounded-full bg-amber-400" data-ai-id="complex-tailwind-test-operations-timeline-latency-spike-dot"></div>
+<div data-ai-id="complex-tailwind-test-operations-timeline-latency-spike-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-operations-timeline-latency-spike-title">10:15 UTC · Latency spike observed</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-timeline-latency-spike-description">Regional retry pressure caused a temporary p95 jump in media processing.</p>
+</div>
+</div>
+<div class="flex items-start gap-4" data-ai-id="complex-tailwind-test-operations-timeline-mitigation-applied-item">
+<div class="mt-1 h-3 w-3 rounded-full bg-emerald-400" data-ai-id="complex-tailwind-test-operations-timeline-mitigation-applied-dot"></div>
+<div data-ai-id="complex-tailwind-test-operations-timeline-mitigation-applied-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-operations-timeline-mitigation-applied-title">11:02 UTC · Mitigation applied</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-operations-timeline-mitigation-applied-description">Backpressure tuned and pre-warming expanded for the next deploy window.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="rounded-3xl border border-white/10 bg-white/5 p-5 lg:col-span-4" data-ai-id="complex-tailwind-test-operations-quick-actions-card">
+<h4 class="text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-operations-quick-actions-title">Quick actions</h4>
+<div class="mt-5 grid gap-3" data-ai-id="complex-tailwind-test-operations-quick-actions-list">
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-operations-open-incident-room-button" type="button">Open incident room</button>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-operations-run-rollback-simulator-button" type="button">Run rollback simulator</button>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-slate-200 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-operations-create-stakeholder-digest-button" type="button">Create stakeholder digest</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div class="tab-panel" data-ai-id="complex-tailwind-test-tab-design-review-panel" id="tab-design-panel">
+<section class="glass rounded-[2rem] border border-white/10 p-8 shadow-glow" data-ai-id="complex-tailwind-test-design-review-section">
+<h3 class="text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-design-review-section-title">Design review workspace</h3>
+<div class="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]" data-ai-id="complex-tailwind-test-design-review-grid">
+<div class="rounded-3xl border border-white/10 bg-white/5 p-6" data-ai-id="complex-tailwind-test-design-review-preview-card">
+<div class="grid gap-4 sm:grid-cols-2" data-ai-id="complex-tailwind-test-design-review-preview-grid">
+<div class="rounded-3xl border border-white/10 bg-slate-950/60 p-5" data-ai-id="complex-tailwind-test-design-review-modal-states-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-design-review-modal-states-label">Modal states</p>
+<div class="mt-4 h-40 rounded-2xl border border-dashed border-white/10 bg-gradient-to-br from-cyan-400/10 to-violet-400/10" data-ai-id="complex-tailwind-test-design-review-modal-states-preview"></div>
+</div>
+<div class="rounded-3xl border border-white/10 bg-slate-950/60 p-5" data-ai-id="complex-tailwind-test-design-review-table-density-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-design-review-table-density-label">Table density</p>
+<div class="mt-4 h-40 rounded-2xl border border-dashed border-white/10 bg-gradient-to-br from-emerald-400/10 to-cyan-400/10" data-ai-id="complex-tailwind-test-design-review-table-density-preview"></div>
+</div>
+</div>
+</div>
+<form class="rounded-3xl border border-white/10 bg-white/5 p-6" data-ai-id="complex-tailwind-test-design-review-form">
+<h4 class="text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-design-review-form-title">Review checklist</h4>
+<div class="mt-5 space-y-4 text-sm text-slate-300" data-ai-id="complex-tailwind-test-design-review-form-list">
+<label class="flex items-center gap-3 rounded-2xl bg-slate-950/60 px-4 py-3" data-ai-id="complex-tailwind-test-design-review-contrast-verified-item"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-design-review-contrast-verified-checkbox" type="checkbox"/> Contrast verified</label>
+<label class="flex items-center gap-3 rounded-2xl bg-slate-950/60 px-4 py-3" data-ai-id="complex-tailwind-test-design-review-spacing-review-pending-item"><input class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-design-review-spacing-review-pending-checkbox" type="checkbox"/> Spacing review pending</label>
+<label class="flex items-center gap-3 rounded-2xl bg-slate-950/60 px-4 py-3" data-ai-id="complex-tailwind-test-design-review-responsive-pass-complete-item"><input checked="" class="rounded border-white/20 bg-transparent" data-ai-id="complex-tailwind-test-design-review-responsive-pass-complete-checkbox" type="checkbox"/> Responsive pass complete</label>
+</div>
+<button class="mt-5 rounded-2xl bg-white px-4 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-200" data-ai-id="complex-tailwind-test-design-review-create-signoff-note-button" type="button">Create sign-off note</button>
+</form>
+</div>
+</section>
+</div>
+<div class="tab-panel" data-ai-id="complex-tailwind-test-tab-research-panel" id="tab-research-panel">
+<section class="glass rounded-[2rem] border border-white/10 p-8 shadow-glow" data-ai-id="complex-tailwind-test-research-section">
+<h3 class="text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-research-section-title">Research library</h3>
+<div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-ai-id="complex-tailwind-test-research-grid">
+<article class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-research-interview-synthesis-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-research-interview-synthesis-label">Interview synthesis</p>
+<p class="mt-3 text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-research-interview-synthesis-title">Support workflows under launch pressure</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-research-interview-synthesis-description">Findings on decision fatigue, escalation bottlenecks, and screenshot trust.</p>
+</article>
+<article class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-research-journey-mapping-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-research-journey-mapping-label">Journey mapping</p>
+<p class="mt-3 text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-research-journey-mapping-title">Admin onboarding for multi-region teams</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-research-journey-mapping-description">Covers empty states, identity verification, and partial configuration failures.</p>
+</article>
+<article class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-research-metrics-pack-card">
+<p class="text-sm text-slate-400" data-ai-id="complex-tailwind-test-research-metrics-pack-label">Metrics pack</p>
+<p class="mt-3 text-lg font-semibold text-white" data-ai-id="complex-tailwind-test-research-metrics-pack-title">Weekly adoption dashboard</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-research-metrics-pack-description">Includes activation, retention, response time, and doc completion trends.</p>
+</article>
+</div>
+</section>
+</div>
+</section>
+</div>
+</main>
+</div>
+<div class="notification-drawer fixed right-0 top-0 z-50 h-screen w-full max-w-md border-l border-white/10 bg-slate-950/95 p-6 shadow-2xl backdrop-blur-xl" data-ai-id="complex-tailwind-test-notifications-drawer" id="notificationDrawer">
+<div class="flex items-center justify-between" data-ai-id="complex-tailwind-test-notifications-drawer-header">
+<div data-ai-id="complex-tailwind-test-notifications-drawer-copy">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-notifications-drawer-label">Inbox</p>
+<h3 class="mt-2 text-2xl font-semibold text-white" data-ai-id="complex-tailwind-test-notifications-drawer-title">Notifications</h3>
+</div>
+<button class="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white" data-ai-id="complex-tailwind-test-notifications-drawer-close-button" id="closeDrawerButton" type="button">Close</button>
+</div>
+<div class="mt-6 space-y-4 overflow-y-auto pb-10" data-ai-id="complex-tailwind-test-notifications-drawer-list">
+<article class="rounded-3xl border border-cyan-400/20 bg-cyan-400/5 p-5" data-ai-id="complex-tailwind-test-notifications-drawer-release-gate-updated-item">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-notifications-drawer-release-gate-updated-title">Release gate updated</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-notifications-drawer-release-gate-updated-description">Security approved the final IAM exceptions for the media pipeline migration.</p>
+</article>
+<article class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-notifications-drawer-support-ops-comment-item">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-notifications-drawer-support-ops-comment-title">New comment from Support Ops</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-notifications-drawer-support-ops-comment-description">"The updated macros look good, but we still need the refund edge case screenshots."</p>
+</article>
+<article class="rounded-3xl border border-white/10 bg-white/5 p-5" data-ai-id="complex-tailwind-test-notifications-drawer-monitoring-alert-muted-item">
+<p class="text-sm font-medium text-white" data-ai-id="complex-tailwind-test-notifications-drawer-monitoring-alert-muted-title">Monitoring alert muted</p>
+<p class="mt-2 text-sm text-slate-300" data-ai-id="complex-tailwind-test-notifications-drawer-monitoring-alert-muted-description">Expected alert noise suppressed for the next rehearsal window.</p>
+</article>
+</div>
+</div>
+<div class="scrim fixed inset-0 z-40 bg-slate-950/70" data-ai-id="complex-tailwind-test-command-palette-scrim" id="commandScrim"></div>
+<div class="command-palette fixed left-1/2 top-24 z-50 w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 rounded-[2rem] border border-white/10 bg-slate-900/95 shadow-2xl backdrop-blur-xl" data-ai-id="complex-tailwind-test-command-palette" id="commandPalette">
+<div class="border-b border-white/10 px-5 py-4" data-ai-id="complex-tailwind-test-command-palette-header">
+<input class="w-full bg-transparent text-lg text-white outline-none placeholder:text-slate-500" data-ai-id="complex-tailwind-test-command-palette-input" placeholder="Type a command or search for anything" type="text"/>
+</div>
+<div class="grid gap-6 p-5 lg:grid-cols-[220px_1fr]" data-ai-id="complex-tailwind-test-command-palette-grid">
+<div data-ai-id="complex-tailwind-test-command-palette-groups">
+<p class="text-xs uppercase tracking-[0.24em] text-slate-500" data-ai-id="complex-tailwind-test-command-palette-groups-label">Groups</p>
+<div class="mt-3 space-y-1 text-sm text-slate-300" data-ai-id="complex-tailwind-test-command-palette-groups-list">
+<button class="flex w-full items-center justify-between rounded-2xl bg-white/5 px-3 py-2 text-left text-white" data-ai-id="complex-tailwind-test-command-palette-actions-group-button" type="button"><span data-ai-id="complex-tailwind-test-command-palette-actions-group-label">Actions</span><span data-ai-id="complex-tailwind-test-command-palette-actions-group-count">12</span></button>
+<button class="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-command-palette-projects-group-button" type="button"><span data-ai-id="complex-tailwind-test-command-palette-projects-group-label">Projects</span><span data-ai-id="complex-tailwind-test-command-palette-projects-group-count">8</span></button>
+<button class="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left transition hover:bg-white/5 hover:text-white" data-ai-id="complex-tailwind-test-command-palette-people-group-button" type="button"><span data-ai-id="complex-tailwind-test-command-palette-people-group-label">People</span><span data-ai-id="complex-tailwind-test-command-palette-people-group-count">24</span></button>
+</div>
+</div>
+<div class="space-y-3" data-ai-id="complex-tailwind-test-command-palette-commands">
+<button class="flex w-full items-start justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10" data-ai-id="complex-tailwind-test-command-palette-open-release-checklist-button" type="button">
+<div data-ai-id="complex-tailwind-test-command-palette-open-release-checklist-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-command-palette-open-release-checklist-title">Open release checklist</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-command-palette-open-release-checklist-description">Jump to the coordinated launch control surface.</p>
+</div>
+<span class="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-command-palette-open-release-checklist-shortcut">⌘1</span>
+</button>
+<button class="flex w-full items-start justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10" data-ai-id="complex-tailwind-test-command-palette-create-incident-digest-button" type="button">
+<div data-ai-id="complex-tailwind-test-command-palette-create-incident-digest-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-command-palette-create-incident-digest-title">Create incident digest</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-command-palette-create-incident-digest-description">Assemble timeline, owners, and latest mitigation notes.</p>
+</div>
+<span class="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-command-palette-create-incident-digest-shortcut">⌘2</span>
+</button>
+<button class="flex w-full items-start justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-left transition hover:bg-white/10" data-ai-id="complex-tailwind-test-command-palette-search-team-availability-button" type="button">
+<div data-ai-id="complex-tailwind-test-command-palette-search-team-availability-copy">
+<p class="font-medium text-white" data-ai-id="complex-tailwind-test-command-palette-search-team-availability-title">Search team availability</p>
+<p class="mt-1 text-sm text-slate-400" data-ai-id="complex-tailwind-test-command-palette-search-team-availability-description">Find next overlapping support window by region and squad.</p>
+</div>
+<span class="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-400" data-ai-id="complex-tailwind-test-command-palette-search-team-availability-shortcut">⌘3</span>
+</button>
+</div>
+</div>
+</div>
+<div class="toast fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100 shadow-2xl" data-ai-id="complex-tailwind-test-sync-toast" id="toast">
+      Sync completed: 12 downstream views revalidated.
+    </div>
+<script>
+      const body = document.body;
+      const profileMenuButton = document.getElementById('profileMenuButton');
+      const profileMenu = document.getElementById('profileMenu');
+      const openDrawerButton = document.getElementById('openDrawerButton');
+      const closeDrawerButton = document.getElementById('closeDrawerButton');
+      const notificationDrawer = document.getElementById('notificationDrawer');
+      const openCommandButton = document.getElementById('openCommandButton');
+      const commandPalette = document.getElementById('commandPalette');
+      const commandScrim = document.getElementById('commandScrim');
+      const showToastButton = document.getElementById('showToastButton');
+      const toast = document.getElementById('toast');
+      const tabTriggers = document.querySelectorAll('.tab-trigger');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+      const releaseToggles = document.querySelectorAll('.release-toggle');
+      let toastTimer = null;
+
+      function closeProfileMenu() {
+        profileMenu.classList.remove('is-open');
+        profileMenuButton.setAttribute('aria-expanded', 'false');
+      }
+
+      function toggleProfileMenu() {
+        const willOpen = !profileMenu.classList.contains('is-open');
+        closeProfileMenu();
+        if (willOpen) {
+          profileMenu.classList.add('is-open');
+          profileMenuButton.setAttribute('aria-expanded', 'true');
+        }
+      }
+
+      function openDrawer() {
+        notificationDrawer.classList.add('is-open');
+        body.classList.add('overflow-hidden');
+      }
+
+      function closeDrawer() {
+        notificationDrawer.classList.remove('is-open');
+        body.classList.remove('overflow-hidden');
+      }
+
+      function openCommandPalette() {
+        commandPalette.classList.add('is-open');
+        commandScrim.classList.add('is-open');
+        body.classList.add('overflow-hidden');
+      }
+
+      function closeCommandPalette() {
+        commandPalette.classList.remove('is-open');
+        commandScrim.classList.remove('is-open');
+        if (!notificationDrawer.classList.contains('is-open')) {
+          body.classList.remove('overflow-hidden');
+        }
+      }
+
+      function showToast() {
+        toast.classList.add('is-open');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          toast.classList.remove('is-open');
+        }, 1800);
+      }
+
+      profileMenuButton?.addEventListener('click', toggleProfileMenu);
+      openDrawerButton?.addEventListener('click', openDrawer);
+      closeDrawerButton?.addEventListener('click', closeDrawer);
+      openCommandButton?.addEventListener('click', openCommandPalette);
+      commandScrim?.addEventListener('click', closeCommandPalette);
+      showToastButton?.addEventListener('click', showToast);
+
+      document.addEventListener('click', (event) => {
+        if (!profileMenu.contains(event.target) && !profileMenuButton.contains(event.target)) {
+          closeProfileMenu();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+          event.preventDefault();
+          openCommandPalette();
+        }
+
+        if (event.key === 'Escape') {
+          closeProfileMenu();
+          closeCommandPalette();
+          closeDrawer();
+        }
+      });
+
+      tabTriggers.forEach((button) => {
+        button.addEventListener('click', () => {
+          const targetId = button.getAttribute('aria-controls');
+          tabTriggers.forEach((item, index) => {
+            const active = item === button;
+            item.classList.toggle('bg-white/10', active);
+            item.classList.toggle('text-white', active);
+            item.classList.toggle('bg-transparent', !active);
+            item.classList.toggle('text-slate-300', !active);
+          });
+
+          tabPanels.forEach((panel) => {
+            panel.classList.toggle('is-active', panel.id === targetId);
+          });
+        });
+      });
+
+      releaseToggles.forEach((button) => {
+        button.addEventListener('click', () => {
+          const content = document.getElementById(button.getAttribute('aria-controls'));
+          const expanded = content.classList.toggle('is-open');
+          content.classList.toggle('max-h-0', !expanded);
+          content.classList.toggle('max-h-40', expanded);
+          button.lastElementChild.textContent = expanded ? '−' : '+';
+        });
+      });
+    </script>
+</body>
+</html>

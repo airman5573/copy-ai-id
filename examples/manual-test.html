@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copy AI ID Manual Test</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        margin: 0;
+        padding: 32px;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      .stack {
+        display: grid;
+        gap: 20px;
+        max-width: 960px;
+      }
+
+      .card {
+        padding: 24px;
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      .hero-note,
+      .helper-list,
+      .status-list {
+        margin: 12px 0 0;
+        padding-left: 20px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn,
+      .link,
+      .input,
+      .textarea,
+      .chip {
+        font: inherit;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+      }
+
+      .link {
+        color: #1d4ed8;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #1e3a8a;
+        padding: 8px 12px;
+      }
+
+      .results {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .result {
+        padding: 16px;
+        border-radius: 12px;
+        background: #eff6ff;
+      }
+
+      .result strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .field-label {
+        display: grid;
+        gap: 8px;
+      }
+
+      .input,
+      .textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        box-sizing: border-box;
+      }
+
+      .textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .tile {
+        padding: 16px;
+        border-radius: 12px;
+        background: #e2e8f0;
+      }
+
+      .anchor-target {
+        border: 2px dashed #93c5fd;
+        background: #eff6ff;
+      }
+
+      .edge-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        align-items: start;
+      }
+
+      .edge-target {
+        min-height: 72px;
+        border-radius: 14px;
+        border: 1px solid #a7f3d0;
+        background: #ecfdf5;
+        padding: 14px;
+      }
+
+      .box-model-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 18px 28px;
+        align-items: start;
+        padding: 10px 0 0;
+      }
+
+      .box-model-fixture {
+        min-height: 52px;
+        background: #dbeafe;
+        color: #172554;
+      }
+
+      .box-model-positive-target {
+        box-sizing: content-box;
+        width: 118px;
+        height: 42px;
+        margin: 18px 22px 24px 26px;
+        border: 6px solid #facc15;
+        padding: 12px 16px 14px 18px;
+      }
+
+      .box-model-negative-target {
+        box-sizing: border-box;
+        width: 168px;
+        height: 74px;
+        margin: -8px 14px 18px -12px;
+        border: 5px solid #fb923c;
+        padding: 10px 14px;
+      }
+
+      .box-model-scaled-target {
+        box-sizing: border-box;
+        width: 132px;
+        height: 56px;
+        margin: 14px;
+        border: 4px solid #22c55e;
+        padding: 9px 12px;
+        transform: scale(1.18);
+        transform-origin: top left;
+      }
+
+      .box-model-sticky-target {
+        position: sticky;
+        top: 12px;
+        z-index: 1;
+        box-sizing: border-box;
+        width: 172px;
+        min-height: 58px;
+        margin: 14px 18px;
+        border: 4px solid #60a5fa;
+        padding: 10px 13px;
+        background: #eff6ff;
+      }
+
+      .box-model-fixed-target {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 20;
+        box-sizing: border-box;
+        width: 128px;
+        min-height: 48px;
+        margin: 10px;
+        border: 3px solid #a78bfa;
+        border-radius: 12px;
+        padding: 8px 10px;
+        background: rgba(245, 243, 255, 0.96);
+        color: #312e81;
+        box-shadow: 0 10px 24px rgba(49, 46, 129, 0.18);
+      }
+
+      .small-target {
+        display: inline-grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 0;
+        background: #f97316;
+        color: #fff7ed;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .nav-layout {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(0, 180px) minmax(0, 1fr) minmax(0, 180px);
+        margin-top: 18px;
+        align-items: stretch;
+      }
+
+      .nav-node {
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid #bfdbfe;
+        background: #f8fbff;
+      }
+
+      .nav-parent {
+        display: grid;
+        gap: 14px;
+        background: #dbeafe;
+        border-color: #60a5fa;
+      }
+
+      .nav-children {
+        display: grid;
+        gap: 12px;
+      }
+
+      .nav-wrapper {
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px dashed #93c5fd;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .spacer {
+        height: 80vh;
+      }
+
+      .bottom-edge-card {
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body data-ai-id="manual-test-page">
+    <div class="stack" data-ai-id="manual-test-content">
+      <section class="card" data-ai-id="manual-test-hero-section">
+        <h1 data-ai-id="manual-test-hero-title">Copy AI ID Manual Test Page</h1>
+        <p data-ai-id="manual-test-hero-description">
+          Hovering should highlight targets only. Click a highlighted target or press <strong>Space</strong> after
+          hover/Arrow-key navigation to open the target-attached notebook for that element. Press
+          <strong>Shift + Control + Space</strong> to toggle Copy AI ID on or off only for this page scope.
+        </p>
+        <ul class="helper-list" data-ai-id="manual-test-hero-checklist">
+          <li data-ai-id="manual-test-hero-checklist-copy">Normal click while ON: page-native click should be blocked and the notebook should open for the clicked target.</li>
+          <li data-ai-id="manual-test-hero-checklist-space">Bare Space: confirm the current highlighted target and open the notebook without copying yet.</li>
+          <li data-ai-id="manual-test-hero-checklist-notebook">Notebook: Enter inserts a line break; Shift + Enter or Save copies the note, clears the draft, and hides the notebook.</li>
+          <li data-ai-id="manual-test-hero-checklist-comments">After saving, reopen another target from the page and continue editing the cumulative notebook text directly.</li>
+          <li data-ai-id="manual-test-hero-checklist-native">Press Shift + Control + Space: only this page scope should turn OFF until Shift + Control + Space is pressed again.</li>
+        </ul>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-edge-fixture-panel">
+        <h2 data-ai-id="manual-test-edge-fixture-title">Placement fixtures</h2>
+        <p data-ai-id="manual-test-edge-fixture-description">
+          Use these targets to verify the notebook stays near difficult elements after selecting targets. The top-edge button
+          is intentionally close to the beginning of the page; the tiny target checks small-element overlap tolerance.
+        </p>
+        <div class="edge-grid" data-ai-id="manual-test-edge-fixture-grid">
+          <button class="btn edge-target" type="button" data-ai-id="manual-test-top-edge-button">
+            Top-edge button target
+          </button>
+          <a
+            class="link edge-target"
+            href="./manual-test-destination.html"
+            target="_blank"
+            rel="noreferrer"
+            data-ai-id="manual-test-edge-anchor-link"
+          >
+            Edge anchor target
+          </a>
+          <div class="edge-target" data-ai-id="manual-test-small-target-card">
+            <strong data-ai-id="manual-test-small-target-title">Small target</strong>
+            <p data-ai-id="manual-test-small-target-description">
+              Open the notebook from the tiny circle, then confirm the notebook remains usable near the small target.
+            </p>
+            <button class="small-target" type="button" aria-label="Tiny target" data-ai-id="manual-test-tiny-target">
+              +
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-box-model-fixture-panel">
+        <h2 data-ai-id="manual-test-box-model-fixture-title">Box-model highlight fixtures</h2>
+        <p data-ai-id="manual-test-box-model-fixture-description">
+          Use these targets to verify the optional box-model overlay colors for margin, border, padding, and content.
+          The negative-margin and scaled targets are intentionally shaped to make geometry differences visible.
+        </p>
+        <div class="box-model-grid" data-ai-id="manual-test-box-model-grid">
+          <div
+            class="box-model-fixture box-model-positive-target"
+            data-ai-id="manual-test-box-model-positive-target"
+          >
+            Positive spacing target
+          </div>
+          <div
+            class="box-model-fixture box-model-negative-target"
+            data-ai-id="manual-test-box-model-negative-target"
+          >
+            Negative margin target
+          </div>
+          <div
+            class="box-model-fixture box-model-scaled-target"
+            data-ai-id="manual-test-box-model-scaled-target"
+          >
+            Scaled target
+          </div>
+          <div
+            class="box-model-fixture box-model-sticky-target"
+            data-ai-id="manual-test-box-model-sticky-target"
+          >
+            Sticky target
+          </div>
+        </div>
+        <div class="box-model-fixed-target" data-ai-id="manual-test-box-model-fixed-target">
+          Fixed target
+        </div>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-interactive-panel">
+        <h2 data-ai-id="manual-test-interactive-title">Interactive targets</h2>
+        <p data-ai-id="manual-test-interactive-description">
+          Use these fixtures to confirm button and anchor clicks open the notebook while Copy AI ID is ON, then return
+          to normal page-native behavior when Copy AI ID is OFF.
+        </p>
+        <div class="toolbar" data-ai-id="manual-test-interactive-toolbar">
+          <button class="btn" type="button" data-ai-id="manual-test-primary-button">Primary Button</button>
+          <a
+            class="link"
+            href="./manual-test-destination.html"
+            target="_blank"
+            rel="noreferrer"
+            data-ai-id="manual-test-docs-link"
+          >
+            Open destination page
+          </a>
+          <span class="chip" data-ai-id="manual-test-status-chip">Status Chip</span>
+        </div>
+
+        <div class="results" data-ai-id="manual-test-results-grid">
+          <div class="result" data-ai-id="manual-test-button-result-card">
+            <strong data-ai-id="manual-test-button-result-title">Button native result</strong>
+            <span data-ai-id="manual-test-button-click-count-label">Click count:</span>
+            <span data-ai-id="manual-test-button-click-count">0</span>
+          </div>
+          <div class="result" data-ai-id="manual-test-anchor-result-card">
+            <strong data-ai-id="manual-test-anchor-result-title">Anchor native result</strong>
+            <span data-ai-id="manual-test-anchor-open-label">Opened destination:</span>
+            <span data-ai-id="manual-test-anchor-open-value">No</span>
+          </div>
+          <div class="result" data-ai-id="manual-test-native-status-card">
+            <strong data-ai-id="manual-test-native-status-title">Last native action</strong>
+            <span data-ai-id="manual-test-native-status-value">None yet</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-form-panel">
+        <h2 data-ai-id="manual-test-form-title">Form targets</h2>
+        <p data-ai-id="manual-test-form-description">
+          These fields help verify that Copy AI ID treats host editables as static selectable surfaces while ON, and
+          that Shift + Control + Space still toggles even when a field has focus.
+        </p>
+        <div class="form-grid" data-ai-id="manual-test-form-grid">
+          <label class="field-label" data-ai-id="manual-test-search-field">
+            <span data-ai-id="manual-test-search-label">Search</span>
+            <input
+              class="input"
+              data-ai-id="manual-test-search-input"
+              placeholder="Try modifier+click here"
+            />
+          </label>
+
+          <label class="field-label" data-ai-id="manual-test-notes-field">
+            <span data-ai-id="manual-test-notes-label">Notes</span>
+            <textarea
+              class="textarea"
+              data-ai-id="manual-test-notes-textarea"
+              placeholder="Use this field to verify editable Shift + Control + Space capture"
+            ></textarea>
+          </label>
+
+          <label class="field-label" data-ai-id="manual-test-editor-field">
+            <span data-ai-id="manual-test-editor-label">Rich editor</span>
+            <div
+              class="textarea"
+              data-ai-id="manual-test-rich-editor"
+              contenteditable="true"
+            >Editable content for Shift + Control + Space toggle smoke checks.</div>
+          </label>
+        </div>
+
+        <ul class="status-list" data-ai-id="manual-test-form-status-list">
+          <li data-ai-id="manual-test-form-status-focus">
+            Focused field: <strong data-ai-id="manual-test-focused-field-value">None</strong>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-grid-panel">
+        <h2 data-ai-id="manual-test-grid-title">Nested targets</h2>
+        <div class="grid" data-ai-id="manual-test-tile-grid">
+          <article class="tile" data-ai-id="manual-test-tile-card">
+            <strong data-ai-id="manual-test-tile-title">Card A</strong>
+          </article>
+          <article class="tile" data-ai-id="manual-test-tile-card">
+            <strong data-ai-id="manual-test-tile-title">Card B</strong>
+          </article>
+          <article class="tile" data-ai-id="manual-test-tile-card">
+            <strong data-ai-id="manual-test-tile-title">Card C</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="card" data-ai-id="manual-test-nav-root">
+        <h2>Keyboard DOM navigation</h2>
+        <p>
+          Hover a child in this fixture, then use the Arrow keys to move through layout-tree DOM nodes, including
+          wrappers without <code>data-ai-id</code>. After keyboard navigation, press <kbd>Space</kbd> to insert a
+          reference when the highlighted node has <code>data-ai-id</code>, or to show the missing-id toast otherwise.
+        </p>
+        <ul class="helper-list" data-ai-id="manual-test-nav-checklist">
+          <li data-ai-id="manual-test-nav-checklist-space">Hover any child, move with Arrow keys, then press <kbd>Space</kbd> to add a reference for the currently highlighted <code>data-ai-id</code> node.</li>
+          <li data-ai-id="manual-test-nav-checklist-overlay">Focus the notebook collapse and Save controls, then press <kbd>Space</kbd> to confirm their native overlay actions still win.</li>
+          <li data-ai-id="manual-test-nav-checklist-editable">Focus the host editable fields above while Copy AI ID is ON, then press <kbd>Space</kbd> or <kbd>Shift + Control + Space</kbd> to confirm Copy AI ID shortcuts win; use the notebook textarea for normal note typing.</li>
+          <li data-ai-id="manual-test-nav-checklist-save">In the notebook, use <kbd>Enter</kbd> for a line break and <kbd>Shift + Enter</kbd> or Save to copy/clear/hide.</li>
+          <li data-ai-id="manual-test-nav-checklist-direct-edit">After selecting multiple targets, confirm the notebook text can be edited directly without relying on saved target icons.</li>
+        </ul>
+        <div class="nav-layout">
+          <article class="nav-node" data-ai-id="manual-test-nav-sibling-left">
+            <strong>Left sibling target</strong>
+            <p>
+              Use <kbd>ArrowRight</kbd> from here to move toward the parent branch.
+            </p>
+          </article>
+
+          <section class="nav-node nav-parent" data-ai-id="manual-test-nav-parent">
+            <header>
+              <strong>Parent target</strong>
+              <p>
+                Use <kbd>ArrowDown</kbd> from the parent to jump to the first child node in DOM order.
+              </p>
+            </header>
+
+            <div class="nav-children">
+              <article class="nav-node" data-ai-id="manual-test-nav-child-a">
+                <strong>Child A</strong>
+                <p>A direct child target that is easy to hover.</p>
+              </article>
+
+              <div class="nav-wrapper">
+                <article class="nav-node" data-ai-id="manual-test-nav-child-b">
+                  <strong>Child B</strong>
+                  <p>
+                    Nested inside a non-target wrapper to mimic harder-to-hover cases.
+                  </p>
+                </article>
+              </div>
+
+              <div class="nav-wrapper">
+                <div>
+                  <article class="nav-node" data-ai-id="manual-test-nav-child-c">
+                    <strong>Child C</strong>
+                    <p>
+                      Nested a little deeper so descendant navigation can still find it.
+                    </p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <article class="nav-node" data-ai-id="manual-test-nav-sibling-right">
+            <strong>Right sibling target</strong>
+            <p>
+              Use <kbd>ArrowLeft</kbd> from here to move back toward the parent branch.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="card anchor-target" data-ai-id="manual-test-anchor-target-panel">
+        <h2 data-ai-id="manual-test-anchor-target-title">Anchor destination</h2>
+        <p data-ai-id="manual-test-anchor-target-description">
+          When Copy AI ID is OFF, normal link clicks should open the linked destination page in the browser's normal way.
+        </p>
+      </section>
+
+      <div class="spacer" data-ai-id="manual-test-scroll-region">Scroll area for viewport testing</div>
+
+      <section class="card bottom-edge-card" data-ai-id="manual-test-bottom-edge-panel">
+        <h2 data-ai-id="manual-test-bottom-edge-title">Bottom-edge placement target</h2>
+        <p data-ai-id="manual-test-bottom-edge-description">
+          Scroll here, open the notebook on the button, and confirm the notebook chooses a usable position near the bottom of
+          the viewport.
+        </p>
+        <button class="btn" type="button" data-ai-id="manual-test-bottom-edge-button">
+          Bottom-edge button target
+        </button>
+      </section>
+    </div>
+
+    <script>
+      (() => {
+        const button = document.querySelector('[data-ai-id="manual-test-primary-button"]');
+        const anchor = document.querySelector('[data-ai-id="manual-test-docs-link"]');
+        const buttonCount = document.querySelector('[data-ai-id="manual-test-button-click-count"]');
+        const anchorOpenValue = document.querySelector('[data-ai-id="manual-test-anchor-open-value"]');
+        const nativeStatus = document.querySelector('[data-ai-id="manual-test-native-status-value"]');
+        const focusedField = document.querySelector('[data-ai-id="manual-test-focused-field-value"]');
+        const searchInput = document.querySelector('[data-ai-id="manual-test-search-input"]');
+        const notesTextarea = document.querySelector('[data-ai-id="manual-test-notes-textarea"]');
+        const richEditor = document.querySelector('[data-ai-id="manual-test-rich-editor"]');
+
+        let clickCount = 0;
+
+        const setNativeStatus = (message) => {
+          nativeStatus.textContent = message;
+        };
+
+        button.addEventListener('click', () => {
+          clickCount += 1;
+          buttonCount.textContent = String(clickCount);
+          setNativeStatus(`Button native click ${clickCount}`);
+        });
+
+        anchor.addEventListener('click', () => {
+          anchorOpenValue.textContent = 'Yes';
+          setNativeStatus('Anchor native click');
+        });
+
+        [searchInput, notesTextarea, richEditor].forEach((field) => {
+          field.addEventListener('focus', () => {
+            focusedField.textContent = field.getAttribute('data-ai-id') || field.tagName.toLowerCase();
+            setNativeStatus(`Focused ${focusedField.textContent}`);
+          });
+        });
+
+      })();
+    </script>
+  </body>
+</html>

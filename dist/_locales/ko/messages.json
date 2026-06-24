@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "Copy AI ID"
+  },
+  "extensionDescription": {
+    "message": "레이아웃 트리, 반응형 iframe 미리보기, 노트, 복사용 UI 코멘트를 제공하는 data-ai-id 에디터를 엽니다."
+  }
+}

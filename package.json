@@ -1,0 +1,29 @@
+{
+  "name": "copy-ai-id",
+  "version": "0.1.10",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lexical/react": "0.45.0",
+    "lexical": "0.45.0",
+    "lucide-react": "^0.555.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.1.0",
+    "@types/chrome": "^0.0.321",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.0"
+  }
+}

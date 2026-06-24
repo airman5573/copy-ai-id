@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Copy AI ID</title>
+  </head>
+  <body class="popup" data-ai-id="popup-page">
+    <main class="popup__card" data-ai-id="popup-card" data-enabled="false" data-state="off">
+      <section class="popup__shortcuts" data-ai-id="popup-shortcuts-section">
+        <div class="popup__shortcut-list" data-ai-id="popup-shortcut-hint">
+          <span><strong>Shift + Z + Space</strong>: ON/OFF</span>
+          <span><strong>Space</strong>: Note</span>
+          <span><strong>Shift + Enter</strong>: Copy</span>
+          <span><strong>Arrows</strong>: DOM traversal</span>
+          <a
+            class="popup__guide-link"
+            data-ai-id="popup-data-ai-id-github-link"
+            href="https://github.com/airman5573/copy-ai-id/blob/main/docs/add-data-ai-id.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Detailed manual
+          </a>
+        </div>
+      </section>
+
+      <button
+        class="popup__toggle"
+        type="button"
+        data-ai-id="popup-toggle-button"
+        aria-pressed="false"
+      >
+        Turn ON
+      </button>
+
+      <p class="popup__warning" role="alert" data-ai-id="popup-file-access-hint" hidden>
+        <strong>file://</strong> needs <strong>Allow access to file URLs</strong>.
+      </p>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

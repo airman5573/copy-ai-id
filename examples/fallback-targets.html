@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Copy AI ID fallback target mixed example</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      color: #172033;
+      background: #f6f8fb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      border: 1px solid #dbe3ef;
+      border-radius: 28px;
+      background: #ffffff;
+      box-shadow: 0 24px 70px rgba(31, 42, 68, 0.12);
+      overflow: hidden;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 22px 28px;
+      border-bottom: 1px solid #e5ebf4;
+      background: linear-gradient(135deg, #f8fafc, #eef6ff);
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: #1e66ff;
+      color: #ffffff;
+      font-weight: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: #526173;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav-links a {
+      padding: 8px 10px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    .nav-links a:hover {
+      background: #eaf1ff;
+      color: #164ec3;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+      gap: 28px;
+      padding: 46px 28px 32px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      gap: 8px;
+      border: 1px solid #c9d8f4;
+      border-radius: 999px;
+      background: #f3f7ff;
+      color: #2455b5;
+      font-size: 13px;
+      font-weight: 750;
+      padding: 7px 11px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 650px;
+      margin-bottom: 16px;
+      font-size: clamp(38px, 7vw, 74px);
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+    }
+
+    .lead {
+      max-width: 620px;
+      color: #56657a;
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button,
+    .button-link {
+      border: 0;
+      border-radius: 14px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      padding: 12px 16px;
+      text-decoration: none;
+    }
+
+    .primary-action {
+      background: #1e66ff;
+      color: #ffffff;
+      box-shadow: 0 12px 28px rgba(30, 102, 255, 0.28);
+    }
+
+    .secondary-action {
+      border: 1px solid #d7dfed;
+      background: #ffffff;
+      color: #223049;
+    }
+
+    .summary-card {
+      align-self: start;
+      border: 1px solid #dfe7f3;
+      border-radius: 24px;
+      background: #101827;
+      color: #f8fbff;
+      padding: 22px;
+    }
+
+    .summary-card p {
+      color: #b7c4d8;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .metric {
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 14px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+      gap: 22px;
+      padding: 0 28px 34px;
+    }
+
+    .panel,
+    .aside-card,
+    .notice {
+      border: 1px solid #e0e7f2;
+      border-radius: 24px;
+      background: #ffffff;
+      padding: 22px;
+    }
+
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .feature-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      background: #f8fafc;
+      padding: 18px;
+    }
+
+    .feature-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .feature-card p,
+    .aside-card p,
+    .notice p {
+      color: #607086;
+    }
+
+    .aside-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .search-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .search-form label {
+      color: #334155;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .search-form input,
+    .search-form select {
+      width: 100%;
+      border: 1px solid #cfd9e8;
+      border-radius: 13px;
+      font: inherit;
+      padding: 10px 12px;
+    }
+
+    .notice {
+      margin: 0 28px 32px;
+      background: #fff9eb;
+      color: #5b4215;
+    }
+
+    .notice code {
+      border-radius: 6px;
+      background: rgba(91, 66, 21, 0.1);
+      padding: 2px 5px;
+    }
+
+    @media (max-width: 760px) {
+      .site-header,
+      .hero,
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .site-header,
+      .nav-links,
+      .actions {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .card-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="page">
+      <header class="site-header" data-ai-id="fallback-example-site-header">
+        <div class="brand-lockup" data-ai-id="fallback-example-brand-lockup">
+          <span class="brand-mark" aria-hidden="true">F</span>
+          <span>Fallback Targets Lab</span>
+        </div>
+        <nav class="nav-links" aria-label="Example sections">
+          <a href="#stable">Stable IDs</a>
+          <a href="#fallback-only">Fallback only</a>
+          <a href="#form">Mixed form</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="fallback-example-title">
+          <div>
+            <span class="eyebrow">Mixed static example</span>
+            <h1 id="fallback-example-title" data-ai-id="fallback-example-hero-title">Stable IDs and generated fallback targets on one page</h1>
+            <p class="lead">Use this page manually with Copy AI ID to verify that stable references still use data-ai-id first, while no-ID elements create explicit fallback target blocks.</p>
+            <div class="actions">
+              <button class="primary-action" data-ai-id="fallback-example-primary-action-button" type="button">Use stable reference</button>
+              <button class="secondary-action" type="button" aria-label="Open fallback-only card details">No-ID fallback button</button>
+            </div>
+          </div>
+
+          <aside class="summary-card" aria-label="Fallback target metadata summary">
+            <h2>What to try</h2>
+            <p>Hover the stable button, then hover the unlabeled cards, form controls, and navigation links. Press Space after each selection.</p>
+            <div class="metric-grid">
+              <div class="metric" data-ai-id="fallback-example-stable-target-count-card">
+                <strong>4</strong>
+                <span>stable IDs</span>
+              </div>
+              <div class="metric">
+                <strong>many</strong>
+                <span>fallback nodes</span>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="content-grid" aria-label="Mixed target examples">
+          <div class="panel" id="stable" data-ai-id="fallback-example-feature-panel">
+            <h2>Mixed cards</h2>
+            <div class="card-list">
+              <article class="feature-card highlighted-card" data-ai-id="fallback-example-stable-card">
+                <h3>Stable card</h3>
+                <p>This card has a semantic data-ai-id. Its inner text and button still provide useful nearby context.</p>
+                <button class="secondary-action" type="button">Inner fallback button</button>
+              </article>
+              <article class="feature-card fallback-only-card" id="fallback-only">
+                <h3>No-ID card</h3>
+                <p>This card intentionally has no data-ai-id. Its tag, class, text, and selector should appear in a fallback block.</p>
+                <a class="button-link secondary-action" href="#form">Review mixed form</a>
+              </article>
+            </div>
+          </div>
+
+          <aside class="aside-card" aria-label="Accessibility context example">
+            <h2>Accessible no-ID controls</h2>
+            <p>The controls below include labels, role, tabindex, and aria attributes so fallback metadata can summarize accessibility context.</p>
+            <button class="primary-action" type="button" role="switch" aria-checked="false" tabindex="0">Enable notifications</button>
+            <button class="secondary-action" type="button" aria-describedby="fallback-help-text">Show generated selector</button>
+            <p id="fallback-help-text">Generated fallback references are less stable than semantic data-ai-id references.</p>
+          </aside>
+        </section>
+
+        <section class="content-grid" id="form" aria-label="Mixed search form">
+          <form class="panel search-form" data-ai-id="fallback-example-search-form">
+            <h2>Mixed form</h2>
+            <label for="fallback-query">Search term</label>
+            <input id="fallback-query" name="query" placeholder="No data-ai-id input" type="search">
+            <label for="fallback-priority">Priority</label>
+            <select id="fallback-priority" name="priority" aria-label="Priority filter">
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
+            <button class="primary-action" data-ai-id="fallback-example-submit-search-button" type="button">Search with stable button</button>
+          </form>
+
+          <article class="aside-card">
+            <h2>Manual expected behavior</h2>
+            <p>Elements with data-ai-id should insert backticked stable references. Elements without data-ai-id should insert <code>[fallback target]</code> blocks.</p>
+          </article>
+        </section>
+
+        <section class="notice" aria-label="Manual testing note">
+          <h2>No-ID companion page</h2>
+          <p><code>examples/code-example-ko.html</code> intentionally contains no <code>data-ai-id</code> attributes and can be opened manually as a full no-ID page. This file is the mixed companion page with both stable IDs and fallback-only elements.</p>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

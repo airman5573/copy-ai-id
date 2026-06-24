@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "Copy AI ID"
+  },
+  "extensionDescription": {
+    "message": "Open a data-ai-id editor with layout tree, responsive iframe preview, notes, and copy-ready UI comments."
+  }
+}
