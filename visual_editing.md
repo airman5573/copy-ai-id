@@ -31,22 +31,22 @@
 
 ## Checklist
 ### Phase 1 - Replace stale plan and prepare project styling/dependencies
-- [ ] Keep this root `visual_editing.md` as the authoritative plan and do not rely on the older broad checklist content.
+- [x] Keep this root `visual_editing.md` as the authoritative plan and do not rely on the older broad checklist content.
   - Files/areas: `visual_editing.md`.
   - Notes: The user explicitly requested replacing the old plan and matching `ai-editor` behavior more closely.
   - Parallelizable: no
 
-- [ ] Add the editor-UI dependencies needed to port the `ai-editor` floating panel/control UX.
+- [x] Add the editor-UI dependencies needed to port the `ai-editor` floating panel/control UX.
   - Files/areas: `package.json`, `package-lock.json`.
   - Notes: Add only dependencies used by the chosen port: likely `@radix-ui/react-select`, `@radix-ui/react-slider`, `@radix-ui/react-tabs`, `@radix-ui/react-tooltip`, `@radix-ui/react-popover`, `react-hook-form`, `clsx`, `tailwind-merge`, `dompurify`, and Tailwind build dev dependencies `tailwindcss`, `postcss`, `autoprefixer`. Do not add `@json-render/*` or `zod` unless a non-AI generated-panel control actually needs them.
   - Parallelizable: yes
 
-- [ ] Configure Tailwind/PostCSS for the extension editor Shadow DOM without changing the page under inspection.
+- [x] Configure Tailwind/PostCSS for the extension editor Shadow DOM without changing the page under inspection.
   - Files/areas: new `tailwind.config.js`, new `postcss.config.js`, `vite.config.ts`, `src/editor/editor.css`.
   - Notes: Mirror `ai-editor`'s important selector approach using `[data-ai-editor-ui]`, disable preflight, scan editor `.tsx` files, and preserve existing `editor.css` rules. Import Tailwind layers in a way that works with the existing inline CSS injection from `src/editor/main.tsx`.
   - Parallelizable: no
 
-- [ ] Add a short source-port map comment/doc section in the plan or nearby implementation notes if needed.
+- [x] Add a short source-port map comment/doc section in the plan or nearby implementation notes if needed.
   - Files/areas: `visual_editing.md` or future implementation notes.
   - Notes: Track primary source references: `ai-editor/src/bridge/quickActions.ts`, `src/editor/components/visual-panel/FloatingVisualPanel.tsx`, `src/editor/components/visual-panel/VisualPanelContent.tsx`, `src/editor/components/visual-panel/visualPanelCategories.tsx`, `src/editor/components/visual/*`, `src/editor/components/controls/*`, `src/bridge/mutations.ts`, and `src/bridge/dragAndDrop.ts`.
   - Parallelizable: yes
