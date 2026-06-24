@@ -70,6 +70,7 @@ export interface CopyAiIdMessages {
     noticeSave: string;
     defaultTargetNotice: string;
     fallbackTargetNotice: string;
+    visualEditNotice: string;
     breakpointScope: {
       label: string;
       all: string;
@@ -173,7 +174,11 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
 1. Do not modify the data-ai-id attribute itself.
 2. Modify the element with the referenced data-ai-id.`,
       fallbackTargetNotice:
-        '[NOTICE] Real data-ai-id references are stable. Fallback chip targets are generated from the current DOM selector/path/context and may need re-identification if the DOM changes.',
+        '[NOTICE] Real data-ai-id references are stable. Fallback target references are generated from the current DOM selector/path/context and may need re-identification if the DOM or source changes.',
+      visualEditNotice: `[VISUAL EDIT NOTICE]
+1. Visual edits are preview-derived implementation instructions; they are not source changes already saved in the project.
+2. Apply each visual edit to the referenced target in the actual source markup, CSS, or component code.
+3. Do not remove, rename, or overwrite existing data-ai-id attributes while applying visual edits.`,
       breakpointScope: {
         label: 'Edit scope',
         all: 'Base',
@@ -275,7 +280,11 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
 1. data-ai-id attribute 자체를 수정하지 말 것
 2. 해당 data-ai-id를 가진 element를 수정할 것`,
       fallbackTargetNotice:
-        '[NOTICE] 실제 data-ai-id reference는 안정적입니다. fallback chip target은 현재 DOM selector/path/context로 생성되므로 DOM이 바뀌면 다시 식별해야 할 수 있습니다.',
+        '[NOTICE] 실제 data-ai-id reference는 안정적입니다. fallback target reference는 현재 DOM selector/path/context로 생성되므로 DOM/source가 바뀌면 다시 식별해야 할 수 있습니다.',
+      visualEditNotice: `[VISUAL EDIT NOTICE]
+1. visual edit은 preview에서 만든 구현 지시이며, 프로젝트 source에 이미 저장된 변경이 아닙니다.
+2. 각 visual edit을 실제 source markup, CSS, component code의 참조 target에 적용하세요.
+3. visual edit을 적용할 때 기존 data-ai-id attribute를 제거하거나 이름을 바꾸거나 덮어쓰지 마세요.`,
       breakpointScope: {
         label: '수정 범위',
         all: '기본',

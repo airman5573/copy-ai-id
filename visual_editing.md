@@ -317,9 +317,9 @@
   - Notes: Copy eligibility is now explicit through `selectHasNotebookDraftForCopy()` plus the existing exportable-visual-edit selector. `copyNotebookDraftFromStore()` treats visual edits as copyable even when the notebook is empty and emits the visual-only request text, while `NotePanel` tracks the same eligibility and marks the copy button with data attributes for visual-edit-only sessions without changing existing copied/empty/failed statuses.
   - Parallelizable: no
 
-- [ ] Add visual edit warning/rule suffixes.
+- [x] Add visual edit warning/rule suffixes.
   - Files/areas: `src/editor/notebook/format.ts`, `src/shared/i18n.ts`.
-  - Notes: Add rules stating visual edits are preview-derived instructions, should be applied to referenced targets, and should not remove/rename `data-ai-id` attributes. Include fallback-target reliability warning when fallback targets are present.
+  - Notes: `appendNotebookSuffixes()` now accepts `hasVisualEdits` and adds a localized visual-edit notice under `## Rules`, stating that visual edits are preview-derived implementation instructions, must be applied to referenced source targets, and must not remove/rename/overwrite existing `data-ai-id` attributes. The fallback target notice was generalized from chip-only language so fallback visual-edit targets also receive the reliability warning.
   - Parallelizable: yes
 
 ### Phase 13 - Styling, i18n, docs, and cleanup

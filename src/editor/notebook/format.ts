@@ -5,6 +5,7 @@ import type { NotebookSuffixSettings } from './suffix-settings';
 interface NotebookSuffixContext {
   hasAiIdTargets?: boolean;
   hasFallbackTargets?: boolean;
+  hasVisualEdits?: boolean;
 }
 
 export function appendNotebookSuffixes(
@@ -16,6 +17,7 @@ export function appendNotebookSuffixes(
   const suffixLines = [
     getViewportScopeSuffix(suffixSettings),
     suffixSettings.tailwindEnabled ? messages.notebook.tailwindSuffix : '',
+    getVisualEditNoticeSuffix(value, context),
     getTargetNoticeSuffix(value, suffixSettings, context),
   ].filter((line) => line.trim().length > 0);
 
@@ -62,8 +64,24 @@ function getTargetNoticeSuffix(
   return noticeLines.join('\n');
 }
 
+function getVisualEditNoticeSuffix(
+  value: string,
+  context: NotebookSuffixContext,
+): string {
+  const hasVisualEdits = context.hasVisualEdits || hasVisualEditsSection(value);
+  if (!hasVisualEdits) {
+    return '';
+  }
+
+  return getCurrentMessages().notebook.visualEditNotice.trimEnd();
+}
+
 function hasStableDataAiIdReference(value: string): boolean {
   return /^- Kind: stable data-ai-id target$/m.test(value) || /^- data-ai-id:/m.test(value);
+}
+
+function hasVisualEditsSection(value: string): boolean {
+  return /^## Visual edits$/m.test(value);
 }
 
 function hasFallbackReferenceBlock(value: string): boolean {

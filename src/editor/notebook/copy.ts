@@ -54,6 +54,7 @@ export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
       {
         hasAiIdTargets,
         hasFallbackTargets,
+        hasVisualEdits,
       },
     ),
     visualEditRecords,
