@@ -188,9 +188,9 @@
   - Parallelizable: yes
 
 ### Phase 8 - Inline style controls
-- [ ] Implement a CSS-property style edit API for controls.
+- [x] Implement a CSS-property style edit API for controls.
   - Files/areas: new `src/editor/visual/useStyleEdit.ts`, `src/editor/forms/useVisualStyleForm.ts`.
-  - Notes: Replace `ai-editor`'s class-token `useClassEdit()` pipeline with `commitStyle(propertyId, cssValue)` that records before/after computed/inline values, posts inline-style mutations, and updates snapshots.
+  - Notes: Added `useStyleEdit()` with `commitStyle(propertyId, cssValue)`, `commitStyles()`, value lookup helpers, visual edit record integration through the existing mutation client, and a `useVisualStyleForm()` adapter for length/edge controls. Added the preview bridge `updateVisualStyle` route/handler so inline style mutations apply to arbitrary resolved elements, return snapshots, and mark visual edit records applied/failed.
   - Parallelizable: no
 
 - [ ] Implement layout controls using inline CSS properties.

@@ -15,6 +15,7 @@ import {
   setHoverHighlightSuppressed,
 } from './highlight';
 import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
+import { handleUpdateVisualStyle } from './visual-style';
 import {
   handleDeleteVisualElement,
   handleDuplicateVisualElement,
@@ -131,6 +132,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.requestVisualTargetSnapshot:
       handleVisualTargetSnapshotRequest(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.updateVisualStyle:
+      handleUpdateVisualStyle(message, post);
       return;
     case EDITOR_MESSAGE_TYPES.duplicateVisualElement:
       handleDuplicateVisualElement(message, post);
