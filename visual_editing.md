@@ -338,9 +338,9 @@
   - Notes: Updated English/Korean READMEs and editor usage docs to describe the hover quick-action bar, floating visual panel, preview-only DOM/style/structure mutations, fallback target safety, hidden visual prompt text, `## Visual edits` copy export, and copy/reset lifecycle. Updated Chrome Web Store clipboard/privacy/listing support docs so disclosure language includes preview-only visual edit records and explicit-copy-only clipboard behavior.
   - Parallelizable: yes
 
-- [ ] Remove or ignore obsolete references to the prior broad visual-editing checklist if any remain.
+- [x] Remove or ignore obsolete references to the prior broad visual-editing checklist if any remain.
   - Files/areas: docs and comments that reference `visual_editing.md` as an old full editor roadmap.
-  - Notes: Keep this file as implementation checklist; do not remove user-facing docs unless they become misleading.
+  - Notes: Searched non-generated docs/source files for `visual_editing.md`, old/broad visual-editing checklist language, full-editor roadmap references, and stale roadmap wording. No obsolete external docs/comments remained; only this checklist's current historical context references remain, so no user-facing docs were removed.
   - Parallelizable: yes
 
 ### Phase 14 - Build and completion hygiene
