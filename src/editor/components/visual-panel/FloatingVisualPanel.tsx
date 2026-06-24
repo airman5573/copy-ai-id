@@ -18,7 +18,6 @@ import {
   bridgeViewportRectToEditorViewportRect,
   calculateFloatingVisualPanelPlacement,
   createEditorViewportRect,
-  domRectToEditorViewportRect,
   getPreviewWorkspaceGeometrySnapshot,
   type EditorViewportRect,
   type OverlayPlacement,
@@ -140,7 +139,6 @@ export function FloatingVisualPanel(): ReactElement | null {
 
   const placement = useMemo(() => computePanelPlacement({
     mode: placementMode,
-    panelElement: panelRef.current,
     panelSize,
     target,
   }), [
@@ -315,12 +313,10 @@ function openCategory(category: QuickActionCategory, target: FloatingVisualPanel
 
 function computePanelPlacement({
   mode,
-  panelElement,
   panelSize,
   target,
 }: {
   mode: FloatingPanelPlacementMode;
-  panelElement: HTMLElement | null;
   panelSize: OverlaySize;
   target: FloatingVisualPanelTarget | null;
 }): FloatingPanelPlacement {
@@ -344,7 +340,6 @@ function computePanelPlacement({
   );
   const anchorRect = resolvePanelAnchorRect({
     mode,
-    panelElement,
     target,
   }) ?? fallbackAnchorRect();
   const placement = calculateFloatingVisualPanelPlacement(anchorRect, {
@@ -382,36 +377,16 @@ function createPanelStyle(placement: FloatingPanelPlacement): CSSProperties {
 
 function resolvePanelAnchorRect({
   mode,
-  panelElement,
   target,
 }: {
   mode: FloatingPanelPlacementMode;
-  panelElement: HTMLElement | null;
   target: FloatingVisualPanelTarget | null;
 }): EditorViewportRect | null {
   if (mode === 'desktop-follow-anchor') {
-    return quickActionToolbarRect(panelElement) ?? targetEditorRect(target);
+    return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
   }
 
   return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
-}
-
-function quickActionToolbarRect(panelElement: HTMLElement | null): EditorViewportRect | null {
-  const root = panelElement?.getRootNode();
-  const toolbar = root && 'querySelector' in root
-    ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-quick-action-bar"]')
-    : null;
-
-  if (!toolbar) {
-    return null;
-  }
-
-  const rect = toolbar.getBoundingClientRect();
-  if (rect.width <= 0 || rect.height <= 0) {
-    return null;
-  }
-
-  return domRectToEditorViewportRect(rect);
 }
 
 function targetEditorRect(target: FloatingVisualPanelTarget | null): EditorViewportRect | null {

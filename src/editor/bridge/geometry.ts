@@ -183,18 +183,6 @@ export function getPreviewOverlayBounds(): EditorViewportRect {
     ?? geometry.editorViewportRect;
 }
 
-export function calculateQuickActionBarPlacement(
-  anchorRect: EditorViewportRect,
-  size: OverlaySize,
-  options: OverlayPlacementOptions = {},
-): OverlayPlacement {
-  return calculateVerticalAnchorPlacement(anchorRect, size, {
-    gap: options.gap ?? DEFAULT_OVERLAY_GAP,
-    padding: options.padding ?? DEFAULT_OVERLAY_PADDING,
-    bounds: options.bounds ?? getPreviewOverlayBounds(),
-  });
-}
-
 export function calculateFloatingVisualPanelPlacement(
   anchorRect: EditorViewportRect,
   size: OverlaySize,

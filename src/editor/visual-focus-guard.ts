@@ -5,7 +5,6 @@ const VISUAL_EDITOR_HOVER_PROTECTION_MS = 500;
 const VISUAL_FOCUS_GUARD_SELECTOR = [
   '[data-copy-ai-id-visual-focus-guard="true"]',
   '[data-ai-editor-floating-visual-panel="1"]',
-  '[data-ai-id="copy-ai-id-editor-quick-action-bar"]',
 ].join(', ');
 
 export function installVisualEditorFocusGuard(): () => void {

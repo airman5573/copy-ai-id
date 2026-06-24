@@ -88,17 +88,17 @@
   - Parallelizable: no
 
 ### Phase 5 - Retire the Shadow DOM quick toolbar
-- [ ] Remove the old React toolbar render from the preview workspace.
+- [x] Remove the old React toolbar render from the preview workspace.
   - Files/areas: `src/editor/components/PreviewWorkspace.tsx`, `src/editor/components/visual/QuickActionBar.tsx`
   - Notes: Remove the `QuickActionBar` import/render so there is only one toolbar. Delete `QuickActionBar.tsx` if all behavior has been ported, or leave only shared types/constants if they are still imported. Avoid duplicate toolbar DOM in Shadow DOM and iframe.
   - Parallelizable: no
 
-- [ ] Move or remove obsolete Shadow DOM toolbar CSS.
+- [x] Move or remove obsolete Shadow DOM toolbar CSS.
   - Files/areas: `src/editor/editor.css`, `src/content/editor-bridge/quick-action-toolbar.ts` or a new bridge style helper
   - Notes: Port only the needed visual styles into the iframe toolbar module. Remove unused `.copy-ai-id-editor-quick-action-bar*` CSS from the editor stylesheet if the React toolbar is deleted. Keep class names scoped enough that page CSS conflicts are unlikely.
   - Parallelizable: no
 
-- [ ] Adjust floating panel anchoring after removing the Shadow DOM toolbar.
+- [x] Adjust floating panel anchoring after removing the Shadow DOM toolbar.
   - Files/areas: `src/editor/components/visual-panel/FloatingVisualPanel.tsx`
   - Notes: `quickActionToolbarRect(panelElement)` will no longer find a toolbar in the editor Shadow DOM. Either remove that lookup and intentionally anchor desktop follow mode to the selected target rect, or consume a bridge-provided toolbar rect if added in Phase 1. Prefer the selected target rect unless a toolbar-rect payload is already implemented.
   - Parallelizable: no
