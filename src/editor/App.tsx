@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { createPreviewUrl } from './bridge/bridgeClient';
 import { MainArea } from './components/MainArea';
+import { FloatingVisualPanel } from './components/visual-panel/FloatingVisualPanel';
 import { TopToolbar } from './components/TopToolbar';
 import { installEditorKeyboard } from './keyboard';
 import { installKeyboardNavigationHoverGuard } from './keyboard-hover-guard';
@@ -101,6 +102,7 @@ export function App({ onRequestClose }: AppProps) {
         onFitZoom={handleFitZoom}
       />
       <MainArea previewStageRef={previewStageRef} onFitZoom={handleFitZoom} />
+      <FloatingVisualPanel />
       {toastMessage ? (
         <div
           className={`copy-ai-id-editor-toast copy-ai-id-editor-toast--${toastTone}`}

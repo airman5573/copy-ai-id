@@ -162,9 +162,9 @@
   - Parallelizable: no
 
 ### Phase 7 - Floating visual panel shell and section navigation
-- [ ] Port the `ai-editor` floating visual panel shell without AI-generated tabs.
+- [x] Port the `ai-editor` floating visual panel shell without AI-generated tabs.
   - Files/areas: new `src/editor/components/visual-panel/FloatingVisualPanel.tsx`, `src/editor/App.tsx`, `src/editor/stores/useFloatingVisualPanelStore.ts`.
-  - Notes: Match source layout, dark glass panel, header, category tabs, close button, breakpoint badge, and body scroll behavior. Categories: content, layout, spacing, size, style, border. No generated/advanced tab unless needed for copied controls.
+  - Notes: Added the store-backed dark floating panel shell with source-like header, category tabs, close button, breakpoint badge, and scrollable body for content/layout/spacing/size/style/border only. Body controls are placeholder shells until the dedicated control slices; placement is currently a static safe default and remains covered by the next checklist item.
   - Parallelizable: no
 
 - [ ] Implement desktop and mobile/tablet panel placement.

@@ -35,6 +35,11 @@
   --editor-accent-hover: rgba(14, 165, 233, 0.34);
   --editor-accent-border: rgba(56, 189, 248, 0.52);
   --editor-accent-text: #e0f7ff;
+  --ai-editor-chrome-bg: rgba(17, 24, 39, 0.96);
+  --ai-editor-chrome-bg-translucent: rgba(17, 24, 39, 0.86);
+  --ai-editor-chrome-text: #f9fafb;
+  --ai-editor-chrome-border: rgba(55, 65, 81, 0.88);
+  --ai-editor-panel-body-bg: rgba(3, 7, 18, 0.92);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
