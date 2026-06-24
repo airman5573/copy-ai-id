@@ -9,6 +9,7 @@ import {
   type VisualMutationErrorMessage,
   type VisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
+import type { EditorViewportRect } from '../bridge/geometry';
 
 export type VisualMutationResultMessage = Extract<BridgeToEditorMessage, {
   applied: boolean;
@@ -22,8 +23,10 @@ export interface QuickActionCategorySelection extends EditorTargetReference {
 
 interface VisualBridgeStateSnapshot {
   quickActionAnchor: QuickActionAnchorChangedMessage | null;
+  quickActionAnchorEditorRect: EditorViewportRect | null;
   selectedQuickActionCategory: QuickActionCategorySelection | null;
   targetSnapshot: VisualTargetSnapshotMessage | null;
+  targetSnapshotEditorRect: EditorViewportRect | null;
   latestMutationResult: VisualMutationResultMessage | null;
   latestMutationError: VisualMutationErrorMessage | null;
   mutationResultsById: Record<number, VisualMutationResultMessage>;
@@ -32,10 +35,10 @@ interface VisualBridgeStateSnapshot {
 }
 
 interface VisualBridgeStore extends VisualBridgeStateSnapshot {
-  setQuickActionAnchor(message: QuickActionAnchorChangedMessage): void;
+  setQuickActionAnchor(message: QuickActionAnchorChangedMessage, editorRect?: EditorViewportRect | null): void;
   setQuickActionCategorySelection(selection: Omit<QuickActionCategorySelection, 'selectedAt'>): void;
-  setVisualTargetSnapshot(message: VisualTargetSnapshotMessage): void;
-  setVisualMutationResult(message: VisualMutationResultMessage): void;
+  setVisualTargetSnapshot(message: VisualTargetSnapshotMessage, editorRect?: EditorViewportRect | null): void;
+  setVisualMutationResult(message: VisualMutationResultMessage, editorRect?: EditorViewportRect | null): void;
   setVisualMutationError(message: VisualMutationErrorMessage): void;
   markLayoutTreeRefreshed(): void;
   resetVisualBridgeState(): void;
@@ -43,8 +46,10 @@ interface VisualBridgeStore extends VisualBridgeStateSnapshot {
 
 const initialVisualBridgeState: VisualBridgeStateSnapshot = {
   quickActionAnchor: null,
+  quickActionAnchorEditorRect: null,
   selectedQuickActionCategory: null,
   targetSnapshot: null,
+  targetSnapshotEditorRect: null,
   latestMutationResult: null,
   latestMutationError: null,
   mutationResultsById: {},
@@ -54,15 +59,21 @@ const initialVisualBridgeState: VisualBridgeStateSnapshot = {
 
 export const useVisualBridgeStore = create<VisualBridgeStore>((set) => ({
   ...initialVisualBridgeState,
-  setQuickActionAnchor: (quickActionAnchor) => set({ quickActionAnchor }),
+  setQuickActionAnchor: (quickActionAnchor, quickActionAnchorEditorRect = null) => set({
+    quickActionAnchor,
+    quickActionAnchorEditorRect,
+  }),
   setQuickActionCategorySelection: (selection) => set({
     selectedQuickActionCategory: {
       ...selection,
       selectedAt: Date.now(),
     },
   }),
-  setVisualTargetSnapshot: (targetSnapshot) => set({ targetSnapshot }),
-  setVisualMutationResult: (latestMutationResult) => set((state) => {
+  setVisualTargetSnapshot: (targetSnapshot, targetSnapshotEditorRect = null) => set({
+    targetSnapshot,
+    targetSnapshotEditorRect,
+  }),
+  setVisualMutationResult: (latestMutationResult, targetSnapshotEditorRect = null) => set((state) => {
     const nextState: Partial<VisualBridgeStateSnapshot> = {
       latestMutationResult,
       mutationResultsById: {
@@ -78,6 +89,7 @@ export const useVisualBridgeStore = create<VisualBridgeStore>((set) => ({
         nodeId: latestMutationResult.nodeId,
         snapshot: latestMutationResult.snapshot,
       };
+      nextState.targetSnapshotEditorRect = targetSnapshotEditorRect;
     }
 
     if (latestMutationResult.error) {

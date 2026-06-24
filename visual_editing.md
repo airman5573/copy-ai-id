@@ -99,7 +99,7 @@
   - Notes: Route quick-action anchor changes, quick-action category clicks, visual target snapshots, mutation results, mutation errors, structure results, and layout refreshes into visual stores without disturbing notebook shortcut behavior.
   - Parallelizable: no
 
-- [ ] Add iframe-to-editor geometry conversion helpers for quick-action and floating panel placement.
+- [x] Add iframe-to-editor geometry conversion helpers for quick-action and floating panel placement.
   - Files/areas: new `src/editor/bridge/geometry.ts`, `src/editor/bridge/bridgeClient.ts`, `src/editor/components/PreviewWorkspace.tsx`.
   - Notes: Port the `ai-editor/src/editor/bridge/geometry.ts` idea, but account for the existing preview canvas transform/zoom, resize handles, and `registerPreviewFrame()` lifecycle.
   - Parallelizable: no

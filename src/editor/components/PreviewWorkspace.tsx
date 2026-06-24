@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -11,6 +12,7 @@ import {
 import { breakpointById } from '../../shared/breakpoints';
 import { getCurrentMessages } from '../../shared/i18n';
 import { createPreviewUrl, installBridgeClient, registerPreviewFrame } from '../bridge/bridgeClient';
+import { registerPreviewWorkspaceGeometry } from '../bridge/geometry';
 import {
   MAX_PREVIEW_HEIGHT,
   MAX_PREVIEW_WIDTH,
@@ -61,6 +63,9 @@ export interface PreviewWorkspaceProps {
 export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
   const messages = getCurrentMessages();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const stageElementRef = useRef<HTMLDivElement | null>(null);
+  const canvasFrameRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
   const currentUrl = useRuntimeStore((state) => state.currentUrl);
   const previewUrl = useMemo(() => createPreviewUrl(currentUrl || window.location.href), [currentUrl]);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
@@ -86,6 +91,32 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
   const [isResizingPreviewHeight, setIsResizingPreviewHeight] = useState(false);
   const [isResizingPreviewWidth, setIsResizingPreviewWidth] = useState(false);
 
+  const syncPreviewGeometryRefs = useCallback((): void => {
+    registerPreviewWorkspaceGeometry({
+      stageElement: stageElementRef.current,
+      canvasFrameElement: canvasFrameRef.current,
+      canvasElement: canvasRef.current,
+    });
+  }, []);
+
+  const handleStageRef = useCallback((node: HTMLDivElement | null): void => {
+    stageElementRef.current = node;
+    if (stageRef) {
+      (stageRef as { current: HTMLDivElement | null }).current = node;
+    }
+    syncPreviewGeometryRefs();
+  }, [stageRef, syncPreviewGeometryRefs]);
+
+  const handleCanvasFrameRef = useCallback((node: HTMLDivElement | null): void => {
+    canvasFrameRef.current = node;
+    syncPreviewGeometryRefs();
+  }, [syncPreviewGeometryRefs]);
+
+  const handleCanvasRef = useCallback((node: HTMLDivElement | null): void => {
+    canvasRef.current = node;
+    syncPreviewGeometryRefs();
+  }, [syncPreviewGeometryRefs]);
+
   useEffect(() => installBridgeClient(), []);
 
   useEffect(() => {
@@ -105,7 +136,14 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
     };
   }, [messages.editor.iframeBlocked, previewUrl, setIframeStatus, setLoading, setPreviewUrl]);
 
-  useEffect(() => () => registerPreviewFrame(null), []);
+  useEffect(() => () => {
+    registerPreviewFrame(null);
+    registerPreviewWorkspaceGeometry({
+      stageElement: null,
+      canvasFrameElement: null,
+      canvasElement: null,
+    });
+  }, []);
 
   useEffect(() => {
     if (!isResizingPreviewHeight) {
@@ -161,7 +199,7 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
 
       setCustomPreviewWidth(nextPreviewWidth);
 
-      const stage = stageRef?.current;
+      const stage = stageElementRef.current;
       if (deltaX > 0 && stage && isPreviewWidthOverflowingStage(nextPreviewWidth, stage)) {
         fitZoom(stage.clientWidth, stage.clientHeight);
       }
@@ -186,7 +224,7 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
       window.removeEventListener('pointerup', finishResize);
       window.removeEventListener('pointercancel', finishResize);
     };
-  }, [fitZoom, isResizingPreviewWidth, persistCustomPreviewWidth, setCustomPreviewWidth, stageRef]);
+  }, [fitZoom, isResizingPreviewWidth, persistCustomPreviewWidth, setCustomPreviewWidth]);
 
   const handleResizePointerDown = (event: ReactPointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) {
@@ -310,13 +348,15 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
 
   return (
     <section className="copy-ai-id-editor-preview" data-ai-id="copy-ai-id-editor-preview-panel">
-      <div ref={stageRef} className="copy-ai-id-editor-preview-stage" data-ai-id="copy-ai-id-editor-preview-stage">
+      <div ref={handleStageRef} className="copy-ai-id-editor-preview-stage" data-ai-id="copy-ai-id-editor-preview-stage">
         <div
+          ref={handleCanvasFrameRef}
           className="copy-ai-id-editor-preview-canvas-frame"
           style={canvasFrameStyle}
           data-ai-id="copy-ai-id-editor-preview-canvas-frame"
         >
           <div
+            ref={handleCanvasRef}
             className={canvasClassName}
             style={canvasStyle}
             data-ai-id="copy-ai-id-editor-preview-canvas"

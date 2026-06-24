@@ -6,6 +6,11 @@ import {
   type EditorTargetReference,
   type QuickActionCategory,
 } from '../../shared/editor-messages';
+import {
+  bridgeViewportRectToEditorViewportRect,
+  getBridgeIframeElement,
+  registerBridgeIframeElement,
+} from './geometry';
 import { useBridgeStore } from '../stores/useBridgeStore';
 import { useBoxModelStore } from '../stores/useBoxModelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
@@ -21,7 +26,8 @@ import { suppressHoverUntilMouseMove } from '../keyboard-hover-guard';
 import { showMissingDataAiIdToast, showStaleFallbackTargetToast } from '../toast';
 
 const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
-let previewFrame: HTMLIFrameElement | null = null;
+
+export { getBridgeIframeElement } from './geometry';
 
 export function createPreviewUrl(sourceUrl: string): string {
   try {
@@ -34,11 +40,11 @@ export function createPreviewUrl(sourceUrl: string): string {
 }
 
 export function registerPreviewFrame(frame: HTMLIFrameElement | null): void {
-  previewFrame = frame;
+  registerBridgeIframeElement(frame);
 }
 
 export function postToBridge(message: EditorToBridgeMessage): void {
-  previewFrame?.contentWindow?.postMessage(message, '*');
+  getBridgeIframeElement()?.contentWindow?.postMessage(message, '*');
 }
 
 export function selectQuickActionCategory(
@@ -68,6 +74,8 @@ export function installBridgeClient(): () => void {
   });
 
   const handleMessage = (event: MessageEvent): void => {
+    const previewFrame = getBridgeIframeElement();
+
     if (previewFrame?.contentWindow && event.source !== previewFrame.contentWindow) {
       return;
     }
@@ -129,10 +137,16 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       useBridgeStore.getState().setIframeStatus(message.status, message.message);
       return;
     case EDITOR_MESSAGE_TYPES.quickActionAnchorChanged:
-      useVisualBridgeStore.getState().setQuickActionAnchor(message);
+      useVisualBridgeStore.getState().setQuickActionAnchor(
+        message,
+        message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
+      );
       return;
     case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
-      useVisualBridgeStore.getState().setVisualTargetSnapshot(message);
+      useVisualBridgeStore.getState().setVisualTargetSnapshot(
+        message,
+        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
+      );
       return;
     case EDITOR_MESSAGE_TYPES.visualStyleUpdated:
     case EDITOR_MESSAGE_TYPES.visualTextUpdated:
@@ -144,7 +158,10 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.visualElementDeleted:
     case EDITOR_MESSAGE_TYPES.visualElementRestored:
     case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
-      useVisualBridgeStore.getState().setVisualMutationResult(message as VisualMutationResultMessage);
+      useVisualBridgeStore.getState().setVisualMutationResult(
+        message as VisualMutationResultMessage,
+        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
+      );
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
       useVisualBridgeStore.getState().setVisualMutationError(message);
