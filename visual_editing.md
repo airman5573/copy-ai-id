@@ -275,9 +275,9 @@
   - Notes: The editor-owned drag grip now forwards pointer coordinates into the preview bridge during drag, the bridge resolves valid drop targets while avoiding the dragged element/descendants, shows a preview drop indicator, clears it on cancel/drop, and applies the preview-only DOM move on pointer release. Drag results now include before/after structure snapshots plus drop target/position so copy export records a machine-readable drag-move diff.
   - Parallelizable: no
 
-- [ ] Refresh overlays, quick-action anchors, selected snapshots, and layout tree after mutations.
-  - Files/areas: `visual-mutations.ts`, `src/content/editor-bridge/overlay.ts`, `src/content/editor-bridge/highlight.ts`, `src/editor/bridge/bridgeClient.ts`.
-  - Notes: DOM-changing edits should not leave toolbar/floating panel anchored to stale rects.
+- [x] Refresh overlays, quick-action anchors, selected snapshots, and layout tree after mutations.
+  - Files/areas: `src/content/editor-bridge/visual-mutation-results.ts`, `src/content/editor-bridge/highlight.ts`, `src/editor/bridge/bridgeClient.ts`, `src/editor/stores/useVisualSelectionStore.ts`.
+  - Notes: Applied mutations now force-refresh the preview highlight/overlay, emit refreshed quick-action anchor messages, rebuild/post layout-tree as before, and queue a post-layout selected-target snapshot refresh. Mutation snapshots also refresh matching hover, toolbar, and floating-panel rects so editor-owned overlays do not stay anchored to stale geometry.
   - Parallelizable: no
 
 ### Phase 11 - Box model and hover interaction polish

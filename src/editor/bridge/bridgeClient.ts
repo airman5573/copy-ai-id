@@ -43,6 +43,8 @@ const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
 
 export { getBridgeIframeElement } from './geometry';
 
+let pendingPostMutationSnapshotRefresh: EditorTargetReference | null = null;
+
 export function createPreviewUrl(sourceUrl: string): string {
   try {
     const url = new URL(sourceUrl);
@@ -232,6 +234,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.layoutTree:
       useLayoutTreeStore.getState().setTree(message.root, message.url);
       useVisualBridgeStore.getState().markLayoutTreeRefreshed();
+      flushPendingPostMutationSnapshotRefresh();
       return;
     case EDITOR_MESSAGE_TYPES.targetHighlighted:
       if (isNoteEditorHoverProtected()) {
@@ -261,6 +264,10 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       useBridgeStore.getState().setIframeStatus(message.status, message.message);
       return;
     case EDITOR_MESSAGE_TYPES.quickActionAnchorChanged:
+      if (isNoteEditorHoverProtected()) {
+        return;
+      }
+
       useVisualBridgeStore.getState().setQuickActionAnchor(
         message,
         message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
@@ -305,6 +312,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
           message.mutationId,
           createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
         );
+        queuePostMutationSnapshotRefresh(message as VisualMutationResultMessage);
       }
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
@@ -331,6 +339,32 @@ function isArrowShortcut(shortcut: EditorKeyboardShortcut): boolean {
     || shortcut === 'arrow-down'
     || shortcut === 'arrow-left'
     || shortcut === 'arrow-right';
+}
+
+function queuePostMutationSnapshotRefresh(message: VisualMutationResultMessage): void {
+  if (!message.snapshot) {
+    return;
+  }
+
+  const selectionState = useVisualSelectionStore.getState();
+  if (!selectionState.panelTarget && !selectionState.snapshotTarget) {
+    return;
+  }
+
+  pendingPostMutationSnapshotRefresh = {
+    target: message.target,
+    nodeId: message.nodeId,
+  };
+}
+
+function flushPendingPostMutationSnapshotRefresh(): void {
+  const pending = pendingPostMutationSnapshotRefresh;
+  if (!pending) {
+    return;
+  }
+
+  pendingPostMutationSnapshotRefresh = null;
+  requestVisualTargetSnapshot(pending);
 }
 
 function createVisualEditRecordPatchForMutationResult(

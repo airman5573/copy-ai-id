@@ -176,7 +176,7 @@ export function refreshAfterVisualMutation(
   }
 
   if (options.highlight !== false) {
-    refreshHighlightedElement(post);
+    refreshHighlightedElement(post, { force: true });
   }
 
   return result;

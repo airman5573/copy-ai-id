@@ -243,16 +243,40 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
     }
 
     if (message.snapshot) {
+      const refreshedTarget: EditorTargetReference = {
+        target: message.target,
+        nodeId: message.nodeId,
+      };
+      const now = Date.now();
+
       return {
+        hoverTarget: refreshHoverTargetAfterMutation(
+          state.hoverTarget,
+          refreshedTarget,
+          message.snapshot,
+          editorRect,
+          now,
+        ),
+        activeToolbarTarget: refreshToolbarTargetAfterMutation(
+          state.activeToolbarTarget,
+          refreshedTarget,
+          message.snapshot,
+          editorRect,
+          now,
+        ),
+        panelTarget: refreshPanelTargetAfterMutation(
+          state.panelTarget,
+          refreshedTarget,
+          message.snapshot,
+          editorRect,
+          now,
+        ),
         snapshotStatus: 'ready',
-        snapshotTarget: {
-          target: message.target,
-          nodeId: message.nodeId,
-        },
+        snapshotTarget: refreshedTarget,
         snapshot: message.snapshot,
         snapshotEditorRect: editorRect,
         snapshotError: null,
-        snapshotReceivedAt: Date.now(),
+        snapshotReceivedAt: now,
         staleReason: null,
       };
     }
@@ -458,6 +482,87 @@ function targetReferenceFromSnapshotMessage(
     target,
     nodeId: message.snapshot?.nodeId ?? message.nodeId,
   };
+}
+
+function refreshHoverTargetAfterMutation(
+  targetState: VisualHoverTargetState | null,
+  reference: EditorTargetReference,
+  snapshot: VisualTargetSnapshot,
+  editorRect: EditorViewportRect | null,
+  updatedAt: number,
+): VisualHoverTargetState | null {
+  if (!targetState || !targetStateMatchesReference(targetState.target, targetState.nodeId, reference)) {
+    return targetState;
+  }
+
+  return {
+    ...targetState,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    elementRect: snapshot.elementRect,
+    editorRect,
+    viewport: snapshot.viewport,
+    updatedAt,
+  };
+}
+
+function refreshToolbarTargetAfterMutation(
+  targetState: VisualToolbarTargetState | null,
+  reference: EditorTargetReference,
+  snapshot: VisualTargetSnapshot,
+  editorRect: EditorViewportRect | null,
+  updatedAt: number,
+): VisualToolbarTargetState | null {
+  if (!targetState || !targetStateMatchesReference(targetState.target, targetState.nodeId, reference)) {
+    return targetState;
+  }
+
+  return {
+    ...targetState,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    elementRect: snapshot.elementRect,
+    editorRect,
+    viewport: snapshot.viewport,
+    updatedAt,
+  };
+}
+
+function refreshPanelTargetAfterMutation(
+  targetState: VisualPanelTargetState | null,
+  reference: EditorTargetReference,
+  snapshot: VisualTargetSnapshot,
+  editorRect: EditorViewportRect | null,
+  updatedAt: number,
+): VisualPanelTargetState | null {
+  if (!targetState || !targetStateMatchesReference(targetState.target, targetState.nodeId, reference)) {
+    return targetState;
+  }
+
+  return {
+    ...targetState,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    elementRect: snapshot.elementRect,
+    editorRect,
+    updatedAt,
+  };
+}
+
+function targetStateMatchesReference(
+  target: EditorTarget | null | undefined,
+  nodeId: string | null | undefined,
+  reference: EditorTargetReference,
+): boolean {
+  if (!target) {
+    return false;
+  }
+
+  if (nodeId && reference.nodeId && nodeId === reference.nodeId) {
+    return true;
+  }
+
+  return hasSameEditorTarget(target, reference.target);
 }
 
 function selectionErrorState(

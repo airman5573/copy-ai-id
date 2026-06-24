@@ -6,6 +6,7 @@ import {
   type BridgeViewportSize,
   type EditorTarget,
   type HighlightOrigin,
+  type QuickActionCategory,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import {
@@ -41,6 +42,15 @@ let hoverHighlightSuppressed = false;
 let keyboardNavigationHoverSuppressed = false;
 let lastMousePosition: MousePosition | null = null;
 let suppressionStartPosition: MousePosition | null = null;
+
+const DEFAULT_QUICK_ACTION_CATEGORIES: QuickActionCategory[] = [
+  'content',
+  'layout',
+  'spacing',
+  'size',
+  'style',
+  'border',
+];
 
 export function installHoverHighlight(post: BridgePost): () => void {
   const handleMouseOver = (event: MouseEvent): void => {
@@ -199,13 +209,25 @@ export function setHighlightedElement(
   highlightedTarget = nextTarget;
   highlightedOrigin = origin;
   updateHoverOverlay();
+  const elementRect = nextElement ? viewportRectForElement(nextElement) : null;
+  const viewport = viewportSize();
+
   post({
     type: EDITOR_MESSAGE_TYPES.targetHighlighted,
     target: nextTarget,
     nodeId: nextNodeId,
     origin,
-    elementRect: nextElement ? viewportRectForElement(nextElement) : null,
-    viewport: viewportSize(),
+    elementRect,
+    viewport,
+  });
+  post({
+    type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
+    target: nextTarget,
+    nodeId: nextNodeId,
+    elementRect,
+    viewport,
+    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    reason: quickActionAnchorReason(nextElement, origin),
   });
 }
 
@@ -325,6 +347,17 @@ function updateHoverOverlay(): void {
   }
 
   showOverlay('hover', element);
+}
+
+function quickActionAnchorReason(
+  element: Element | null,
+  origin: HighlightOrigin,
+): 'hover' | 'tree-hover' | 'cleared' {
+  if (!element) {
+    return 'cleared';
+  }
+
+  return origin === 'layout-tree' ? 'tree-hover' : 'hover';
 }
 
 function isHoverHighlightSuppressed(): boolean {
