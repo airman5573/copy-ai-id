@@ -13,6 +13,7 @@ import { sanitizeVisualHtmlFragment } from '../../../shared/visual-html';
 import { useContentEdit } from '../../visual/useContentEdit';
 import { VisualControl } from '../visual/VisualControl';
 import { AttributeControls } from './AttributeControls';
+import { FormValueControls } from './FormValueControls';
 import { LinkControls } from './LinkControls';
 
 export type ContentControlsProps = {
@@ -42,6 +43,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
         />
       </ContentControlGroup>
 
+      <FormValueControls disabled={!canEdit} />
       <LinkControls disabled={!canEdit} />
       <AttributeControls disabled={!canEdit} />
 

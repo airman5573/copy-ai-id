@@ -239,7 +239,7 @@
   - Notes: Allow safe attributes such as `href`, `target`, `rel`, `src`, `alt`, `title`, `aria-label`, `placeholder`, `type` when safe. Block `on*`, `style` freeform if redundant with style controls, and dangerous URL schemes.
   - Parallelizable: yes
 
-- [ ] Implement form-control value editing.
+- [x] Implement form-control value editing.
   - Files/areas: `TextControls.tsx`, `visual-targets.ts`, `visual-mutations.ts`.
   - Notes: Handle `input`, `textarea`, `select`, checkbox/radio checked state, and contenteditable targets. Record value/checked/selected before and after separately from attributes.
   - Parallelizable: yes

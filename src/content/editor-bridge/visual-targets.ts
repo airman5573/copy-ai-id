@@ -747,7 +747,19 @@ function formValueForElement(element: Element): VisualTargetSnapshot['formValue'
     };
   }
 
+  if (isContentEditableElement(element)) {
+    return { value: element.textContent ?? '' };
+  }
+
   return undefined;
+}
+
+function isContentEditableElement(element: Element): element is HTMLElement {
+  return element instanceof HTMLElement && (
+    element.isContentEditable
+    || element.getAttribute('contenteditable') === ''
+    || element.getAttribute('contenteditable')?.toLowerCase() === 'true'
+  );
 }
 
 function imageSnapshotForElement(element: Element): VisualTargetSnapshot['image'] {
