@@ -172,9 +172,9 @@
   - Notes: Desktop placement now anchors to the quick-action toolbar when present, then falls back to the selected target and opens above when space allows. Base/mobile/tablet breakpoints use the preview-side placement path, prefer the iframe's right side, and clamp panel width/top/height to the editor viewport. The panel remeasures on resize, scroll, breakpoint, zoom, target, and body-size changes.
   - Parallelizable: no
 
-- [ ] Port visual section primitives and section jump behavior.
+- [x] Port visual section primitives and section jump behavior.
   - Files/areas: new `src/editor/components/visual/VisualSection.tsx`, `VisualControl.tsx`, `UnitValueInput.tsx`, `EdgeBoxControl.tsx`, `DropdownSelect.tsx`, `PresetSelect.tsx`, `ColorInput.tsx`, `sectionJump.ts`, new `src/editor/stores/useSectionJumpStore.ts`.
-  - Notes: Adapt source components to the new inline-style mutation API. Preserve `data-ai-id` hooks and source visual design. Do not import source-map/chat-specific stores.
+  - Notes: Added source-like visual control primitives for section shells, form rows, unit inputs, edge boxes, presets, dropdowns, and color inputs without source-map/chat coupling. Quick-action categories now map to stable copy-ai-id visual section IDs, and `VisualSection` consumes the existing section jump store to expand, scroll, focus, and flash the target section. Dedicated dropdown coordination/input helper extraction remains in the next checklist item.
   - Parallelizable: yes
 
 - [ ] Port dropdown coordination and input selection helpers used by visual controls.

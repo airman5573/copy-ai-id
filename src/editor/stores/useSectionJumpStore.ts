@@ -1,14 +1,12 @@
 import { create } from 'zustand';
 
 import type { EditorTargetReference, QuickActionCategory } from '../../shared/editor-messages';
+import {
+  QUICK_ACTION_SECTION_IDS,
+  type VisualPanelSectionId,
+} from '../components/visual/sectionJump';
 
-export type VisualPanelSectionId =
-  | 'content'
-  | 'layout'
-  | 'spacing'
-  | 'size'
-  | 'style'
-  | 'border';
+export type { VisualPanelSectionId } from '../components/visual/sectionJump';
 
 export interface VisualPanelSectionJumpRequest extends EditorTargetReference {
   id: number;
@@ -67,24 +65,5 @@ export const useSectionJumpStore = create<SectionJumpStore>((set, get) => ({
 }));
 
 export function quickActionCategoryToSectionId(category: QuickActionCategory): VisualPanelSectionId {
-  switch (category) {
-    case 'content':
-      return 'content';
-    case 'layout':
-      return 'layout';
-    case 'spacing':
-      return 'spacing';
-    case 'size':
-      return 'size';
-    case 'style':
-      return 'style';
-    case 'border':
-      return 'border';
-    default:
-      return exhaustiveQuickActionCategory(category);
-  }
-}
-
-function exhaustiveQuickActionCategory(category: never): never {
-  throw new Error(`Unsupported quick-action category: ${category}`);
+  return QUICK_ACTION_SECTION_IDS[category];
 }

@@ -37,6 +37,10 @@ import {
   type VisualSelectionStaleReason,
   type VisualSnapshotStatus,
 } from '../../stores/useVisualSelectionStore';
+import {
+  QUICK_ACTION_SECTION_IDS,
+} from '../visual/sectionJump';
+import { VisualSection } from '../visual/VisualSection';
 
 const DESKTOP_PANEL_WIDTH_PX = 380;
 const MOBILE_PANEL_WIDTH_PX = 320;
@@ -329,6 +333,7 @@ function FloatingVisualPanelBody({ category, target }: FloatingVisualPanelBodyPr
   const snapshotError = useVisualSelectionStore((state) => state.snapshotError);
   const staleReason = useVisualSelectionStore((state) => state.staleReason);
   const meta = CATEGORY_META[category];
+  const sectionId = QUICK_ACTION_SECTION_IDS[category];
 
   return (
     <div
@@ -344,10 +349,13 @@ function FloatingVisualPanelBody({ category, target }: FloatingVisualPanelBodyPr
         hasSnapshot={Boolean(snapshot)}
       />
       <FloatingVisualPanelSelectionSummary target={target} snapshot={snapshot} />
-      <section
-        className="rounded-xl border border-gray-800 bg-gray-900/60 p-3.5 shadow-sm"
-        data-ai-id={`copy-ai-id-editor-visual-panel-${category}-section`}
-        data-visual-panel-section-id={category}
+      <VisualSection
+        title={meta.label}
+        description={meta.description}
+        dataAiId={sectionId}
+        contentProps={{
+          'data-visual-panel-section-id': sectionId,
+        }}
       >
         <div className="flex items-center justify-between gap-3" data-ai-id={`copy-ai-id-editor-visual-panel-${category}-section-header`}>
           <h3
@@ -369,7 +377,7 @@ function FloatingVisualPanelBody({ category, target }: FloatingVisualPanelBodyPr
         >
           {meta.placeholder}
         </p>
-      </section>
+      </VisualSection>
     </div>
   );
 }
