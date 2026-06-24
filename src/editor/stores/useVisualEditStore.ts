@@ -66,6 +66,14 @@ export interface VisualEditStore extends VisualEditStateSnapshot {
   getExportDocument(): VisualEditsExportDocument;
 }
 
+export interface VisualEditRuntimeStatusSummary {
+  pendingCount: number;
+  failedCount: number;
+  latestErrorCode: VisualMutationError['code'] | null;
+  hasPending: boolean;
+  hasErrors: boolean;
+}
+
 const initialVisualEditState: VisualEditStateSnapshot = {
   records: [],
   pendingMutations: {},
@@ -248,6 +256,22 @@ export function selectExportableVisualEditRecords(
   state: Pick<VisualEditStateSnapshot, 'records'>,
 ): VisualEditRecord[] {
   return state.records.filter((record) => record.status !== 'failed' && record.status !== 'reverted');
+}
+
+export function selectVisualEditRuntimeStatus(
+  state: Pick<VisualEditStateSnapshot, 'pendingMutations' | 'errorMessages'>,
+): VisualEditRuntimeStatusSummary {
+  const latestError = state.errorMessages[state.errorMessages.length - 1] ?? null;
+  const pendingCount = Object.keys(state.pendingMutations).length;
+  const failedCount = state.errorMessages.length;
+
+  return {
+    pendingCount,
+    failedCount,
+    latestErrorCode: latestError?.error.code ?? null,
+    hasPending: pendingCount > 0,
+    hasErrors: failedCount > 0,
+  };
 }
 
 export function createVisualEditsExportDocument(records: VisualEditRecord[]): VisualEditsExportDocument {

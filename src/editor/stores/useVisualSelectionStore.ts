@@ -70,7 +70,7 @@ interface VisualPanelTargetInput extends EditorTargetReference {
   editorRect?: EditorViewportRect | null;
 }
 
-interface VisualSelectionStateSnapshot {
+export interface VisualSelectionStateSnapshot {
   hoverTarget: VisualHoverTargetState | null;
   activeToolbarTarget: VisualToolbarTargetState | null;
   panelTarget: VisualPanelTargetState | null;
@@ -101,6 +101,27 @@ interface VisualSelectionStore extends VisualSelectionStateSnapshot {
   }): void;
   markStale(reason: VisualSelectionStaleReason, error?: VisualMutationError | null): void;
   resetVisualSelectionState(): void;
+}
+
+export type VisualPanelReadinessStatus =
+  | 'empty'
+  | 'loading'
+  | 'ready'
+  | 'error'
+  | 'stale'
+  | 'waiting';
+
+export type VisualPanelReadinessTone = 'neutral' | 'info' | 'success' | 'warning' | 'error';
+
+export interface VisualPanelReadinessSummary {
+  status: VisualPanelReadinessStatus;
+  tone: VisualPanelReadinessTone;
+  title: string;
+  message: string;
+  errorCode: VisualMutationErrorCode | null;
+  staleReason: VisualSelectionStaleReason | null;
+  canShowControls: boolean;
+  needsReselect: boolean;
 }
 
 const initialVisualSelectionState: VisualSelectionStateSnapshot = {
@@ -278,6 +299,116 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
   }),
   resetVisualSelectionState: () => set({ ...initialVisualSelectionState }),
 }));
+
+export function selectVisualPanelReadinessSummary(
+  state: Pick<VisualSelectionStateSnapshot, 'snapshotStatus' | 'snapshot' | 'snapshotError' | 'staleReason'>,
+  hasTarget: boolean,
+): VisualPanelReadinessSummary {
+  if (!hasTarget) {
+    return {
+      status: 'empty',
+      tone: 'neutral',
+      title: '요소를 선택하세요',
+      message: '캔버스에서 요소를 hover한 뒤 quick-action 버튼을 누르면 visual editing 컨트롤이 여기에 표시됩니다.',
+      errorCode: null,
+      staleReason: null,
+      canShowControls: false,
+      needsReselect: true,
+    };
+  }
+
+  if (state.snapshotStatus === 'loading') {
+    return {
+      status: 'loading',
+      tone: 'info',
+      title: '선택 요소 정보를 불러오는 중입니다',
+      message: 'preview iframe에서 현재 요소의 DOM, 스타일, 속성 정보를 읽고 있습니다.',
+      errorCode: null,
+      staleReason: null,
+      canShowControls: false,
+      needsReselect: false,
+    };
+  }
+
+  if (state.snapshotStatus === 'error') {
+    return {
+      status: 'error',
+      tone: 'error',
+      title: '선택 요소 정보를 불러오지 못했습니다',
+      message: '오류 세부 prompt는 화면에 표시하지 않습니다. 같은 요소를 다시 hover하거나 quick-action을 다시 눌러 주세요.',
+      errorCode: state.snapshotError?.code ?? null,
+      staleReason: state.staleReason,
+      canShowControls: false,
+      needsReselect: true,
+    };
+  }
+
+  if (state.snapshotStatus === 'stale') {
+    return {
+      status: 'stale',
+      tone: 'warning',
+      title: '선택 요소가 변경되었습니다',
+      message: 'preview DOM이 바뀌었거나 선택 요소가 더 이상 같은 위치에 없습니다. 같은 요소를 다시 hover해서 panel을 갱신해 주세요.',
+      errorCode: state.snapshotError?.code ?? null,
+      staleReason: state.staleReason,
+      canShowControls: false,
+      needsReselect: true,
+    };
+  }
+
+  if (state.snapshot) {
+    return {
+      status: 'ready',
+      tone: 'success',
+      title: '선택 요소 준비 완료',
+      message: '이 요소에 visual editing 컨트롤을 적용할 수 있습니다.',
+      errorCode: null,
+      staleReason: null,
+      canShowControls: true,
+      needsReselect: false,
+    };
+  }
+
+  return {
+    status: 'waiting',
+    tone: 'info',
+    title: '선택 요소 정보가 아직 준비되지 않았습니다',
+    message: '요소는 선택되었지만 snapshot이 아직 없습니다. quick-action을 다시 누르거나 요소를 다시 hover해 주세요.',
+    errorCode: null,
+    staleReason: state.staleReason,
+    canShowControls: false,
+    needsReselect: false,
+  };
+}
+
+export function describeVisualSelectionStaleReason(reason: VisualSelectionStaleReason): string {
+  switch (reason) {
+    case 'bridge-reset':
+      return 'preview 재연결';
+    case 'cleared':
+      return '선택 해제';
+    case 'disconnected':
+      return 'DOM 연결 끊김';
+    case 'hidden':
+      return '숨김';
+    case 'protected-target':
+      return '보호 요소';
+    case 'stale-target':
+      return '오래된 대상';
+    case 'snapshot-error':
+      return '스냅샷 오류';
+    case 'mutation-error':
+      return '변경 오류';
+    case 'deleted':
+      return '삭제됨';
+    default:
+      return exhaustiveVisualSelectionStaleReason(reason);
+  }
+}
+
+function exhaustiveVisualSelectionStaleReason(reason: never): never {
+  throw new Error(`Unsupported stale reason: ${reason}`);
+}
 
 function isClearingQuickActionReason(reason: QuickActionAnchorChangedMessage['reason']): boolean {
   return reason === 'cleared'

@@ -182,9 +182,9 @@
   - Notes: Added copy-ai-id scoped dropdown coordination events, shared input value selection, and numeric input formatting/stepping/unit conversion helpers. Dropdown and color palette controls now announce open state and close when another visual dropdown opens or a global close event fires. Unit/color inputs now reuse the shared helpers instead of local copies.
   - Parallelizable: yes
 
-- [ ] Add floating panel empty/stale/error states.
+- [x] Add floating panel empty/stale/error states.
   - Files/areas: `VisualPanelContent.tsx`, `useVisualSelectionStore.ts`, `useVisualEditStore.ts`.
-  - Notes: Empty state explains hover/select a preview element. Stale state asks user to hover the element again. Errors should not expose visual prompt text in the UI.
+  - Notes: Added a dedicated `VisualPanelContent` component with empty/loading/waiting/stale/error notices, selected-target summary, and runtime pending/error counts. Selection readiness is derived through `selectVisualPanelReadinessSummary()`, visual edit runtime status through `selectVisualEditRuntimeStatus()`, and UI errors intentionally show only generic guidance plus error codes/counts so visual prompt text is not exposed.
   - Parallelizable: yes
 
 ### Phase 8 - Inline style controls
