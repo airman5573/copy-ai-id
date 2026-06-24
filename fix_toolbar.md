@@ -72,17 +72,17 @@
   - Parallelizable: no
 
 ### Phase 4 - Route iframe toolbar requests through the existing editor action flow
-- [ ] Handle new quick toolbar request messages in the editor bridge client.
+- [x] Handle new quick toolbar request messages in the editor bridge client.
   - Files/areas: `src/editor/bridge/bridgeClient.ts`
   - Notes: Add `routeBridgeMessage()` cases for category request, structure request, drag preview, drag commit, and drag clear. Category requests should call `selectQuickActionCategory()` with the existing target/node/category and converted target rect. Structure requests should call the same editor-side visual mutation path used by the old React toolbar.
   - Parallelizable: no
 
-- [ ] Add bridge-point drag helpers without replacing existing editor-point helpers.
+- [x] Add bridge-point drag helpers without replacing existing editor-point helpers.
   - Files/areas: `src/editor/visual/structureActions.ts`, possibly `src/editor/visual/visualMutationClient.ts`
   - Notes: Keep `dispatchQuickActionDragMoveFromEditorPoint()` for any remaining editor-coordinate callers. Add helper(s) that accept a `BridgeViewportPoint` directly for iframe toolbar drag preview/commit, then post `previewVisualDragMove` or call `dispatchVisualStructureMutation({ operation: 'drag-move', dropPoint, source: 'drag-and-drop', category: 'layout' })` without an editor-to-bridge coordinate conversion.
   - Parallelizable: no
 
-- [ ] Keep the existing floating visual panel opening behavior intact.
+- [x] Keep the existing floating visual panel opening behavior intact.
   - Files/areas: `src/editor/bridge/bridgeClient.ts`, `src/editor/stores/useVisualSelectionStore.ts`, `src/editor/stores/useFloatingVisualPanelStore.ts`
   - Notes: `selectQuickActionCategory()` should remain the single place that opens `panelTarget`, `FloatingVisualPanel`, queues section jump, posts `quickActionCategorySelected`, and requests a snapshot. If category request payloads include `elementRect`, convert it to editor viewport rect before passing options.
   - Parallelizable: no

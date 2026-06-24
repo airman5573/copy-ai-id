@@ -1,6 +1,7 @@
 import type {
+  BridgeViewportPoint,
   EditorTargetReference,
-  VisualStructureOperation,
+  QuickActionStructureOperation,
 } from '../../shared/editor-messages';
 import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
 import { postToBridge } from '../bridge/bridgeClient';
@@ -8,10 +9,7 @@ import { editorViewportPointToBridgeViewportPoint } from '../bridge/geometry';
 import { showEditorToast } from '../toast';
 import { dispatchVisualStructureMutation } from './visualMutationClient';
 
-export type QuickActionStructureOperation = Extract<
-  VisualStructureOperation,
-  'duplicate' | 'move-up' | 'move-down' | 'delete'
->;
+export type { QuickActionStructureOperation } from '../../shared/editor-messages';
 
 export interface EditorViewportPointLike {
   x: number;
@@ -45,6 +43,13 @@ export function dispatchQuickActionDragMoveFromEditorPoint(
     return;
   }
 
+  dispatchQuickActionDragMoveFromBridgePoint(reference, dropPoint);
+}
+
+export function dispatchQuickActionDragMoveFromBridgePoint(
+  reference: EditorTargetReference,
+  dropPoint: BridgeViewportPoint,
+): void {
   try {
     dispatchVisualStructureMutation({
       reference,
@@ -69,6 +74,13 @@ export function previewQuickActionDragMoveFromEditorPoint(
     return;
   }
 
+  previewQuickActionDragMoveFromBridgePoint(reference, dropPoint);
+}
+
+export function previewQuickActionDragMoveFromBridgePoint(
+  reference: EditorTargetReference,
+  dropPoint: BridgeViewportPoint,
+): void {
   postToBridge({
     type: EDITOR_MESSAGE_TYPES.previewVisualDragMove,
     target: reference.target,

@@ -46,6 +46,12 @@ import {
   showStaleFallbackTargetToast,
   showStaleVisualTargetToast,
 } from '../toast';
+import {
+  clearQuickActionDragMovePreview,
+  dispatchQuickActionDragMoveFromBridgePoint,
+  dispatchQuickActionStructureOperation,
+  previewQuickActionDragMoveFromBridgePoint,
+} from '../visual/structureActions';
 
 const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
 
@@ -284,6 +290,36 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         message,
         message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
       );
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionCategoryRequested:
+      selectQuickActionCategory({
+        target: message.target,
+        nodeId: message.nodeId,
+      }, message.category, {
+        elementRect: message.elementRect ?? null,
+        editorRect: message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
+      });
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionStructureRequested:
+      dispatchQuickActionStructureOperation({
+        target: message.target,
+        nodeId: message.nodeId,
+      }, message.operation);
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionDragMovePreviewRequested:
+      previewQuickActionDragMoveFromBridgePoint({
+        target: message.target,
+        nodeId: message.nodeId,
+      }, message.dropPoint);
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionDragMoveRequested:
+      dispatchQuickActionDragMoveFromBridgePoint({
+        target: message.target,
+        nodeId: message.nodeId,
+      }, message.dropPoint);
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionDragMoveClearRequested:
+      clearQuickActionDragMovePreview();
       return;
     case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
       useVisualBridgeStore.getState().setVisualTargetSnapshot(
