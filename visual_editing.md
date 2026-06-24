@@ -57,7 +57,7 @@
   - Notes: Add quick-action anchor/category messages, target snapshot request/response, style update/result, text/rich-text update/result, attribute update/result, structure duplicate/move/delete/restore messages, drag/move request messages, mutation errors, and optional box-region highlight messages. Keep existing highlight/layout/notebook messages compatible.
   - Parallelizable: no
 
-- [ ] Add shared visual edit domain types for preview-only records and export diffs.
+- [x] Add shared visual edit domain types for preview-only records and export diffs.
   - Files/areas: new `src/shared/visual-edits.ts`.
   - Notes: Model `VisualEditRecord` with id/order/timestamp, target descriptor, target snapshot summary, category/control kind, breakpoint id, before/after payload, human summary, and JSON diff payload. Payload kinds should cover `style`, `attribute`, `text`, `rich-text`, `form-value`, `structure`, and `html`.
   - Parallelizable: no
