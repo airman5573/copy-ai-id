@@ -35,6 +35,8 @@ export const EDITOR_MESSAGE_TYPES = {
   visualElementDeleted: 'copy-ai-id:visual-element-deleted',
   restoreVisualElement: 'copy-ai-id:restore-visual-element',
   visualElementRestored: 'copy-ai-id:visual-element-restored',
+  previewVisualDragMove: 'copy-ai-id:preview-visual-drag-move',
+  clearVisualDragMovePreview: 'copy-ai-id:clear-visual-drag-move-preview',
   requestVisualDragMove: 'copy-ai-id:request-visual-drag-move',
   visualDragMoveCompleted: 'copy-ai-id:visual-drag-move-completed',
   visualMutationError: 'copy-ai-id:visual-mutation-error',
@@ -495,6 +497,18 @@ export interface RequestVisualDragMoveMessage extends VisualMutationRequestBase 
   dropPoint?: BridgeViewportPoint;
 }
 
+export interface PreviewVisualDragMoveMessage extends EditorTargetReference {
+  type: typeof EDITOR_MESSAGE_TYPES.previewVisualDragMove;
+  dropTarget?: EditorTarget;
+  dropNodeId?: string | null;
+  position?: VisualDropPosition;
+  dropPoint?: BridgeViewportPoint;
+}
+
+export interface ClearVisualDragMovePreviewMessage {
+  type: typeof EDITOR_MESSAGE_TYPES.clearVisualDragMovePreview;
+}
+
 export interface VisualDragMoveCompletedMessage extends VisualMutationResultBase {
   type: typeof EDITOR_MESSAGE_TYPES.visualDragMoveCompleted;
   kind: 'structure';
@@ -503,6 +517,7 @@ export interface VisualDragMoveCompletedMessage extends VisualMutationResultBase
   dropNodeId?: string | null;
   position?: VisualDropPosition;
   structure?: VisualStructureMutationSnapshot;
+  afterStructure?: VisualStructureMutationSnapshot;
 }
 
 export interface VisualMutationErrorMessage {
@@ -537,6 +552,8 @@ export type EditorToBridgeMessage =
   | MoveVisualElementMessage
   | DeleteVisualElementMessage
   | RestoreVisualElementMessage
+  | PreviewVisualDragMoveMessage
+  | ClearVisualDragMovePreviewMessage
   | RequestVisualDragMoveMessage
   | HighlightVisualBoxRegionMessage;
 

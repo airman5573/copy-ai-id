@@ -346,6 +346,7 @@ function createVisualEditRecordPatchForMutationResult(
     && message.operation !== 'duplicate'
     && message.operation !== 'move-up'
     && message.operation !== 'move-down'
+    && message.operation !== 'drag-move'
   ) {
     return undefined;
   }
@@ -367,6 +368,9 @@ function createVisualEditRecordPatchForMutationResult(
   const duplicatedTarget = message.operation === 'duplicate' && message.duplicateTarget
     ? createVisualEditTargetDescriptor(message.duplicateTarget, { nodeId: message.duplicateNodeId ?? null })
     : currentStructure.duplicatedTarget;
+  const dropTarget = message.operation === 'drag-move' && message.dropTarget
+    ? createVisualEditTargetDescriptor(message.dropTarget, { nodeId: message.dropNodeId ?? null })
+    : currentStructure.dropTarget;
 
   return {
     payload: {
@@ -381,6 +385,10 @@ function createVisualEditRecordPatchForMutationResult(
           : message.operation === 'move-down'
             ? 'down'
             : currentStructure.movedDirection,
+        dropPosition: message.operation === 'drag-move'
+          ? message.position ?? currentStructure.dropPosition
+          : currentStructure.dropPosition,
+        dropTarget,
         duplicatedTarget,
       },
     },
@@ -406,6 +414,7 @@ function structureBeforeForMutationResult(
       || message.operation === 'duplicate'
       || message.operation === 'move-up'
       || message.operation === 'move-down'
+      || message.operation === 'drag-move'
     )
   ) {
     return message.structure ?? null;
@@ -429,9 +438,8 @@ function structureAfterForMutationResult(
     case 'duplicate':
     case 'move-up':
     case 'move-down':
-      return message.afterStructure ?? null;
     case 'drag-move':
-      return null;
+      return message.afterStructure ?? null;
     default:
       return null;
   }

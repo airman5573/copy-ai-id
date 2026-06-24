@@ -2,10 +2,13 @@ import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/conf
 import {
   EDITOR_MESSAGE_TYPES,
   type BridgeViewportPoint,
+  type ClearVisualDragMovePreviewMessage,
   type DeleteVisualElementMessage,
   type DuplicateVisualElementMessage,
   type EditorTarget,
+  type EditorTargetReference,
   type MoveVisualElementMessage,
+  type PreviewVisualDragMoveMessage,
   type RequestVisualDragMoveMessage,
   type RestoreVisualElementMessage,
   type VisualDropPosition,
@@ -30,6 +33,10 @@ import {
   resolveNodeIdForElement,
   resolveTreeNode,
 } from './layout-tree';
+import {
+  hideVisualDropIndicator,
+  showVisualDropIndicator,
+} from './overlay';
 import { stripRuntimeArtifacts } from './runtime-artifacts';
 import {
   createVisualMutationResultBase,
@@ -199,6 +206,8 @@ export function handleVisualDragMoveRequest(
   message: RequestVisualDragMoveMessage,
   post: BridgePost,
 ): void {
+  hideVisualDropIndicator();
+
   const resolved = resolveStructureTarget(message);
   if (!resolved.ok) {
     postStructureFailure(post, message, resolved.error, null, 'drag-move');
@@ -225,16 +234,42 @@ export function handleVisualDragMoveRequest(
 
   const structure = createStructureSnapshot(resolved.element, 'drag-move');
   insertion.parent.insertBefore(resolved.element, insertion.beforeNode);
+  const afterStructure = createStructureSnapshot(resolved.element, 'drag-move');
   postStructureSuccess(post, message, {
     resolved,
     structure,
+    afterStructure,
     dropTarget: editorTargetForElement(dropResolution.element) ?? undefined,
     dropNodeId: resolveNodeIdForElement(dropResolution.element),
     position: dropResolution.position,
   });
 }
 
-function resolveStructureTarget(message: VisualMutationRequestBase) {
+export function handlePreviewVisualDragMove(
+  message: PreviewVisualDragMoveMessage,
+): void {
+  const resolved = resolveStructureTarget(message);
+  if (!resolved.ok || validateStructureTarget(resolved.element, 'drag-move')) {
+    hideVisualDropIndicator();
+    return;
+  }
+
+  const dropResolution = resolveDropTarget(message, resolved.element);
+  if (!dropResolution.ok) {
+    hideVisualDropIndicator();
+    return;
+  }
+
+  showVisualDropIndicator(dropResolution.element, dropResolution.position);
+}
+
+export function handleClearVisualDragMovePreview(
+  _message?: ClearVisualDragMovePreviewMessage,
+): void {
+  hideVisualDropIndicator();
+}
+
+function resolveStructureTarget(message: EditorTargetReference) {
   return resolveVisualTarget({
     target: message.target,
     nodeId: message.nodeId,
@@ -350,6 +385,7 @@ function structureResultForOperation(
         kind: 'structure',
         operation,
         structure,
+        afterStructure,
       } satisfies VisualDragMoveCompletedMessage;
     default:
       return exhaustiveStructureOperation(operation);
@@ -448,8 +484,13 @@ interface DropTargetFailure {
   error: VisualMutationError;
 }
 
+type VisualDragDropRequest = Pick<
+  RequestVisualDragMoveMessage,
+  'dropPoint' | 'dropTarget' | 'dropNodeId' | 'position'
+>;
+
 function resolveDropTarget(
-  message: RequestVisualDragMoveMessage,
+  message: VisualDragDropRequest,
   draggedElement: Element,
 ): DropTargetResolution | DropTargetFailure {
   if (message.dropPoint) {

@@ -34,8 +34,10 @@ import {
 } from '../../bridge/geometry';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
 import {
+  clearQuickActionDragMovePreview,
   dispatchQuickActionDragMoveFromEditorPoint,
   dispatchQuickActionStructureOperation,
+  previewQuickActionDragMoveFromEditorPoint,
   type QuickActionStructureOperation,
 } from '../../visual/structureActions';
 import { useFloatingVisualPanelStore } from '../../stores/useFloatingVisualPanelStore';
@@ -256,6 +258,18 @@ export function QuickActionBar() {
 
     dragState.latestX = event.clientX;
     dragState.latestY = event.clientY;
+
+    const distance = Math.hypot(
+      dragState.latestX - dragState.startX,
+      dragState.latestY - dragState.startY,
+    );
+
+    if (distance >= QUICK_ACTION_DRAG_THRESHOLD_PX) {
+      previewQuickActionDragMoveFromEditorPoint(dragState.reference, {
+        x: dragState.latestX,
+        y: dragState.latestY,
+      });
+    }
   };
   const finishDragGrip = (event: ReactPointerEvent<HTMLButtonElement>, commit: boolean): void => {
     const dragState = dragStateRef.current;
@@ -267,6 +281,7 @@ export function QuickActionBar() {
     event.stopPropagation();
     dragStateRef.current = null;
     setDraggingStructure(false);
+    clearQuickActionDragMovePreview();
 
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -311,6 +326,13 @@ export function QuickActionBar() {
         onPointerMove={handleDragGripPointerMove}
         onPointerUp={(event) => finishDragGrip(event, true)}
         onPointerCancel={(event) => finishDragGrip(event, false)}
+        onLostPointerCapture={() => {
+          if (dragStateRef.current) {
+            dragStateRef.current = null;
+            setDraggingStructure(false);
+            clearQuickActionDragMovePreview();
+          }
+        }}
       >
         <GripVertical size={13} aria-hidden="true" />
       </button>

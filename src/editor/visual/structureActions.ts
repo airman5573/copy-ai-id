@@ -2,6 +2,8 @@ import type {
   EditorTargetReference,
   VisualStructureOperation,
 } from '../../shared/editor-messages';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
+import { postToBridge } from '../bridge/bridgeClient';
 import { editorViewportPointToBridgeViewportPoint } from '../bridge/geometry';
 import { showEditorToast } from '../toast';
 import { dispatchVisualStructureMutation } from './visualMutationClient';
@@ -54,4 +56,29 @@ export function dispatchQuickActionDragMoveFromEditorPoint(
   } catch (error) {
     showEditorToast(error instanceof Error ? error.message : '드래그 이동을 시작할 수 없습니다.', 'error');
   }
+}
+
+export function previewQuickActionDragMoveFromEditorPoint(
+  reference: EditorTargetReference,
+  point: EditorViewportPointLike,
+): void {
+  const dropPoint = editorViewportPointToBridgeViewportPoint(point);
+
+  if (!dropPoint) {
+    clearQuickActionDragMovePreview();
+    return;
+  }
+
+  postToBridge({
+    type: EDITOR_MESSAGE_TYPES.previewVisualDragMove,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    dropPoint,
+  });
+}
+
+export function clearQuickActionDragMovePreview(): void {
+  postToBridge({
+    type: EDITOR_MESSAGE_TYPES.clearVisualDragMovePreview,
+  });
 }

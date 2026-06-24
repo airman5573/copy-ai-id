@@ -270,9 +270,9 @@
   - Notes: Duplicate now inserts a cleaned clone next to the source element, strips runtime-only editor artifacts from the cloned DOM path, records before/after structure snapshots, and exports the duplicated target when resolvable. Move up/down already skip extension-owned overlay elements and now record both before and after sibling/index context so visual edit copy output includes a real structure diff.
   - Parallelizable: yes
 
-- [ ] Implement drag grip movement.
-  - Files/areas: new `src/editor/components/visual/quickActionDrag.ts` or bridge/editor drag helper, `visual-mutations.ts`.
-  - Notes: Since toolbar is editor-owned, decide drag hit-testing via iframe messages or pointer coordinate forwarding. Show a preview drop indicator and apply preview-only DOM move on drop. This ports the behavior of `ai-editor/src/bridge/dragAndDrop.ts` without source-file restrictions.
+- [x] Implement drag grip movement.
+  - Files/areas: `src/editor/components/visual/QuickActionBar.tsx`, `src/editor/visual/structureActions.ts`, `src/content/editor-bridge/visual-structure.ts`, `src/content/editor-bridge/overlay.ts`, `src/shared/editor-messages.ts`, `src/editor/bridge/bridgeClient.ts`.
+  - Notes: The editor-owned drag grip now forwards pointer coordinates into the preview bridge during drag, the bridge resolves valid drop targets while avoiding the dragged element/descendants, shows a preview drop indicator, clears it on cancel/drop, and applies the preview-only DOM move on pointer release. Drag results now include before/after structure snapshots plus drop target/position so copy export records a machine-readable drag-move diff.
   - Parallelizable: no
 
 - [ ] Refresh overlays, quick-action anchors, selected snapshots, and layout tree after mutations.

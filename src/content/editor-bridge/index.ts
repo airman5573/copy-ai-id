@@ -26,7 +26,9 @@ import { handleUpdateVisualFormValue } from './visual-form-value';
 import {
   handleDeleteVisualElement,
   handleDuplicateVisualElement,
+  handleClearVisualDragMovePreview,
   handleMoveVisualElement,
+  handlePreviewVisualDragMove,
   handleRestoreVisualElement,
   handleVisualDragMoveRequest,
 } from './visual-structure';
@@ -169,6 +171,12 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.restoreVisualElement:
       handleRestoreVisualElement(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.previewVisualDragMove:
+      handlePreviewVisualDragMove(message);
+      return;
+    case EDITOR_MESSAGE_TYPES.clearVisualDragMovePreview:
+      handleClearVisualDragMovePreview();
       return;
     case EDITOR_MESSAGE_TYPES.requestVisualDragMove:
       handleVisualDragMoveRequest(message, post);

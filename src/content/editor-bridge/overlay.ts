@@ -1,4 +1,5 @@
 import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
+import type { VisualDropPosition } from '../../shared/editor-messages';
 import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
 
 type OverlayKind = 'hover';
@@ -16,6 +17,8 @@ const tracked = new Map<OverlayKind, Element>();
 let tracking = false;
 let rafId: number | null = null;
 let boxModelMode = false;
+let dropIndicatorBox: HTMLDivElement | null = null;
+let dropIndicatorState: { element: Element; position: VisualDropPosition } | null = null;
 
 export function setBoxModelMode(enabled: boolean): void {
   if (boxModelMode === enabled) {
@@ -61,6 +64,9 @@ export function stopOverlayTracking(): void {
     box.remove();
   }
   boxes.clear();
+  hideVisualDropIndicator();
+  dropIndicatorBox?.remove();
+  dropIndicatorBox = null;
   boxModelMode = false;
   removeBoxModelLayers();
 }
@@ -78,6 +84,18 @@ export function hideOverlay(kind: OverlayKind): void {
 
 export function refreshOverlays(): void {
   scheduleUpdate();
+}
+
+export function showVisualDropIndicator(element: Element, position: VisualDropPosition): void {
+  dropIndicatorState = { element, position };
+  repositionVisualDropIndicator();
+}
+
+export function hideVisualDropIndicator(): void {
+  dropIndicatorState = null;
+  if (dropIndicatorBox) {
+    dropIndicatorBox.style.display = 'none';
+  }
 }
 
 function ensureBox(kind: OverlayKind): HTMLDivElement {
@@ -117,6 +135,7 @@ function scheduleUpdate(): void {
 
 function updateOverlays(): void {
   reposition('hover');
+  repositionVisualDropIndicator();
 }
 
 function reposition(kind: OverlayKind): void {
@@ -142,4 +161,64 @@ function reposition(kind: OverlayKind): void {
   box.style.top = `${rect.top + window.scrollY}px`;
   box.style.width = `${rect.width}px`;
   box.style.height = `${rect.height}px`;
+}
+
+function ensureDropIndicatorBox(): HTMLDivElement {
+  if (dropIndicatorBox) {
+    return dropIndicatorBox;
+  }
+
+  const box = document.createElement('div');
+  box.setAttribute(PREVIEW_OVERLAY_ATTR, 'visual-drag-drop-indicator');
+  box.setAttribute('data-copy-ai-id-visual-overlay', 'drag-drop-indicator');
+  box.setAttribute('data-ai-id', 'copy-ai-id-preview-visual-drag-drop-indicator');
+  box.style.cssText = [
+    'position: absolute',
+    'pointer-events: none',
+    'z-index: 2147483647',
+    'display: none',
+    'box-sizing: border-box',
+    'border-radius: 999px',
+    'background: #60a5fa',
+    'box-shadow: 0 0 0 1px rgba(15,23,42,0.75), 0 0 0 4px rgba(96,165,250,0.25)',
+  ].join('; ');
+  (document.body ?? document.documentElement).appendChild(box);
+  dropIndicatorBox = box;
+  return box;
+}
+
+function repositionVisualDropIndicator(): void {
+  const state = dropIndicatorState;
+  if (!state?.element || !state.element.isConnected) {
+    hideVisualDropIndicator();
+    return;
+  }
+
+  const rect = state.element.getBoundingClientRect();
+  const box = ensureDropIndicatorBox();
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+
+  if (state.position === 'inside-start' || state.position === 'inside-end') {
+    box.style.display = 'block';
+    box.style.left = `${rect.left + scrollX}px`;
+    box.style.top = `${rect.top + scrollY}px`;
+    box.style.width = `${Math.max(0, rect.width)}px`;
+    box.style.height = `${Math.max(0, rect.height)}px`;
+    box.style.borderRadius = '6px';
+    box.style.border = '2px solid #60a5fa';
+    box.style.background = 'rgba(96,165,250,0.08)';
+    return;
+  }
+
+  const lineHeight = 3;
+  const top = (state.position === 'before' ? rect.top : rect.bottom) + scrollY - (lineHeight / 2);
+  box.style.display = 'block';
+  box.style.left = `${rect.left + scrollX}px`;
+  box.style.top = `${top}px`;
+  box.style.width = `${Math.max(24, rect.width)}px`;
+  box.style.height = `${lineHeight}px`;
+  box.style.borderRadius = '999px';
+  box.style.border = '0';
+  box.style.background = '#60a5fa';
 }
