@@ -73,7 +73,7 @@
   - Parallelizable: yes
 
 ### Phase 3 - Preview target resolution and snapshots
-- [ ] Add a preview-side visual target resolver that supports both `data-ai-id` and fallback targets.
+- [x] Add a preview-side visual target resolver that supports both `data-ai-id` and fallback targets.
   - Files/areas: new `src/content/editor-bridge/visual-targets.ts`, `src/content/editor-bridge/layout-tree.ts`, `src/content/editor-bridge/fallback-target.ts`.
   - Notes: Resolution order should be live `nodeId`, then `data-ai-id + instanceIndex`, then fallback selector/path metadata. Return explicit `not-found`, `stale`, or `ambiguous` errors for export and UI feedback.
   - Parallelizable: no
