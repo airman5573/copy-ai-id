@@ -19,6 +19,8 @@ const QUICK_ACTION_BAR_BUTTON_CLASS = 'copy-ai-id-quick-action-bar__button';
 const QUICK_ACTION_BAR_SEPARATOR_CLASS = 'copy-ai-id-quick-action-bar__separator';
 const QUICK_ACTION_BAR_GAP = 8;
 const QUICK_ACTION_BAR_PADDING = 12;
+const QUICK_ACTION_TRANSITION_CORRIDOR_PADDING = 10;
+const QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION = 80;
 const DEFAULT_QUICK_ACTION_BAR_SIZE = { width: 520, height: 40 };
 const QUICK_ACTION_DRAG_THRESHOLD_PX = 8;
 
@@ -162,6 +164,63 @@ export function refreshQuickActionToolbarPlacement(): void {
 export function isQuickActionToolbarElement(target: EventTarget | null): boolean {
   const element = elementFromEventTarget(target);
   return Boolean(element?.closest(`[${QUICK_ACTION_BAR_ATTR}]`));
+}
+
+export function isPointInQuickActionToolbarTransitionCorridor(clientX: number, clientY: number): boolean {
+  if (!Number.isFinite(clientX) || !Number.isFinite(clientY) || !toolbarRoot || !renderState) {
+    return false;
+  }
+
+  if (!toolbarRoot.isConnected || !renderState.element.isConnected) {
+    return false;
+  }
+
+  if (toolbarRoot.style.display === 'none' || toolbarRoot.style.visibility === 'hidden') {
+    return false;
+  }
+
+  const toolbarRect = toolbarRoot.getBoundingClientRect();
+  const anchorRect = renderState.element.getBoundingClientRect();
+  if (!isUsableRect(toolbarRect) || !isUsableRect(anchorRect)) {
+    return false;
+  }
+
+  const padding = QUICK_ACTION_TRANSITION_CORRIDOR_PADDING;
+  const toolbarAboveAnchor = toolbarRect.bottom <= anchorRect.top;
+  const toolbarBelowAnchor = anchorRect.bottom <= toolbarRect.top;
+  let top: number;
+  let bottom: number;
+
+  if (toolbarAboveAnchor) {
+    top = toolbarRect.bottom - padding;
+    bottom = anchorRect.top + padding;
+  } else if (toolbarBelowAnchor) {
+    top = anchorRect.bottom - padding;
+    bottom = toolbarRect.top + padding;
+  } else {
+    return false;
+  }
+
+  const anchorCenterX = anchorRect.left + (anchorRect.width / 2);
+  let left = toolbarRect.left - padding;
+  let right = toolbarRect.right + padding;
+
+  if (anchorCenterX < toolbarRect.left) {
+    left = Math.max(
+      anchorCenterX - padding,
+      toolbarRect.left - QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION,
+    );
+  } else if (anchorCenterX > toolbarRect.right) {
+    right = Math.min(
+      anchorCenterX + padding,
+      toolbarRect.right + QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION,
+    );
+  }
+
+  return clientX >= left
+    && clientX <= right
+    && clientY >= top
+    && clientY <= bottom;
 }
 
 function ensureToolbarRoot(): HTMLDivElement {
@@ -658,6 +717,17 @@ function viewportSize(): BridgeViewportSize {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function isUsableRect(rect: DOMRect): boolean {
+  return Number.isFinite(rect.left)
+    && Number.isFinite(rect.top)
+    && Number.isFinite(rect.right)
+    && Number.isFinite(rect.bottom)
+    && Number.isFinite(rect.width)
+    && Number.isFinite(rect.height)
+    && rect.width > 0
+    && rect.height > 0;
 }
 
 function elementFromEventTarget(target: EventTarget | null): Element | null {

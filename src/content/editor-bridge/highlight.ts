@@ -21,6 +21,7 @@ import {
 import { fallbackTargetForElement } from './fallback-target';
 import { hideOverlay, showOverlay } from './overlay';
 import {
+  isPointInQuickActionToolbarTransitionCorridor,
   isQuickActionToolbarElement,
   requestQuickActionToolbarHide,
   showQuickActionToolbar,
@@ -314,7 +315,8 @@ function resolvePreviewHighlightElement(event: MouseEvent): Element | null {
 
 function isQuickActionToolbarEvent(event: MouseEvent): boolean {
   return isQuickActionToolbarElement(event.target)
-    || isQuickActionToolbarElement(event.relatedTarget);
+    || isQuickActionToolbarElement(event.relatedTarget)
+    || isPointInQuickActionToolbarTransitionCorridor(event.clientX, event.clientY);
 }
 
 function deepestElementForMouseEvent(event: MouseEvent): Element | null {
