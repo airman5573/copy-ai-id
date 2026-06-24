@@ -67,7 +67,7 @@
   - Notes: Prefer `data-ai-id + instanceIndex`; otherwise serialize fallback node id, selector, selector kind, DOM path/fullPath, tag, label, text/accessibility context, and class tokens. Do not expose extension runtime-only attributes in final copied output.
   - Parallelizable: yes
 
-- [ ] Define a CSS property catalog for inline-style visual controls.
+- [x] Define a CSS property catalog for inline-style visual controls.
   - Files/areas: new `src/shared/visual-style.ts` or `src/editor/visual/styleProperties.ts`.
   - Notes: Reuse the property coverage from `ai-editor/src/editor/tokens/propertyMap.ts` conceptually, but values should be CSS declarations rather than Tailwind tokens. Include layout, spacing, size, typography, color/background, opacity, border/radius, shadow, and image/background properties.
   - Parallelizable: yes
