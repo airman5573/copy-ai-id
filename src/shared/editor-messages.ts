@@ -389,6 +389,7 @@ export interface VisualStyleUpdatedMessage extends VisualMutationResultBase {
   type: typeof EDITOR_MESSAGE_TYPES.visualStyleUpdated;
   kind: 'style';
   declarations: VisualStyleDeclarationMutation[];
+  appliedCount: number;
 }
 
 export interface UpdateVisualTextMessage extends VisualMutationRequestBase {

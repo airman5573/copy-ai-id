@@ -48,8 +48,12 @@ export function handleUpdateVisualStyle(
     return;
   }
 
+  let appliedCount = 0;
   try {
-    declarations.forEach((declaration) => applyDeclaration(style, declaration));
+    for (const declaration of declarations) {
+      applyDeclaration(style, declaration);
+      appliedCount += 1;
+    }
   } catch (error) {
     postStyleFailure(
       post,
@@ -57,11 +61,12 @@ export function handleUpdateVisualStyle(
       mutationFailedError(error instanceof Error ? error.message : 'Failed to apply inline style declaration.'),
       resolved,
       declarations,
+      appliedCount,
     );
     return;
   }
 
-  postStyleSuccess(post, message, resolved, declarations);
+  postStyleSuccess(post, message, resolved, declarations, appliedCount);
 }
 
 function postStyleSuccess(
@@ -69,6 +74,7 @@ function postStyleSuccess(
   request: UpdateVisualStyleMessage,
   resolved: VisualTargetResolveSuccess,
   declarations: VisualStyleDeclarationMutation[],
+  appliedCount: number,
 ): void {
   const base = createVisualMutationResultBase({
     request,
@@ -80,6 +86,7 @@ function postStyleSuccess(
     type: EDITOR_MESSAGE_TYPES.visualStyleUpdated,
     kind: 'style',
     declarations,
+    appliedCount,
   };
 
   postVisualMutationResult(post, result);
@@ -91,6 +98,7 @@ function postStyleFailure(
   error: VisualMutationError,
   resolved: VisualTargetResolveSuccess | null = null,
   declarations: VisualStyleDeclarationMutation[] = request.declarations,
+  appliedCount = 0,
 ): void {
   const base = createVisualMutationResultBase({
     request,
@@ -103,6 +111,7 @@ function postStyleFailure(
     type: EDITOR_MESSAGE_TYPES.visualStyleUpdated,
     kind: 'style',
     declarations,
+    appliedCount,
   };
 
   postVisualMutationResult(post, result, { layoutTree: false, overlays: false, highlight: false });

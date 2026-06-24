@@ -250,7 +250,7 @@
   - Parallelizable: yes
 
 ### Phase 10 - Preview mutation handlers
-- [ ] Implement inline style mutation handlers in the preview bridge.
+- [x] Implement inline style mutation handlers in the preview bridge.
   - Files/areas: new `src/content/editor-bridge/visual-mutations.ts`, `src/content/editor-bridge/index.ts`.
   - Notes: Resolve target, capture before values, set/remove style declarations, post result with applied count and updated snapshot. Do not mutate extension-owned DOM.
   - Parallelizable: no
