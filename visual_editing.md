@@ -62,7 +62,7 @@
   - Notes: Model `VisualEditRecord` with id/order/timestamp, target descriptor, target snapshot summary, category/control kind, breakpoint id, before/after payload, human summary, and JSON diff payload. Payload kinds should cover `style`, `attribute`, `text`, `rich-text`, `form-value`, `structure`, and `html`.
   - Parallelizable: no
 
-- [ ] Add target descriptor and serialization helpers for visual edits.
+- [x] Add target descriptor and serialization helpers for visual edits.
   - Files/areas: `src/shared/editor-targets.ts`, new `src/shared/visual-targets.ts` if cleaner.
   - Notes: Prefer `data-ai-id + instanceIndex`; otherwise serialize fallback node id, selector, selector kind, DOM path/fullPath, tag, label, text/accessibility context, and class tokens. Do not expose extension runtime-only attributes in final copied output.
   - Parallelizable: yes
