@@ -2,6 +2,8 @@ import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/conf
 import {
   EDITOR_MESSAGE_TYPES,
   type BridgeToEditorMessage,
+  type BridgeViewportRect,
+  type BridgeViewportSize,
   type EditorTarget,
   type HighlightOrigin,
 } from '../../shared/editor-messages';
@@ -19,6 +21,10 @@ import { fallbackTargetForElement } from './fallback-target';
 import { hideOverlay, showOverlay } from './overlay';
 
 export type BridgePost = (message: BridgeToEditorMessage) => void;
+
+interface HighlightRefreshOptions {
+  force?: boolean;
+}
 
 interface MousePosition {
   clientX: number;
@@ -118,8 +124,8 @@ export function suppressHoverHighlightUntilMouseMove(): void {
   suppressionStartPosition = lastMousePosition;
 }
 
-export function refreshHighlightedElement(post: BridgePost): void {
-  setHighlightedElement(getHighlightedElement(), post, highlightedOrigin ?? 'preview');
+export function refreshHighlightedElement(post: BridgePost, options: HighlightRefreshOptions = {}): void {
+  setHighlightedElement(getHighlightedElement(), post, highlightedOrigin ?? 'preview', options);
 }
 
 export function handleHoverTreeNode(nodeId: string | null, post: BridgePost): void {
@@ -173,13 +179,14 @@ export function setHighlightedElement(
   element: Element | null,
   post: BridgePost,
   origin: HighlightOrigin = 'preview',
+  options: HighlightRefreshOptions = {},
 ): void {
   const nextElement = connectedHighlightElement(element);
   const nextNodeId = nextElement ? resolveNodeIdForElement(nextElement) : null;
   const nextTarget = nextElement ? targetForElement(nextElement) : null;
 
-  if (
-    highlightedElement === nextElement
+  if (!options.force
+    && highlightedElement === nextElement
     && highlightedNodeId === nextNodeId
     && hasSameEditorTarget(highlightedTarget, nextTarget)
     && highlightedOrigin === origin
@@ -197,6 +204,8 @@ export function setHighlightedElement(
     target: nextTarget,
     nodeId: nextNodeId,
     origin,
+    elementRect: nextElement ? viewportRectForElement(nextElement) : null,
+    viewport: viewportSize(),
   });
 }
 
@@ -284,6 +293,28 @@ function firstElementFromComposedPath(event: MouseEvent): Element | null {
 
 function hasUsableAiId(element: Element): boolean {
   return (element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '').length > 0;
+}
+
+function viewportRectForElement(element: Element): BridgeViewportRect {
+  const rect = element.getBoundingClientRect();
+
+  return {
+    x: rect.left,
+    y: rect.top,
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function viewportSize(): BridgeViewportSize {
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
 }
 
 function updateHoverOverlay(): void {

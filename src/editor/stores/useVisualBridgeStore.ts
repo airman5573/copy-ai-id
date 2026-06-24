@@ -40,6 +40,7 @@ interface VisualBridgeStore extends VisualBridgeStateSnapshot {
   setVisualTargetSnapshot(message: VisualTargetSnapshotMessage, editorRect?: EditorViewportRect | null): void;
   setVisualMutationResult(message: VisualMutationResultMessage, editorRect?: EditorViewportRect | null): void;
   setVisualMutationError(message: VisualMutationErrorMessage): void;
+  syncEditorRects(rects: Pick<VisualBridgeStateSnapshot, 'quickActionAnchorEditorRect' | 'targetSnapshotEditorRect'>): void;
   markLayoutTreeRefreshed(): void;
   resetVisualBridgeState(): void;
 }
@@ -106,6 +107,10 @@ export const useVisualBridgeStore = create<VisualBridgeStore>((set) => ({
     return nextState;
   }),
   setVisualMutationError: (latestMutationError) => set({ latestMutationError }),
+  syncEditorRects: ({ quickActionAnchorEditorRect, targetSnapshotEditorRect }) => set({
+    quickActionAnchorEditorRect,
+    targetSnapshotEditorRect,
+  }),
   markLayoutTreeRefreshed: () => set((state) => ({
     layoutRefreshRevision: state.layoutRefreshRevision + 1,
     lastLayoutRefreshAt: Date.now(),

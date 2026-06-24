@@ -30,6 +30,11 @@ interface StoredPreviewViewport {
   customPreviewWidth: number;
 }
 
+export interface ActiveCanvasZoomState {
+  activeBreakpointId: BreakpointId;
+  zoomById: Record<BreakpointId, number>;
+}
+
 interface BreakpointStore {
   activeBreakpointId: BreakpointId;
   viewportMode: PreviewViewportMode;
@@ -82,6 +87,10 @@ function createZoomRecord(): Record<BreakpointId, number> {
   return Object.fromEntries(
     BREAKPOINT_ORDER.map((id) => [id, DEFAULT_ZOOM]),
   ) as Record<BreakpointId, number>;
+}
+
+export function getActiveCanvasZoom(state: ActiveCanvasZoomState): number {
+  return normalizeZoom(state.zoomById[state.activeBreakpointId] ?? DEFAULT_ZOOM);
 }
 
 function getChromeLocalStorage(): chrome.storage.LocalStorageArea | null {

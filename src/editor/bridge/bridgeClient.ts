@@ -15,6 +15,7 @@ import { useBridgeStore } from '../stores/useBridgeStore';
 import { useBoxModelStore } from '../stores/useBoxModelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
+import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualBridgeStore, type VisualMutationResultMessage } from '../stores/useVisualBridgeStore';
 import { appendTargetReferenceToNotebook, handleEditorShortcutAction } from '../shortcut-actions';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
@@ -45,6 +46,31 @@ export function registerPreviewFrame(frame: HTMLIFrameElement | null): void {
 
 export function postToBridge(message: EditorToBridgeMessage): void {
   getBridgeIframeElement()?.contentWindow?.postMessage(message, '*');
+}
+
+export function postCurrentCanvasZoomToBridge(): void {
+  const breakpointState = useBreakpointStore.getState();
+
+  postToBridge({
+    type: EDITOR_MESSAGE_TYPES.setCanvasZoom,
+    zoom: getActiveCanvasZoom(breakpointState),
+    breakpointId: breakpointState.activeBreakpointId,
+  });
+}
+
+export function syncVisualBridgeGeometry(): void {
+  const visualState = useVisualBridgeStore.getState();
+  const quickActionAnchorEditorRect = visualState.quickActionAnchor?.elementRect
+    ? bridgeViewportRectToEditorViewportRect(visualState.quickActionAnchor.elementRect)
+    : null;
+  const targetSnapshotEditorRect = visualState.targetSnapshot?.snapshot?.elementRect
+    ? bridgeViewportRectToEditorViewportRect(visualState.targetSnapshot.snapshot.elementRect)
+    : null;
+
+  visualState.syncEditorRects({
+    quickActionAnchorEditorRect,
+    targetSnapshotEditorRect,
+  });
 }
 
 export function selectQuickActionCategory(
@@ -102,6 +128,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       useVisualBridgeStore.getState().resetVisualBridgeState();
       useBridgeStore.getState().markReady(message.url, message.aiIdCount);
       useRuntimeStore.getState().setPreviewUrl(message.url);
+      postCurrentCanvasZoomToBridge();
       if (useBoxModelStore.getState().enabled) {
         postToBridge({ type: EDITOR_MESSAGE_TYPES.setBoxModelMode, enabled: true });
       }

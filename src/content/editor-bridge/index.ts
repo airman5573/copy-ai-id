@@ -2,6 +2,7 @@ import {
   EDITOR_MESSAGE_TYPES,
   type BridgeToEditorMessage,
   type EditorToBridgeMessage,
+  type SetCanvasZoomMessage,
 } from '../../shared/editor-messages';
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
@@ -9,6 +10,7 @@ import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overla
 import {
   handleHoverTreeNode,
   installHoverHighlight,
+  refreshHighlightedElement,
   revealTreeNode,
   setHoverHighlightSuppressed,
 } from './highlight';
@@ -115,8 +117,7 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       setHoverHighlightSuppressed(message.suppressed);
       return;
     case EDITOR_MESSAGE_TYPES.setCanvasZoom:
-      document.documentElement.style.setProperty('--copy-ai-id-preview-canvas-zoom', String(message.zoom));
-      refreshOverlays();
+      handleSetCanvasZoom(message, post);
       return;
     case EDITOR_MESSAGE_TYPES.setBoxModelMode:
       setBoxModelMode(message.enabled);
@@ -127,6 +128,25 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
     default:
       return;
   }
+}
+
+function handleSetCanvasZoom(
+  message: SetCanvasZoomMessage,
+  post: (message: BridgeToEditorMessage) => void,
+): void {
+  const zoom = normalizeCanvasZoom(message.zoom);
+  document.documentElement.style.setProperty('--copy-ai-id-preview-canvas-zoom', String(zoom));
+
+  refreshOverlays();
+  refreshHighlightedElement(post, { force: true });
+}
+
+function normalizeCanvasZoom(zoom: number): number {
+  if (!Number.isFinite(zoom) || zoom <= 0) {
+    return 1;
+  }
+
+  return Math.round(zoom * 100) / 100;
 }
 
 function isAllowedOrigin(eventOrigin: string, allowedOrigin: string): boolean {

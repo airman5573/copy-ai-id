@@ -104,7 +104,7 @@
   - Notes: Port the `ai-editor/src/editor/bridge/geometry.ts` idea, but account for the existing preview canvas transform/zoom, resize handles, and `registerPreviewFrame()` lifecycle.
   - Parallelizable: no
 
-- [ ] Sync preview canvas zoom to visual/quick-action positioning code.
+- [x] Sync preview canvas zoom to visual/quick-action positioning code.
   - Files/areas: `src/editor/components/PreviewWorkspace.tsx`, `src/editor/stores/useBreakpointStore.ts`, `src/content/editor-bridge/index.ts`.
   - Notes: Existing `setCanvasZoom` message only updates overlay refresh; extend or reuse it so position math and box-model highlights stay aligned with scaled iframe content.
   - Parallelizable: yes

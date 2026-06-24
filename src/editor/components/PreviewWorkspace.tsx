@@ -11,9 +11,16 @@ import {
 
 import { breakpointById } from '../../shared/breakpoints';
 import { getCurrentMessages } from '../../shared/i18n';
-import { createPreviewUrl, installBridgeClient, registerPreviewFrame } from '../bridge/bridgeClient';
+import {
+  createPreviewUrl,
+  installBridgeClient,
+  postCurrentCanvasZoomToBridge,
+  registerPreviewFrame,
+  syncVisualBridgeGeometry,
+} from '../bridge/bridgeClient';
 import { registerPreviewWorkspaceGeometry } from '../bridge/geometry';
 import {
+  getActiveCanvasZoom,
   MAX_PREVIEW_HEIGHT,
   MAX_PREVIEW_WIDTH,
   MIN_PREVIEW_HEIGHT,
@@ -49,8 +56,7 @@ function isPreviewWidthOverflowingStage(previewWidth: number, stage: HTMLDivElem
   }
 
   const state = useBreakpointStore.getState();
-  const currentZoom = state.zoomById[state.activeBreakpointId];
-  const safeZoom = currentZoom > 0 ? currentZoom : 1;
+  const safeZoom = getActiveCanvasZoom(state);
   const visualWidth = (previewWidth + (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2)) * safeZoom;
 
   return visualWidth > stage.clientWidth;
@@ -144,6 +150,20 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
       canvasElement: null,
     });
   }, []);
+
+  useEffect(() => {
+    syncPreviewGeometryRefs();
+
+    const rafId = window.requestAnimationFrame(() => {
+      syncVisualBridgeGeometry();
+
+      if (bridgeStatus === 'ready') {
+        postCurrentCanvasZoomToBridge();
+      }
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, [activeBreakpointId, bridgeStatus, previewHeight, previewWidth, syncPreviewGeometryRefs, zoom]);
 
   useEffect(() => {
     if (!isResizingPreviewHeight) {
