@@ -6,6 +6,7 @@ import {
   useState,
   type CSSProperties,
   type Dispatch,
+  type FocusEvent as ReactFocusEvent,
   type MutableRefObject,
   type PointerEvent as ReactPointerEvent,
   type SetStateAction,
@@ -107,6 +108,7 @@ export function QuickActionBar() {
   const dragStateRef = useRef<QuickActionDragState | null>(null);
   const [renderTarget, setRenderTarget] = useState<QuickActionRenderTarget | null>(liveTarget);
   const [isToolbarHovered, setToolbarHovered] = useState(false);
+  const [isToolbarFocusWithin, setToolbarFocusWithin] = useState(false);
   const [barSize, setBarSize] = useState<OverlaySize>(DEFAULT_QUICK_ACTION_BAR_SIZE);
   const [layoutRevision, setLayoutRevision] = useState(0);
   const [isDraggingStructure, setDraggingStructure] = useState(false);
@@ -122,13 +124,13 @@ export function QuickActionBar() {
       return undefined;
     }
 
-    if (isToolbarHovered) {
+    if (isToolbarHovered || isToolbarFocusWithin) {
       return undefined;
     }
 
     scheduleHide(hideTimerRef, () => setRenderTarget(null));
     return undefined;
-  }, [isToolbarHovered, liveTarget]);
+  }, [isToolbarFocusWithin, isToolbarHovered, liveTarget]);
 
   useLayoutEffect(() => {
     measureToolbar(barRef.current, setBarSize);
@@ -210,7 +212,21 @@ export function QuickActionBar() {
   };
   const handlePointerLeave = (): void => {
     setToolbarHovered(false);
-    if (!liveTargetRef.current) {
+    if (!liveTargetRef.current && !isToolbarFocusWithin) {
+      scheduleHide(hideTimerRef, () => setRenderTarget(null));
+    }
+  };
+  const handleFocusCapture = (): void => {
+    setToolbarFocusWithin(true);
+    clearHideTimer(hideTimerRef);
+  };
+  const handleBlurCapture = (event: ReactFocusEvent<HTMLDivElement>): void => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      return;
+    }
+
+    setToolbarFocusWithin(false);
+    if (!liveTargetRef.current && !isToolbarHovered) {
       scheduleHide(hideTimerRef, () => setRenderTarget(null));
     }
   };
@@ -307,12 +323,15 @@ export function QuickActionBar() {
       ref={barRef}
       className={`copy-ai-id-editor-quick-action-bar${placement ? ` copy-ai-id-editor-quick-action-bar--${placement.side}` : ''}`}
       data-ai-id="copy-ai-id-editor-quick-action-bar"
+      data-copy-ai-id-visual-focus-guard="true"
       data-visual-target-updated-at={renderTarget.updatedAt}
       role="toolbar"
       aria-label="Visual editor quick actions"
       style={style}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
+      onFocusCapture={handleFocusCapture}
+      onBlurCapture={handleBlurCapture}
     >
       <button
         type="button"

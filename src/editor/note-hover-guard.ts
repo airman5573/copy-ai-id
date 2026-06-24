@@ -6,7 +6,7 @@ const hoverProtectionListeners = new Set<HoverProtectionListener>();
 let hoverProtectedUntil = 0;
 let releaseTimerId: number | null = null;
 
-export function protectNoteEditorFromHover(durationMs = NOTE_EDITOR_HOVER_PROTECTION_MS): void {
+export function protectEditorInteractionFromHover(durationMs = NOTE_EDITOR_HOVER_PROTECTION_MS): void {
   const wasProtected = isNoteEditorHoverProtected();
   hoverProtectedUntil = Math.max(hoverProtectedUntil, performance.now() + durationMs);
 
@@ -52,4 +52,8 @@ function notifyHoverProtectionListeners(protectedFromHover: boolean): void {
   for (const listener of hoverProtectionListeners) {
     listener(protectedFromHover);
   }
+}
+
+export function protectNoteEditorFromHover(durationMs = NOTE_EDITOR_HOVER_PROTECTION_MS): void {
+  protectEditorInteractionFromHover(durationMs);
 }

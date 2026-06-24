@@ -286,9 +286,9 @@
   - Notes: The control-driven box-model overlay now mirrors the source `HIGHLIGHT_BOX_REGION` pattern by rendering the full box-model context while emphasizing the hovered/focused region and dimming the rest. Spacing controls now expose hover/focus chips for margin, padding, content, and gap, plus all-edge/all-gap preset highlighting. Disabling box-model mode also clears any active control region highlight.
   - Parallelizable: yes
 
-- [ ] Add toolbar/floating-panel focus and keyboard guards.
-  - Files/areas: `src/editor/keyboard.ts`, `src/content/editor-bridge/keyboard.ts`, `note-hover-guard.ts`, `keyboard-hover-guard.ts`, new visual focus guard helper.
-  - Notes: Typing in visual controls or rich-text editors must not trigger preview navigation, Space notebook insertion, Shift+Enter copy, or hover suppression side effects. Keep Lexical notebook behavior intact.
+- [x] Add toolbar/floating-panel focus and keyboard guards.
+  - Files/areas: `src/editor/keyboard.ts`, `src/content/editor-bridge/keyboard.ts`, `src/editor/note-hover-guard.ts`, `src/editor/visual-focus-guard.ts`, `QuickActionBar.tsx`, `FloatingVisualPanel.tsx`, `App.tsx`.
+  - Notes: Added a visual focus guard that protects preview hover while interacting with the editor-owned quick-action bar or floating visual panel, and the editor keyboard handler now ignores global shortcuts from guarded visual UI so Space, Shift+Enter, arrow navigation, and hover suppression do not fire while typing/clicking controls. Quick-action toolbar stays visible while focus remains inside it. Editable detection now also covers plaintext contenteditable and role=textbox rich-text surfaces while preserving Lexical notebook Shift+Enter copy behavior.
   - Parallelizable: no
 
 - [ ] Add Escape behavior for visual panel and toolbar.

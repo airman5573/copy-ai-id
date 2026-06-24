@@ -6,6 +6,7 @@ import { FloatingVisualPanel } from './components/visual-panel/FloatingVisualPan
 import { TopToolbar } from './components/TopToolbar';
 import { installEditorKeyboard } from './keyboard';
 import { installKeyboardNavigationHoverGuard } from './keyboard-hover-guard';
+import { installVisualEditorFocusGuard } from './visual-focus-guard';
 import { readNotebookTargetNotice } from '../shared/notebook-notice';
 import { clearEditorToastReset } from './toast';
 import { useBreakpointStore } from './stores/useBreakpointStore';
@@ -63,6 +64,7 @@ export function App({ onRequestClose }: AppProps) {
 
     const cleanupKeyboard = installEditorKeyboard();
     const cleanupKeyboardHoverGuard = installKeyboardNavigationHoverGuard();
+    const cleanupVisualEditorFocusGuard = installVisualEditorFocusGuard();
 
     return () => {
       isActive = false;
@@ -71,6 +73,7 @@ export function App({ onRequestClose }: AppProps) {
       }
       cleanupKeyboard();
       cleanupKeyboardHoverGuard();
+      cleanupVisualEditorFocusGuard();
       clearEditorToastReset();
       clearToast();
       setMounted(false);

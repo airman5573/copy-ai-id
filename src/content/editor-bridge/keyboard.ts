@@ -140,7 +140,12 @@ function isEditableEventTarget(event: Event): boolean {
     }
 
     const tagName = node.tagName.toLowerCase();
-    if (tagName === 'input' || tagName === 'textarea' || tagName === 'select' || node.isContentEditable) {
+    if (tagName === 'input'
+      || tagName === 'textarea'
+      || tagName === 'select'
+      || node.isContentEditable
+      || node.getAttribute('role') === 'textbox'
+    ) {
       return true;
     }
   }

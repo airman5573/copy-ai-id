@@ -176,6 +176,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         aria-label={`${meta.label} 편집 패널`}
         data-ai-id="copy-ai-id-editor-floating-visual-panel"
         data-ai-editor-floating-visual-panel="1"
+        data-copy-ai-id-visual-focus-guard="true"
         data-ai-editor-floating-panel-category={activeCategory}
         data-ai-editor-floating-panel-placement={placement.mode}
         data-ai-editor-floating-panel-flipped={placement.flipped ? '1' : '0'}
@@ -481,4 +482,3 @@ function clampNumber(value: number, min: number, max: number): number {
   }
   return Math.round(Math.min(Math.max(value, min), max));
 }
-

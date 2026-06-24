@@ -3,6 +3,10 @@ import { postToBridge } from './bridge/bridgeClient';
 import { suppressHoverUntilMouseMove } from './keyboard-hover-guard';
 import { handleEditorShortcutAction } from './shortcut-actions';
 import { useHighlightStore } from './stores/useHighlightStore';
+import {
+  isVisualEditorFocusGuardEvent,
+  protectVisualEditorInteractionFromHover,
+} from './visual-focus-guard';
 
 const ARROW_SHORTCUTS: Record<string, EditorKeyboardShortcut> = {
   ArrowUp: 'arrow-up',
@@ -19,6 +23,11 @@ const PREVIEW_RESIZE_HANDLE_AI_IDS = new Set([
 export function installEditorKeyboard(): () => void {
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.defaultPrevented || event.isComposing) {
+      return;
+    }
+
+    if (isVisualEditorFocusGuardEvent(event)) {
+      protectVisualEditorInteractionFromHover();
       return;
     }
 
@@ -139,6 +148,8 @@ function isEditableEventTarget(event: Event): boolean {
       return false;
     }
 
-    return Boolean(target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]'));
+    return Boolean(target.closest(
+      'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], [role="textbox"]',
+    ));
   });
 }
