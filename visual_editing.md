@@ -120,7 +120,7 @@
   - Notes: Track ordered records, pending mutation state, error messages, undo/redo stacks if included in the first pass, and helper selectors for `hasVisualEdits` and exportable JSON.
   - Parallelizable: no
 
-- [ ] Add mutation dispatch helpers for visual edits.
+- [x] Add mutation dispatch helpers for visual edits.
   - Files/areas: new `src/editor/visual/visualMutationClient.ts`, `src/editor/bridge/bridgeClient.ts`.
   - Notes: Centralize `nextMutationId`, optimistic record creation, bridge post, response reconciliation, snapshot updates, and record human summary generation. Do not copy `ai-editor` source-map/chat blockers.
   - Parallelizable: no
