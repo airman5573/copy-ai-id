@@ -1,7 +1,13 @@
 import { copyText } from '../../content/clipboard/clipboard';
 import type { CopyStatus } from '../types';
-import { useNotebookStore } from '../stores/useNotebookStore';
-import { useVisualEditStore } from '../stores/useVisualEditStore';
+import {
+  selectHasNotebookDraftForCopy,
+  useNotebookStore,
+} from '../stores/useNotebookStore';
+import {
+  selectHasCopyableVisualEdits,
+  useVisualEditStore,
+} from '../stores/useVisualEditStore';
 import { formatNotebookCopyBody } from './lexical/chip-export';
 import { appendNotebookSuffixes } from './format';
 import {
@@ -19,9 +25,8 @@ export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
   const notebook = useNotebookStore.getState();
   const visualEditStore = useVisualEditStore.getState();
   const visualEditRecords = visualEditStore.getExportableRecords();
-  const hasVisualEdits = visualEditRecords.length > 0;
-  const trimmedDraft = notebook.draft.trim();
-  const hasNotebookDraft = !notebook.isNotebookEmpty && trimmedDraft.length > 0;
+  const hasVisualEdits = selectHasCopyableVisualEdits(visualEditStore);
+  const hasNotebookDraft = selectHasNotebookDraftForCopy(notebook);
 
   if (!hasNotebookDraft && !hasVisualEdits) {
     setCopyStatusWithReset('empty');
@@ -29,7 +34,7 @@ export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
   }
 
   const notebookRequest = hasNotebookDraft
-    ? trimmedDraft
+    ? notebook.draft.trim()
     : getVisualOnlyNotebookRequestText();
   const visualEditTargetDetails = formatVisualEditTargetsForNotebookTargets(
     visualEditRecords,

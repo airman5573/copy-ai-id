@@ -14,9 +14,11 @@ import {
   DEFAULT_NOTE_FONT_SIZE,
   MAX_NOTE_FONT_SIZE,
   MIN_NOTE_FONT_SIZE,
+  selectHasNotebookDraftForCopy,
   useNotebookStore,
 } from '../stores/useNotebookStore';
 import {
+  selectHasCopyableVisualEdits,
   selectVisualEditRuntimeStatus,
   useVisualEditStore,
 } from '../stores/useVisualEditStore';
@@ -39,7 +41,10 @@ export function NotePanel() {
   const hydrateNoteFontSize = useNotebookStore((state) => state.hydrateNoteFontSize);
   const stepNoteFontSize = useNotebookStore((state) => state.stepNoteFontSize);
   const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
+  const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
   const visualEditStatus = useVisualEditStore(selectVisualEditRuntimeStatus);
+  const hasCopyableVisualEdits = useVisualEditStore(selectHasCopyableVisualEdits);
+  const canCopyNotebook = hasNotebookDraftForCopy || hasCopyableVisualEdits;
   const hasVisualEditState = visualEditStatus.totalCount > 0
     || visualEditStatus.hasPending
     || visualEditStatus.hasErrors;
@@ -256,6 +261,8 @@ export function NotePanel() {
         <button
           className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
           data-ai-id="copy-ai-id-editor-copy-button"
+          data-ai-editor-copy-eligible={canCopyNotebook ? 'true' : 'false'}
+          data-ai-editor-copy-has-visual-edits={hasCopyableVisualEdits ? 'true' : 'false'}
           type="button"
           aria-describedby={copyButtonDescriptionId}
           onClick={() => {

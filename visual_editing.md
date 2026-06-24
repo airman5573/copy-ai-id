@@ -312,9 +312,9 @@
   - Notes: Notebook copy now passes visual-edit-only target details into the existing `## Targets` section without changing chip mention expansion. Visual edit targets already represented by note chips are skipped, while unchipped visual targets get `visual-edit-target-*` detail blocks with source record ids, stable/fallback locator data, context, and fallback safety notes; fallback visual target blocks are also recognized by the suffix/rules detector.
   - Parallelizable: no
 
-- [ ] Add copy eligibility for visual-edit-only sessions.
+- [x] Add copy eligibility for visual-edit-only sessions.
   - Files/areas: `src/editor/notebook/copy.ts`, `NotePanel.tsx`, `useNotebookStore.ts`, `useVisualEditStore.ts`.
-  - Notes: If note is empty but visual edits exist, Copy should succeed and copy visual edits plus rules. Button label/status can reuse existing copy statuses.
+  - Notes: Copy eligibility is now explicit through `selectHasNotebookDraftForCopy()` plus the existing exportable-visual-edit selector. `copyNotebookDraftFromStore()` treats visual edits as copyable even when the notebook is empty and emits the visual-only request text, while `NotePanel` tracks the same eligibility and marks the copy button with data attributes for visual-edit-only sessions without changing existing copied/empty/failed statuses.
   - Parallelizable: no
 
 - [ ] Add visual edit warning/rule suffixes.

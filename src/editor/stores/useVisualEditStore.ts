@@ -256,6 +256,10 @@ export function selectHasVisualEdits(state: Pick<VisualEditStateSnapshot, 'recor
   return selectExportableVisualEditRecords(state).length > 0;
 }
 
+export function selectHasCopyableVisualEdits(state: Pick<VisualEditStateSnapshot, 'records'>): boolean {
+  return selectHasVisualEdits(state);
+}
+
 export function selectExportableVisualEditRecords(
   state: Pick<VisualEditStateSnapshot, 'records'>,
 ): VisualEditRecord[] {

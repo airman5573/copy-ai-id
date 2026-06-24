@@ -58,6 +58,12 @@ export interface NotebookLexicalStateSnapshot {
   isNotebookEmpty: boolean;
 }
 
+export function selectHasNotebookDraftForCopy(
+  state: Pick<NotebookLexicalStateSnapshot, 'draft' | 'isNotebookEmpty'>,
+): boolean {
+  return !state.isNotebookEmpty && state.draft.trim().length > 0;
+}
+
 function getChromeLocalStorage(): chrome.storage.LocalStorageArea | null {
   if (typeof chrome === 'undefined' || typeof chrome.storage?.local === 'undefined') {
     return null;
