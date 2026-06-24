@@ -244,7 +244,7 @@
   - Notes: Handle `input`, `textarea`, `select`, checkbox/radio checked state, and contenteditable targets. Record value/checked/selected before and after separately from attributes.
   - Parallelizable: yes
 
-- [ ] Keep visual prompt text hidden while editing.
+- [x] Keep visual prompt text hidden while editing.
   - Files/areas: `NotePanel.tsx`, `VisualPanelContent.tsx`, `useVisualEditStore.ts`.
   - Notes: Do not append visual edit text into the visible Lexical notebook while editing. Only expose status/count if needed; actual prompt goes to clipboard export.
   - Parallelizable: yes

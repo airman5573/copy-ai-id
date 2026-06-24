@@ -365,6 +365,39 @@ textarea,
   padding: 4px 6px;
 }
 
+.copy-ai-id-editor-hidden-visual-prompt-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid var(--editor-border-subtle);
+  border-bottom: 1px solid var(--editor-border-subtle);
+  background: rgba(14, 23, 35, 0.72);
+  color: var(--editor-text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 10px 12px;
+}
+
+.copy-ai-id-editor-hidden-visual-prompt-status strong {
+  color: var(--editor-accent-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.copy-ai-id-editor-hidden-visual-prompt-status code {
+  border: 1px solid var(--editor-border);
+  border-radius: 5px;
+  background: rgba(5, 6, 8, 0.42);
+  color: var(--editor-text);
+  font-size: 10px;
+  padding: 1px 4px;
+}
+
+.copy-ai-id-editor-hidden-visual-prompt-status__meta {
+  color: var(--editor-text-faint);
+  font-size: 10px;
+}
+
 .copy-ai-id-editor-toolbar__left,
 .copy-ai-id-editor-canvas-controls,
 .copy-ai-id-editor-toolbar-segment {

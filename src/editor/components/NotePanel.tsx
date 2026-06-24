@@ -16,7 +16,10 @@ import {
   MIN_NOTE_FONT_SIZE,
   useNotebookStore,
 } from '../stores/useNotebookStore';
-import { useVisualEditStore } from '../stores/useVisualEditStore';
+import {
+  selectVisualEditRuntimeStatus,
+  useVisualEditStore,
+} from '../stores/useVisualEditStore';
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
@@ -36,11 +39,10 @@ export function NotePanel() {
   const hydrateNoteFontSize = useNotebookStore((state) => state.hydrateNoteFontSize);
   const stepNoteFontSize = useNotebookStore((state) => state.stepNoteFontSize);
   const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
-  const hasVisualEditState = useVisualEditStore((state) => (
-    state.records.length > 0
-    || state.errorMessages.length > 0
-    || Object.keys(state.pendingMutations).length > 0
-  ));
+  const visualEditStatus = useVisualEditStore(selectVisualEditRuntimeStatus);
+  const hasVisualEditState = visualEditStatus.totalCount > 0
+    || visualEditStatus.hasPending
+    || visualEditStatus.hasErrors;
   const clearVisualEdits = useVisualEditStore((state) => state.clearVisualEdits);
 
   useEffect(() => {
@@ -129,8 +131,11 @@ export function NotePanel() {
     : copyStatus === 'failed'
       ? messages.editor.copyFailed
       : copyStatus === 'empty'
-        ? messages.notebook.empty
-        : messages.notebook.save;
+      ? messages.notebook.empty
+      : messages.notebook.save;
+  const copyButtonDescriptionId = visualEditStatus.hasHiddenPromptText
+    ? 'copy-ai-id-editor-copy-shortcut-hint copy-ai-id-editor-hidden-visual-prompt-status'
+    : 'copy-ai-id-editor-copy-shortcut-hint';
 
   return (
     <PanelChrome side="right" dataAiId="copy-ai-id-editor-note-panel">
@@ -206,6 +211,8 @@ export function NotePanel() {
         placeholder={messages.notebook.placeholder}
       />
 
+      <HiddenVisualPromptStatus status={visualEditStatus} />
+
       <div className="copy-ai-id-editor-note-controls" data-ai-id="copy-ai-id-editor-note-suffix-controls">
         <div className="copy-ai-id-editor-note-control-group" role="group" aria-label={messages.notebook.breakpointScope.label}>
           <span>{messages.notebook.breakpointScope.label}</span>
@@ -250,7 +257,7 @@ export function NotePanel() {
           className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
           data-ai-id="copy-ai-id-editor-copy-button"
           type="button"
-          aria-describedby="copy-ai-id-editor-copy-shortcut-hint"
+          aria-describedby={copyButtonDescriptionId}
           onClick={() => {
             void handleCopy();
           }}
@@ -329,5 +336,43 @@ export function NotePanel() {
         </div>
       ) : null}
     </PanelChrome>
+  );
+}
+
+function HiddenVisualPromptStatus({
+  status,
+}: {
+  status: ReturnType<typeof selectVisualEditRuntimeStatus>;
+}) {
+  if (!status.hasHiddenPromptText && !status.hasPending && !status.hasErrors) {
+    return null;
+  }
+
+  return (
+    <div
+      id="copy-ai-id-editor-hidden-visual-prompt-status"
+      className="copy-ai-id-editor-hidden-visual-prompt-status"
+      data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status"
+      data-ai-editor-hidden-visual-prompt="true"
+      role={status.hasErrors ? 'alert' : 'status'}
+      aria-live={status.hasErrors ? 'assertive' : 'polite'}
+    >
+      <strong data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-title">
+        Visual edits {status.hiddenPromptCount}개 저장됨
+      </strong>
+      <span data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-message">
+        편집 프롬프트 내용은 노트에 표시하지 않고, 복사할 때만 <code>## Visual edits</code>로 클립보드에 포함됩니다.
+      </span>
+      {status.hasPending || status.hasErrors ? (
+        <span
+          className="copy-ai-id-editor-hidden-visual-prompt-status__meta"
+          data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-meta"
+        >
+          {status.hasPending ? `적용 중 ${status.pendingCount}개` : null}
+          {status.hasPending && status.hasErrors ? ' · ' : null}
+          {status.hasErrors ? `실패 ${status.failedCount}개${status.latestErrorCode ? ` (${status.latestErrorCode})` : ''}` : null}
+        </span>
+      ) : null}
+    </div>
   );
 }

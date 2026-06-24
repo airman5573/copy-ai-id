@@ -179,7 +179,7 @@ function VisualPanelStateNotice({ readiness }: { readiness: VisualPanelReadiness
 }
 
 function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSummary }): ReactElement | null {
-  if (!status.hasPending && !status.hasErrors) {
+  if (!status.hasHiddenPromptText && !status.hasPending && !status.hasErrors) {
     return null;
   }
 
@@ -190,6 +190,11 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
       role={status.hasErrors ? 'alert' : 'status'}
       aria-live={status.hasErrors ? 'assertive' : 'polite'}
     >
+      {status.hasHiddenPromptText ? (
+        <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-hidden-prompt-count">
+          숨겨진 visual edit 프롬프트: {status.hiddenPromptCount}개 · 복사할 때만 포함됩니다.
+        </span>
+      ) : null}
       {status.hasPending ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-runtime-pending-count">
           적용 중인 visual edit: {status.pendingCount}개

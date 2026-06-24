@@ -67,9 +67,13 @@ export interface VisualEditStore extends VisualEditStateSnapshot {
 }
 
 export interface VisualEditRuntimeStatusSummary {
+  totalCount: number;
+  exportableCount: number;
+  hiddenPromptCount: number;
   pendingCount: number;
   failedCount: number;
   latestErrorCode: VisualMutationError['code'] | null;
+  hasHiddenPromptText: boolean;
   hasPending: boolean;
   hasErrors: boolean;
 }
@@ -259,16 +263,21 @@ export function selectExportableVisualEditRecords(
 }
 
 export function selectVisualEditRuntimeStatus(
-  state: Pick<VisualEditStateSnapshot, 'pendingMutations' | 'errorMessages'>,
+  state: Pick<VisualEditStateSnapshot, 'records' | 'pendingMutations' | 'errorMessages'>,
 ): VisualEditRuntimeStatusSummary {
   const latestError = state.errorMessages[state.errorMessages.length - 1] ?? null;
+  const exportableCount = selectExportableVisualEditRecords(state).length;
   const pendingCount = Object.keys(state.pendingMutations).length;
   const failedCount = state.errorMessages.length;
 
   return {
+    totalCount: state.records.length,
+    exportableCount,
+    hiddenPromptCount: exportableCount,
     pendingCount,
     failedCount,
     latestErrorCode: latestError?.error.code ?? null,
+    hasHiddenPromptText: exportableCount > 0,
     hasPending: pendingCount > 0,
     hasErrors: failedCount > 0,
   };
