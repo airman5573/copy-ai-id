@@ -1,6 +1,7 @@
 import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
+import type { VisualBoxEdge, VisualBoxRegion } from '../../shared/editor-messages';
 
-type OverlayKind = 'hover';
+type OverlayKind = 'hover' | 'control';
 type Edge = 'top' | 'right' | 'bottom' | 'left';
 type Region = 'margin' | 'padding' | 'content' | 'gap';
 
@@ -18,8 +19,14 @@ interface RegionRect {
   axis?: 'x' | 'y';
 }
 
+interface BoxModelRegionFilter {
+  region: VisualBoxRegion;
+  edge?: VisualBoxEdge;
+}
+
 const OVERLAY_Z_INDEX: Record<OverlayKind, string> = {
   hover: '2147483645',
+  control: '2147483647',
 };
 
 // Chrome DevTools-style box-model colors.
@@ -41,14 +48,23 @@ const HOVER_ALPHA_SCALE = 0.45;
 
 const layers = new Map<OverlayKind, HTMLElement>();
 const shownElements = new Map<OverlayKind, Element>();
+const shownFilters = new Map<OverlayKind, BoxModelRegionFilter>();
 
 export function showBoxModel(kind: OverlayKind, element: Element): void {
   shownElements.set(kind, element);
+  shownFilters.delete(kind);
+  render(kind);
+}
+
+export function showBoxModelRegion(kind: OverlayKind, element: Element, filter: BoxModelRegionFilter): void {
+  shownElements.set(kind, element);
+  shownFilters.set(kind, filter);
   render(kind);
 }
 
 export function hideBoxModel(kind: OverlayKind): void {
   shownElements.delete(kind);
+  shownFilters.delete(kind);
   const layer = layers.get(kind);
   if (!layer) {
     return;
@@ -60,6 +76,7 @@ export function hideBoxModel(kind: OverlayKind): void {
 
 export function removeBoxModelLayers(): void {
   shownElements.clear();
+  shownFilters.clear();
   for (const layer of layers.values()) {
     layer.remove();
   }
@@ -73,7 +90,10 @@ function render(kind: OverlayKind): void {
     return;
   }
 
-  const regions = computeRegionRects(element);
+  const filter = shownFilters.get(kind);
+  const regions = filter
+    ? computeRegionRects(element).filter((region) => regionMatchesFilter(region, filter))
+    : computeRegionRects(element);
   const layer = ensureLayer(kind);
   layer.replaceChildren(...regions.map((region) => createRegionNode(kind, region)));
   layer.style.display = regions.length > 0 ? 'block' : 'none';
@@ -99,6 +119,32 @@ function ensureLayer(kind: OverlayKind): HTMLElement {
   document.documentElement.appendChild(layer);
   layers.set(kind, layer);
   return layer;
+}
+
+
+function regionMatchesFilter(region: RegionRect, filter: BoxModelRegionFilter): boolean {
+  if (filter.region === 'border') {
+    return false;
+  }
+
+  if (region.region !== filter.region) {
+    return false;
+  }
+
+  if (!filter.edge || filter.edge === 'all') {
+    return true;
+  }
+
+  if (region.region === 'gap') {
+    if (filter.edge === 'row') {
+      return region.axis === 'y';
+    }
+    if (filter.edge === 'column') {
+      return region.axis === 'x';
+    }
+  }
+
+  return region.edge === filter.edge;
 }
 
 function createRegionNode(kind: OverlayKind, region: RegionRect): HTMLElement {

@@ -198,9 +198,9 @@
   - Notes: Added `LayoutControls` and wired it into the layout floating panel category. The controls now commit inline CSS declarations for display, flex direction/wrap, justify/align/align-content, grid template columns/rows, grid auto flow/place-items, position/inset/z-index, and overflow/axis overflow, with reset buttons and practical grid presets.
   - Parallelizable: yes
 
-- [ ] Implement spacing controls for padding, margin, and gap.
+- [x] Implement spacing controls for padding, margin, and gap.
   - Files/areas: `SpacingControls.tsx`, `EdgeBoxControl.tsx`, `UnitValueInput.tsx`, `useVisualStyleForm.ts`, preview box-model highlight handlers.
-  - Notes: Include padding top/right/bottom/left, margin top/right/bottom/left, row-gap, column-gap. Gap controls should be available when display is flex/grid, with helpful disabled text otherwise.
+  - Notes: Added `SpacingControls` and wired the spacing floating panel category to padding, margin, row-gap, and column-gap inline CSS mutations. Padding/margin expose top/right/bottom/left edge inputs, all-edge presets, per-edge reset, and box-model region hover/focus highlighting. Gap controls are enabled only for flex/grid display values with a helpful disabled notice otherwise. Added a bridge handler for targeted visual box-model region highlights.
   - Parallelizable: yes
 
 - [ ] Implement size controls.

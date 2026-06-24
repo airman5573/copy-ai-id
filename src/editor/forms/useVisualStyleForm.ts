@@ -10,7 +10,15 @@ import { useStyleEdit } from '../visual/useStyleEdit';
 export const SPACING_UNITS: UnitOption[] = [
   { value: 'px', label: 'px' },
   { value: 'rem', label: 'rem' },
+  { value: 'em', label: 'em' },
   { value: '%', label: '%' },
+  { value: 'vw', label: 'vw' },
+  { value: 'vh', label: 'vh' },
+];
+
+export const MARGIN_UNITS: UnitOption[] = [
+  ...SPACING_UNITS,
+  { value: 'auto', label: 'auto' },
 ];
 
 export const SIZE_UNITS: UnitOption[] = [

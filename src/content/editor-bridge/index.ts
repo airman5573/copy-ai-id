@@ -7,6 +7,7 @@ import {
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
 import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overlay';
+import { handleHighlightVisualBoxRegion } from './visual-box-highlight';
 import {
   handleHoverTreeNode,
   installHoverHighlight,
@@ -129,6 +130,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.setBoxModelMode:
       setBoxModelMode(message.enabled);
+      return;
+    case EDITOR_MESSAGE_TYPES.highlightVisualBoxRegion:
+      handleHighlightVisualBoxRegion(message);
       return;
     case EDITOR_MESSAGE_TYPES.requestVisualTargetSnapshot:
       handleVisualTargetSnapshotRequest(message, post);

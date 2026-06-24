@@ -18,6 +18,7 @@ import {
 import type { FloatingVisualPanelTarget } from '../../stores/useFloatingVisualPanelStore';
 import { QUICK_ACTION_SECTION_IDS } from '../visual/sectionJump';
 import { LayoutControls } from '../controls/LayoutControls';
+import { SpacingControls } from '../controls/SpacingControls';
 import { VisualSection } from '../visual/VisualSection';
 
 export const VISUAL_PANEL_CATEGORY_META: Record<QuickActionCategory, { label: string; description: string; placeholder: string }> = {
@@ -101,6 +102,8 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
         </div>
         {category === 'layout' && readiness.canShowControls ? (
           <LayoutControls disabled={!readiness.canShowControls} />
+        ) : category === 'spacing' && readiness.canShowControls ? (
+          <SpacingControls disabled={!readiness.canShowControls} />
         ) : (
           <p
             className="mt-2 text-xs leading-relaxed text-gray-400"
