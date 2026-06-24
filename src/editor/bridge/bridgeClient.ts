@@ -9,6 +9,7 @@ import {
   type RequestVisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
+import type { VisualEditRecord } from '../../shared/visual-edits';
 import {
   bridgeViewportRectToEditorViewportRect,
   getBridgeIframeElement,
@@ -299,7 +300,10 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       if (message.error) {
         useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
       } else if (message.applied) {
-        useVisualEditStore.getState().markMutationApplied(message.mutationId);
+        useVisualEditStore.getState().markMutationApplied(
+          message.mutationId,
+          createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
+        );
       }
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
@@ -326,4 +330,53 @@ function isArrowShortcut(shortcut: EditorKeyboardShortcut): boolean {
     || shortcut === 'arrow-down'
     || shortcut === 'arrow-left'
     || shortcut === 'arrow-right';
+}
+
+function createVisualEditRecordPatchForMutationResult(
+  message: VisualMutationResultMessage,
+): Partial<VisualEditRecord> | undefined {
+  if (message.kind !== 'structure' || !message.structure) {
+    return undefined;
+  }
+
+  if (message.operation !== 'delete' && message.operation !== 'restore') {
+    return undefined;
+  }
+
+  const visualEditState = useVisualEditStore.getState();
+  const pending = visualEditState.pendingMutations[message.mutationId];
+  const record = pending
+    ? visualEditState.records.find((candidate) => candidate.id === pending.recordId)
+    : null;
+
+  if (!record || record.kind !== 'structure' || record.payload.kind !== 'structure') {
+    return undefined;
+  }
+
+  const structureRecord = record as VisualEditRecord<'structure'>;
+  const currentStructure = structureRecord.payload.structure;
+  const before = message.operation === 'delete'
+    ? message.structure
+    : currentStructure.before ?? structureRecord.before.structure.structure ?? null;
+  const after = message.operation === 'restore' ? message.structure : null;
+
+  return {
+    payload: {
+      kind: 'structure',
+      structure: {
+        ...currentStructure,
+        operation: message.operation,
+        before,
+        after,
+      },
+    },
+    before: {
+      kind: 'structure',
+      structure: { structure: before },
+    },
+    after: {
+      kind: 'structure',
+      structure: { structure: after },
+    },
+  } as Partial<VisualEditRecord>;
 }

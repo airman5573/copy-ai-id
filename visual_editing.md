@@ -260,9 +260,9 @@
   - Notes: Mirror source `ai-editor/src/bridge/mutations.ts` concepts, but adapt to `EditorTarget` and fallback target resolution. Post result messages with before/after payloads and rejection reasons.
   - Parallelizable: no
 
-- [ ] Implement delete and restore mutations.
-  - Files/areas: `visual-mutations.ts`, `useVisualEditStore.ts`.
-  - Notes: Store enough removed node context in the preview bridge to restore for undo/reset if implemented. Export delete records as structure diffs.
+- [x] Implement delete and restore mutations.
+  - Files/areas: `src/content/editor-bridge/visual-structure.ts`, `src/shared/editor-messages.ts`, `src/editor/bridge/bridgeClient.ts`.
+  - Notes: Delete now preserves parent, sibling, child-index, and stripped HTML context in the structure snapshot. Restore uses the saved parent/sibling/index context to reinsert near the original location. Applied delete/restore bridge results patch the pending visual edit record so copy export includes before/after structure diffs instead of an empty optimistic shell.
   - Parallelizable: yes
 
 - [ ] Implement duplicate and move up/down mutations.

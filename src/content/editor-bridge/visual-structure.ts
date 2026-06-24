@@ -170,33 +170,13 @@ export function handleRestoreVisualElement(
     return;
   }
 
-  const resolved = resolveStructureTarget(message);
-  if (resolved.ok && resolved.element.parentElement) {
-    resolved.element.parentElement.insertBefore(restoredElement, resolved.element.nextSibling);
-    const restoredTarget = editorTargetForElement(restoredElement) ?? message.target;
-    const restoredResolved: VisualTargetResolveSuccess = {
-      ok: true,
-      element: restoredElement,
-      nodeId: resolveNodeIdForElement(restoredElement),
-      target: restoredTarget,
-      resolvedBy: 'node-id',
-    };
-    postStructureSuccess(post, message, {
-      resolved: restoredResolved,
-      structure: createStructureSnapshot(restoredElement, 'restore'),
-    });
+  const insertion = getInsertionForRestore(message.structure);
+  if (!insertion.ok) {
+    postStructureFailure(post, message, insertion.error);
     return;
   }
 
-  const parent = message.structure.parentNodeId
-    ? resolveParentByNodeId(message.structure.parentNodeId)
-    : null;
-  if (!parent) {
-    postStructureFailure(post, message, invalidStructureError('The original parent could not be found for restore.'));
-    return;
-  }
-
-  parent.appendChild(restoredElement);
+  insertion.parent.insertBefore(restoredElement, insertion.beforeNode);
   const restoredTarget = editorTargetForElement(restoredElement) ?? message.target;
   const restoredResolved: VisualTargetResolveSuccess = {
     ok: true,
@@ -402,13 +382,30 @@ function createStructureSnapshot(
   element: Element,
   operation: VisualStructureOperation,
 ): VisualStructureMutationSnapshot {
+  const previousSibling = previousEditableSibling(element);
+  const nextSibling = nextEditableSibling(element);
+
   return {
     operation,
     parentNodeId: element.parentElement ? resolveNodeIdForElement(element.parentElement) : null,
-    previousSiblingNodeId: previousEditableSibling(element) ? resolveNodeIdForElement(previousEditableSibling(element) as Element) : null,
-    nextSiblingNodeId: nextEditableSibling(element) ? resolveNodeIdForElement(nextEditableSibling(element) as Element) : null,
+    childElementIndex: editableElementIndex(element),
+    previousSiblingNodeId: previousSibling ? resolveNodeIdForElement(previousSibling) : null,
+    nextSiblingNodeId: nextSibling ? resolveNodeIdForElement(nextSibling) : null,
     targetHtml: stripRuntimeArtifacts(element.outerHTML),
   };
+}
+
+function editableElementIndex(element: Element): number | null {
+  const parent = element.parentElement;
+  if (!parent) {
+    return null;
+  }
+
+  return editableElementChildren(parent).indexOf(element);
+}
+
+function editableElementChildren(parent: Element): Element[] {
+  return Array.from(parent.children).filter((child) => !isExtensionOwnedElement(child));
 }
 
 function previousEditableSibling(element: Element): Element | null {
@@ -527,6 +524,76 @@ interface DropInsertionSuccess {
 interface DropInsertionFailure {
   ok: false;
   error: VisualMutationError;
+}
+
+function getInsertionForRestore(
+  structure: VisualStructureMutationSnapshot,
+): DropInsertionSuccess | DropInsertionFailure {
+  const parent = structure.parentNodeId
+    ? resolveParentByNodeId(structure.parentNodeId)
+    : null;
+
+  if (!parent) {
+    return {
+      ok: false,
+      error: invalidStructureError('The original parent could not be found for restore.'),
+    };
+  }
+
+  if (isExtensionOwnedElement(parent) || parent.tagName.toLowerCase() === 'html' || parent.tagName.toLowerCase() === 'head') {
+    return {
+      ok: false,
+      error: invalidStructureError('The original parent is protected and cannot receive restored elements.'),
+    };
+  }
+
+  const previousSibling = structure.previousSiblingNodeId
+    ? resolveTreeNode(structure.previousSiblingNodeId)
+    : null;
+  if (previousSibling?.parentElement === parent && !isExtensionOwnedElement(previousSibling)) {
+    return {
+      ok: true,
+      parent,
+      beforeNode: previousSibling.nextSibling,
+    };
+  }
+
+  const indexedBeforeNode = beforeNodeForEditableElementIndex(parent, structure.childElementIndex);
+  if (indexedBeforeNode) {
+    return {
+      ok: true,
+      parent,
+      beforeNode: indexedBeforeNode,
+    };
+  }
+
+  const nextSibling = structure.nextSiblingNodeId
+    ? resolveTreeNode(structure.nextSiblingNodeId)
+    : null;
+  if (nextSibling?.parentElement === parent && !isExtensionOwnedElement(nextSibling)) {
+    return {
+      ok: true,
+      parent,
+      beforeNode: nextSibling,
+    };
+  }
+
+  return {
+    ok: true,
+    parent,
+    beforeNode: null,
+  };
+}
+
+function beforeNodeForEditableElementIndex(
+  parent: Element,
+  childElementIndex: number | null | undefined,
+): Element | null {
+  if (childElementIndex === null || childElementIndex === undefined || childElementIndex < 0) {
+    return null;
+  }
+
+  return editableElementChildren(parent)[childElementIndex] ?? null;
 }
 
 function getInsertionForDrop(

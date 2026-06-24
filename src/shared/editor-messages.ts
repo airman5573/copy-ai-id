@@ -259,6 +259,7 @@ export interface VisualFormValueMutation {
 export interface VisualStructureMutationSnapshot {
   operation: VisualStructureOperation;
   parentNodeId?: string | null;
+  childElementIndex?: number | null;
   previousSiblingNodeId?: string | null;
   nextSiblingNodeId?: string | null;
   targetHtml?: string;
