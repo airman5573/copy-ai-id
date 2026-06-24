@@ -213,9 +213,9 @@
   - Notes: Added style-panel controls for text format toggles, typography, text/background color, opacity, background image, background size/repeat/position, box/text shadows, filter, and backdrop-filter. All controls use the CSS-property `useStyleEdit()` mutation path and the source-like visual control primitives, with a shared style control helper for text inputs, textareas, preset selects, reset buttons, and preset chips.
   - Parallelizable: yes
 
-- [ ] Implement border controls.
+- [x] Implement border controls.
   - Files/areas: `BorderControls.tsx`, `useVisualStyleForm.ts`.
-  - Notes: Cover border width per edge, style, color, radius, outline where useful. Record per-property before/after values for export.
+  - Notes: Added `BorderControls` and wired the border floating panel category to inline CSS mutations for border width per edge, border style/color, uniform and per-corner radius, and outline width/style/color/offset. Extended `useVisualStyleForm()` with radius corner fields and outline length fields, and generalized style control helpers so border controls record under the border category while preserving per-property before/after export data.
   - Parallelizable: yes
 
 - [ ] Add breakpoint-aware style records and export labeling.

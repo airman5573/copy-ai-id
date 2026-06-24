@@ -21,6 +21,7 @@ import { LayoutControls } from '../controls/LayoutControls';
 import { SpacingControls } from '../controls/SpacingControls';
 import { SizeControls } from '../controls/SizeControls';
 import { BackgroundImageControls } from '../controls/BackgroundImageControls';
+import { BorderControls } from '../controls/BorderControls';
 import { ColorControls } from '../controls/ColorControls';
 import { OpacityControls } from '../controls/OpacityControls';
 import { ShadowControls } from '../controls/ShadowControls';
@@ -122,6 +123,8 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
             <BackgroundImageControls disabled={!readiness.canShowControls} />
             <ShadowControls disabled={!readiness.canShowControls} />
           </div>
+        ) : category === 'border' && readiness.canShowControls ? (
+          <BorderControls disabled={!readiness.canShowControls} />
         ) : (
           <p
             className="mt-2 text-xs leading-relaxed text-gray-400"

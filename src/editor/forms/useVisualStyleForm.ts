@@ -73,7 +73,13 @@ type LengthFieldName =
   | 'borderRightWidth'
   | 'borderBottomWidth'
   | 'borderLeftWidth'
-  | 'radius';
+  | 'radius'
+  | 'radiusTopLeft'
+  | 'radiusTopRight'
+  | 'radiusBottomRight'
+  | 'radiusBottomLeft'
+  | 'outlineWidth'
+  | 'outlineOffset';
 
 type VisualStyleFormValues = Record<LengthFieldName, LengthField>;
 
@@ -99,6 +105,12 @@ const FIELD_PROPERTY: Record<LengthFieldName, string> = {
   borderBottomWidth: 'border-bottom-width',
   borderLeftWidth: 'border-left-width',
   radius: 'border-top-left-radius',
+  radiusTopLeft: 'border-top-left-radius',
+  radiusTopRight: 'border-top-right-radius',
+  radiusBottomRight: 'border-bottom-right-radius',
+  radiusBottomLeft: 'border-bottom-left-radius',
+  outlineWidth: 'outline-width',
+  outlineOffset: 'outline-offset',
 };
 
 const RADIUS_PROPERTIES = [
@@ -140,6 +152,8 @@ export type EdgeGroupApi = {
   resetAll: () => void;
 };
 
+export type VisualCorner = 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
+
 export type VisualStyleFormApi = {
   padding: EdgeGroupApi;
   margin: EdgeGroupApi;
@@ -154,6 +168,9 @@ export type VisualStyleFormApi = {
   maxHeight: LengthFieldApi;
   borderWidth: EdgeGroupApi;
   radius: LengthFieldApi;
+  radiusCorners: Record<VisualCorner, LengthFieldApi>;
+  outlineWidth: LengthFieldApi;
+  outlineOffset: LengthFieldApi;
 };
 
 export function parseLength(raw: string): LengthField {
@@ -275,6 +292,13 @@ export function useVisualStyleForm(): VisualStyleFormApi {
   const display = edit.valueOf('display');
   const gapEnabled = ['flex', 'inline-flex', 'grid', 'inline-grid'].includes(display);
 
+  const radiusCorners: Record<VisualCorner, LengthFieldApi> = {
+    topLeft: fieldApi('border-radius', 'radiusTopLeft'),
+    topRight: fieldApi('border-radius', 'radiusTopRight'),
+    bottomRight: fieldApi('border-radius', 'radiusBottomRight'),
+    bottomLeft: fieldApi('border-radius', 'radiusBottomLeft'),
+  };
+
   const radiusBase = fieldApi('border-radius', 'radius');
   const radius: LengthFieldApi = {
     ...radiusBase,
@@ -307,6 +331,9 @@ export function useVisualStyleForm(): VisualStyleFormApi {
     maxHeight: fieldApi('max-height', 'maxHeight'),
     borderWidth: edgeGroupApi('border-width'),
     radius,
+    radiusCorners,
+    outlineWidth: fieldApi('outline-width', 'outlineWidth'),
+    outlineOffset: fieldApi('outline-offset', 'outlineOffset'),
   };
 }
 

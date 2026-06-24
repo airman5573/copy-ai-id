@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import type { QuickActionCategory } from '../../../shared/editor-messages';
 import {
   getVisualStylePropertyDefinition,
   type VisualStylePreset,
@@ -64,6 +65,8 @@ export type CssPresetSelectProps = {
   helperText?: string;
   options?: VisualPresetOption[];
   placeholderLabel?: string;
+  category?: QuickActionCategory;
+  controlPrefix?: string;
 };
 
 export function CssPresetSelect({
@@ -74,6 +77,8 @@ export function CssPresetSelect({
   helperText,
   options,
   placeholderLabel = '—',
+  category = 'style',
+  controlPrefix = category,
 }: CssPresetSelectProps): ReactElement {
   const edit = useStyleEdit();
   const resolvedOptions = useMemo(() => options ?? presetOptionsForProperty(property), [options, property]);
@@ -89,12 +94,12 @@ export function CssPresetSelect({
       placeholderLabel={placeholderLabel}
       showPlaceholderOption={false}
       onChange={(value) => edit.commitStyle(property, value, {
-        category: 'style',
-        control: { id: `style:${property}`, label },
+        category,
+        control: { id: `${controlPrefix}:${property}`, label },
       })}
       onReset={() => edit.resetStyle(property, {
-        category: 'style',
-        control: { id: `style:${property}`, label },
+        category,
+        control: { id: `${controlPrefix}:${property}`, label },
       })}
     />
   );
@@ -110,6 +115,8 @@ export type CssTextInputProps = {
   inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
   presets?: readonly VisualPresetOption[];
   normalize?: (value: string) => string;
+  category?: QuickActionCategory;
+  controlPrefix?: string;
 };
 
 export function CssTextInput({
@@ -122,6 +129,8 @@ export function CssTextInput({
   inputMode = 'text',
   presets = [],
   normalize = normalizeCssValue,
+  category = 'style',
+  controlPrefix = category,
 }: CssTextInputProps): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
@@ -135,8 +144,8 @@ export function CssTextInput({
     const next = normalize(value);
     setDraft(next);
     edit.commitStyle(property, next, {
-      category: 'style',
-      control: { id: `style:${property}`, label },
+      category,
+      control: { id: `${controlPrefix}:${property}`, label },
     });
   };
 
@@ -153,8 +162,8 @@ export function CssTextInput({
           onClick={() => {
             setDraft('');
             edit.resetStyle(property, {
-              category: 'style',
-              control: { id: `style:${property}`, label },
+              category,
+              control: { id: `${controlPrefix}:${property}`, label },
             });
           }}
         />
@@ -208,6 +217,8 @@ export type CssTextareaProps = {
   presets?: readonly VisualPresetOption[];
   rows?: number;
   normalize?: (value: string) => string;
+  category?: QuickActionCategory;
+  controlPrefix?: string;
 };
 
 export function CssTextarea({
@@ -220,6 +231,8 @@ export function CssTextarea({
   presets = [],
   rows = 3,
   normalize = normalizeCssValue,
+  category = 'style',
+  controlPrefix = category,
 }: CssTextareaProps): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
@@ -233,8 +246,8 @@ export function CssTextarea({
     const next = normalize(value);
     setDraft(next);
     edit.commitStyle(property, next, {
-      category: 'style',
-      control: { id: `style:${property}`, label },
+      category,
+      control: { id: `${controlPrefix}:${property}`, label },
     });
   };
 
@@ -251,8 +264,8 @@ export function CssTextarea({
           onClick={() => {
             setDraft('');
             edit.resetStyle(property, {
-              category: 'style',
-              control: { id: `style:${property}`, label },
+              category,
+              control: { id: `${controlPrefix}:${property}`, label },
             });
           }}
         />
