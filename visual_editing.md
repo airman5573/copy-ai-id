@@ -203,9 +203,9 @@
   - Notes: Added `SpacingControls` and wired the spacing floating panel category to padding, margin, row-gap, and column-gap inline CSS mutations. Padding/margin expose top/right/bottom/left edge inputs, all-edge presets, per-edge reset, and box-model region hover/focus highlighting. Gap controls are enabled only for flex/grid display values with a helpful disabled notice otherwise. Added a bridge handler for targeted visual box-model region highlights.
   - Parallelizable: yes
 
-- [ ] Implement size controls.
+- [x] Implement size controls.
   - Files/areas: `SizeControls.tsx`, `useVisualStyleForm.ts`.
-  - Notes: Cover width, height, min/max width, min/max height, box sizing, object fit/object position where applicable.
+  - Notes: Added `SizeControls` and wired the size floating panel category to inline CSS mutations for box-sizing, width, height, min/max width, min/max height, aspect-ratio, object-fit, and object-position. Extended `useVisualStyleForm()` with min/max size fields and broader size units, plus keyword preset buttons for auto/100%/fit-content/max-content/min-content/none where practical.
   - Parallelizable: yes
 
 - [ ] Implement style controls.

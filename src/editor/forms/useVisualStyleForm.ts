@@ -24,7 +24,13 @@ export const MARGIN_UNITS: UnitOption[] = [
 export const SIZE_UNITS: UnitOption[] = [
   { value: 'px', label: 'px' },
   { value: 'rem', label: 'rem' },
+  { value: 'em', label: 'em' },
   { value: '%', label: '%' },
+  { value: 'vw', label: 'vw' },
+  { value: 'vh', label: 'vh' },
+  { value: 'dvw', label: 'dvw' },
+  { value: 'dvh', label: 'dvh' },
+  { value: 'ch', label: 'ch' },
   { value: 'auto', label: 'auto' },
 ];
 
@@ -59,6 +65,10 @@ type LengthFieldName =
   | 'gapY'
   | 'width'
   | 'height'
+  | 'minWidth'
+  | 'maxWidth'
+  | 'minHeight'
+  | 'maxHeight'
   | 'borderTopWidth'
   | 'borderRightWidth'
   | 'borderBottomWidth'
@@ -80,6 +90,10 @@ const FIELD_PROPERTY: Record<LengthFieldName, string> = {
   gapY: 'row-gap',
   width: 'width',
   height: 'height',
+  minWidth: 'min-width',
+  maxWidth: 'max-width',
+  minHeight: 'min-height',
+  maxHeight: 'max-height',
   borderTopWidth: 'border-top-width',
   borderRightWidth: 'border-right-width',
   borderBottomWidth: 'border-bottom-width',
@@ -134,6 +148,10 @@ export type VisualStyleFormApi = {
   gapEnabled: boolean;
   width: LengthFieldApi;
   height: LengthFieldApi;
+  minWidth: LengthFieldApi;
+  maxWidth: LengthFieldApi;
+  minHeight: LengthFieldApi;
+  maxHeight: LengthFieldApi;
   borderWidth: EdgeGroupApi;
   radius: LengthFieldApi;
 };
@@ -154,8 +172,8 @@ export function parseLength(raw: string): LengthField {
 }
 
 export function composeLength(field: LengthField): string {
-  if (field.unit === 'auto') {
-    return 'auto';
+  if (field.unit === 'auto' || field.unit === 'none') {
+    return field.unit;
   }
   const trimmed = field.value.trim();
   if (trimmed === '') {
@@ -283,6 +301,10 @@ export function useVisualStyleForm(): VisualStyleFormApi {
     gapEnabled,
     width: fieldApi('width', 'width'),
     height: fieldApi('height', 'height'),
+    minWidth: fieldApi('min-width', 'minWidth'),
+    maxWidth: fieldApi('max-width', 'maxWidth'),
+    minHeight: fieldApi('min-height', 'minHeight'),
+    maxHeight: fieldApi('max-height', 'maxHeight'),
     borderWidth: edgeGroupApi('border-width'),
     radius,
   };
