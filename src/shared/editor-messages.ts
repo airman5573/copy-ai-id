@@ -485,9 +485,10 @@ export interface VisualElementRestoredMessage extends VisualMutationResultBase {
 
 export interface RequestVisualDragMoveMessage extends VisualMutationRequestBase {
   type: typeof EDITOR_MESSAGE_TYPES.requestVisualDragMove;
-  dropTarget: EditorTarget;
-  dropNodeId: string | null;
-  position: VisualDropPosition;
+  dropTarget?: EditorTarget;
+  dropNodeId?: string | null;
+  position?: VisualDropPosition;
+  dropPoint?: BridgeViewportPoint;
 }
 
 export interface VisualDragMoveCompletedMessage extends VisualMutationResultBase {

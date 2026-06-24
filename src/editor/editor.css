@@ -644,6 +644,13 @@ textarea,
   cursor: grab;
 }
 
+.copy-ai-id-editor-quick-action-bar__button--grip.is-dragging {
+  border-color: rgba(96, 165, 250, 0.92);
+  background: rgba(37, 99, 235, 0.95);
+  color: #ffffff;
+  cursor: grabbing;
+}
+
 .copy-ai-id-editor-quick-action-bar__button--structure {
   padding-left: 7px;
   padding-right: 7px;

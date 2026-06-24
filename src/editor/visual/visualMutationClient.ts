@@ -1,6 +1,7 @@
 import type { BreakpointId } from '../../shared/breakpoints';
 import {
   EDITOR_MESSAGE_TYPES,
+  type BridgeViewportPoint,
   type DeleteVisualElementMessage,
   type DuplicateVisualElementMessage,
   type EditorTarget,
@@ -101,9 +102,10 @@ export type DispatchVisualStructureMutationOptions = VisualMutationDispatchConte
   | { operation: 'restore'; structure: VisualStructureMutationSnapshot }
   | {
     operation: 'drag-move';
-    dropTarget: EditorTarget;
-    dropNodeId: string | null;
-    position: VisualDropPosition;
+    dropTarget?: EditorTarget;
+    dropNodeId?: string | null;
+    position?: VisualDropPosition;
+    dropPoint?: BridgeViewportPoint;
   }
 );
 
@@ -432,8 +434,8 @@ export function dispatchVisualStructureMutation(
         after: null,
         movedDirection: operation === 'move-up' ? 'up' : operation === 'move-down' ? 'down' : undefined,
         dropPosition: operation === 'drag-move' ? options.position : undefined,
-        dropTarget: operation === 'drag-move'
-          ? createVisualEditTargetDescriptor(options.dropTarget, { nodeId: options.dropNodeId })
+        dropTarget: operation === 'drag-move' && options.dropTarget
+          ? createVisualEditTargetDescriptor(options.dropTarget, { nodeId: options.dropNodeId ?? null })
           : undefined,
       },
     },
@@ -715,6 +717,7 @@ function createStructureMessage(
         dropTarget: options.dropTarget,
         dropNodeId: options.dropNodeId,
         position: options.position,
+        dropPoint: options.dropPoint,
       };
     default:
       return exhaustiveStructureOperation(options);

@@ -33,6 +33,11 @@ import {
   type OverlaySize,
 } from '../../bridge/geometry';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
+import {
+  dispatchQuickActionDragMoveFromEditorPoint,
+  dispatchQuickActionStructureOperation,
+  type QuickActionStructureOperation,
+} from '../../visual/structureActions';
 import { useFloatingVisualPanelStore } from '../../stores/useFloatingVisualPanelStore';
 import {
   useVisualSelectionStore,
@@ -75,6 +80,17 @@ interface QuickActionRenderTarget extends EditorTargetReference {
   updatedAt: number;
 }
 
+interface QuickActionDragState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  latestX: number;
+  latestY: number;
+  reference: EditorTargetReference;
+}
+
+const QUICK_ACTION_DRAG_THRESHOLD_PX = 8;
+
 export function QuickActionBar() {
   const hoverTarget = useVisualSelectionStore((state) => state.hoverTarget);
   const activeToolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
@@ -86,10 +102,12 @@ export function QuickActionBar() {
   const liveTargetRef = useRef<QuickActionRenderTarget | null>(liveTarget);
   const barRef = useRef<HTMLDivElement | null>(null);
   const hideTimerRef = useRef<number | null>(null);
+  const dragStateRef = useRef<QuickActionDragState | null>(null);
   const [renderTarget, setRenderTarget] = useState<QuickActionRenderTarget | null>(liveTarget);
   const [isToolbarHovered, setToolbarHovered] = useState(false);
   const [barSize, setBarSize] = useState<OverlaySize>(DEFAULT_QUICK_ACTION_BAR_SIZE);
   const [layoutRevision, setLayoutRevision] = useState(0);
+  const [isDraggingStructure, setDraggingStructure] = useState(false);
 
   useEffect(() => {
     liveTargetRef.current = liveTarget;
@@ -203,9 +221,70 @@ export function QuickActionBar() {
       editorRect: renderTarget.editorRect,
     });
   };
-  const preventPlaceholderStructureAction = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+  const handleStructureActionClick = (operation: QuickActionStructureOperation): void => {
+    dispatchQuickActionStructureOperation({
+      target: renderTarget.target,
+      nodeId: renderTarget.nodeId,
+    }, operation);
+  };
+  const handleDragGripPointerDown = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (event.button !== 0) {
+      return;
+    }
+
     event.preventDefault();
     event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      latestX: event.clientX,
+      latestY: event.clientY,
+      reference: {
+        target: renderTarget.target,
+        nodeId: renderTarget.nodeId,
+      },
+    };
+    setDraggingStructure(true);
+  };
+  const handleDragGripPointerMove = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    dragState.latestX = event.clientX;
+    dragState.latestY = event.clientY;
+  };
+  const finishDragGrip = (event: ReactPointerEvent<HTMLButtonElement>, commit: boolean): void => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    dragStateRef.current = null;
+    setDraggingStructure(false);
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    const distance = Math.hypot(
+      dragState.latestX - dragState.startX,
+      dragState.latestY - dragState.startY,
+    );
+
+    if (!commit || distance < QUICK_ACTION_DRAG_THRESHOLD_PX) {
+      return;
+    }
+
+    dispatchQuickActionDragMoveFromEditorPoint(dragState.reference, {
+      x: dragState.latestX,
+      y: dragState.latestY,
+    });
   };
 
   return (
@@ -222,13 +301,16 @@ export function QuickActionBar() {
     >
       <button
         type="button"
-        className="copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--icon copy-ai-id-editor-quick-action-bar__button--grip"
+        className={`copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--icon copy-ai-id-editor-quick-action-bar__button--grip${isDraggingStructure ? ' is-dragging' : ''}`}
         data-ai-id="copy-ai-id-editor-quick-action-drag-grip-button"
         data-ai-editor-drag-grip="1"
-        title="드래그 이동은 다음 단계에서 연결됩니다."
+        title="드래그해서 이동"
         aria-label="드래그해서 이동"
-        disabled
-        onPointerDown={preventPlaceholderStructureAction}
+        aria-pressed={isDraggingStructure}
+        onPointerDown={handleDragGripPointerDown}
+        onPointerMove={handleDragGripPointerMove}
+        onPointerUp={(event) => finishDragGrip(event, true)}
+        onPointerCancel={(event) => finishDragGrip(event, false)}
       >
         <GripVertical size={13} aria-hidden="true" />
       </button>
@@ -258,8 +340,8 @@ export function QuickActionBar() {
           className={`copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--structure${destructive ? ' copy-ai-id-editor-quick-action-bar__button--danger' : ''}`}
           data-ai-id={`copy-ai-id-editor-quick-action-structure-${action}-button`}
           data-ai-editor-structure-action={action}
-          title={`${title} — 다음 단계에서 연결됩니다.`}
-          disabled
+          title={title}
+          onClick={() => handleStructureActionClick(action)}
         >
           <Icon size={12} aria-hidden="true" />
           <span>{label}</span>

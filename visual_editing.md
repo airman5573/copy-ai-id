@@ -156,9 +156,9 @@
   - Notes: Clicking a category now opens the store-backed floating panel state for the current target and queues a section jump to the matching control section. The visible floating panel shell is implemented in the next Phase 7 item.
   - Parallelizable: no
 
-- [ ] Wire quick-action structure buttons and drag grip to preview-only structure operations.
+- [x] Wire quick-action structure buttons and drag grip to preview-only structure operations.
   - Files/areas: `QuickActionBar.tsx`, `src/editor/visual/structureActions.ts`, `src/content/editor-bridge/visual-structure.ts`.
-  - Notes: Duplicate, move up, move down, delete, and drag/drop should operate on arbitrary DOM preview nodes, not source files. Disable only when no valid sibling/drop target exists or the target is a protected extension-owned element.
+  - Notes: Duplicate, move up, move down, delete, and drag/drop now dispatch preview-only structure mutations against arbitrary resolvable DOM preview nodes, not source files. The bridge rejects protected roots, missing siblings, invalid drops, and self/descendant drops with mutation errors.
   - Parallelizable: no
 
 ### Phase 7 - Floating visual panel shell and section navigation

@@ -142,6 +142,20 @@ export function bridgeViewportPointToEditorViewportPoint(
   };
 }
 
+export function editorViewportPointToBridgeViewportPoint(
+  point: EditorViewportPoint,
+): BridgeViewportPoint | null {
+  const geometry = getPreviewWorkspaceGeometrySnapshot();
+  if (!geometry) {
+    return null;
+  }
+
+  return {
+    x: (point.x - geometry.iframeRect.left) / geometry.scaleX,
+    y: (point.y - geometry.iframeRect.top) / geometry.scaleY,
+  };
+}
+
 export function editorViewportRectToBridgeViewportRect(
   rect: EditorViewportRect,
 ): BridgeViewportRect | null {

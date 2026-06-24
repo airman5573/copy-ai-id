@@ -15,6 +15,13 @@ import {
   setHoverHighlightSuppressed,
 } from './highlight';
 import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
+import {
+  handleDeleteVisualElement,
+  handleDuplicateVisualElement,
+  handleMoveVisualElement,
+  handleRestoreVisualElement,
+  handleVisualDragMoveRequest,
+} from './visual-structure';
 
 export const COPY_AI_ID_PREVIEW_PARAM = 'copy-ai-id-preview';
 const BRIDGE_SOURCE = 'copy-ai-id-preview-bridge';
@@ -124,6 +131,21 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.requestVisualTargetSnapshot:
       handleVisualTargetSnapshotRequest(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.duplicateVisualElement:
+      handleDuplicateVisualElement(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.moveVisualElement:
+      handleMoveVisualElement(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.deleteVisualElement:
+      handleDeleteVisualElement(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.restoreVisualElement:
+      handleRestoreVisualElement(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.requestVisualDragMove:
+      handleVisualDragMoveRequest(message, post);
       return;
     default:
       return;
