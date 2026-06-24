@@ -328,9 +328,9 @@
   - Notes: Added an English/Korean `visualEditor` i18n namespace for quick-action categories, structure controls, floating-panel copy, runtime/status labels, stale target states, and selected-target fallback text. Wired the quick-action bar, floating visual panel, panel content notices, and readiness/stale summaries to consume those localized messages. Existing notebook copy warning/rule i18n from the prior item remains integrated; extension metadata locale files were not changed because no manifest copy changed.
   - Parallelizable: yes
 
-- [ ] Style the quick-action bar and floating panel to match `ai-editor`.
+- [x] Style the quick-action bar and floating panel to match `ai-editor`.
   - Files/areas: `src/editor/editor.css`, Tailwind config, new component class usage.
-  - Notes: Use Tailwind utilities for ported components where possible; keep existing `copy-ai-id-editor-*` layout styles intact. Ensure `[data-ai-editor-ui]` scoping contains all Tailwind utilities in the Shadow DOM.
+  - Notes: Quick-action bar now uses source-like text glyphs for the drag grip and move controls instead of lucide icons, keeps source-matched dark toolbar/button sizing, and sits above the preview with scroll-safe overflow. Floating visual panel keeps the source Tailwind shell while adding stable `copy-ai-id-editor-floating-visual-panel*` classes for scoped chrome polish, body/tab scrollbars, reduced-motion-safe entry animation, and nonselectable panel controls. Tailwind config already matched the source `[data-ai-editor-ui]` scoped/no-preflight setup, so no config change was needed.
   - Parallelizable: yes
 
 - [ ] Update user documentation for preview-only visual editing.

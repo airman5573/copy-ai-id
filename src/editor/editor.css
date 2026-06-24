@@ -621,10 +621,14 @@ textarea,
 
 .copy-ai-id-editor-quick-action-bar {
   position: fixed;
-  z-index: 4;
+  z-index: 110;
   display: flex;
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
   align-items: center;
   gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid rgba(75, 85, 99, 0.72);
   border-radius: 8px;
   background: rgba(17, 24, 39, 0.94);
@@ -632,8 +636,15 @@ textarea,
   color: #e5e7eb;
   padding: 4px;
   pointer-events: auto;
+  scrollbar-width: none;
+  user-select: none;
   white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   backdrop-filter: blur(10px);
+}
+
+.copy-ai-id-editor-quick-action-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .copy-ai-id-editor-quick-action-bar--above {
@@ -657,6 +668,11 @@ textarea,
   cursor: pointer;
   font: 600 11px/1 sans-serif;
   padding: 5px 8px;
+  transition:
+    border-color 90ms ease,
+    background 90ms ease,
+    color 90ms ease,
+    opacity 90ms ease;
 }
 
 .copy-ai-id-editor-quick-action-bar__button:hover:not(:disabled),
@@ -674,6 +690,7 @@ textarea,
 }
 
 .copy-ai-id-editor-quick-action-bar__button--icon {
+  min-width: 26px;
   padding-left: 6px;
   padding-right: 6px;
 }
@@ -690,16 +707,13 @@ textarea,
 }
 
 .copy-ai-id-editor-quick-action-bar__button--structure {
+  min-width: 24px;
   padding-left: 7px;
   padding-right: 7px;
 }
 
 .copy-ai-id-editor-quick-action-bar__button--danger:not(:disabled) {
   color: #fca5a5;
-}
-
-.copy-ai-id-editor-quick-action-bar__button svg {
-  flex: 0 0 auto;
 }
 
 .copy-ai-id-editor-quick-action-bar__separator {
@@ -728,6 +742,66 @@ textarea,
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+.copy-ai-id-editor-floating-visual-panel {
+  isolation: isolate;
+  min-width: 0;
+  animation: copy-ai-id-editor-floating-panel-enter 120ms ease-out;
+}
+
+.copy-ai-id-editor-floating-visual-panel__header {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.copy-ai-id-editor-floating-visual-panel__body,
+.copy-ai-id-editor-floating-visual-panel__tabs {
+  scrollbar-color: rgba(75, 85, 99, 0.82) transparent;
+  scrollbar-width: thin;
+}
+
+.copy-ai-id-editor-floating-visual-panel__body::-webkit-scrollbar,
+.copy-ai-id-editor-floating-visual-panel__tabs::-webkit-scrollbar {
+  width: 8px;
+  height: 6px;
+}
+
+.copy-ai-id-editor-floating-visual-panel__body::-webkit-scrollbar-track,
+.copy-ai-id-editor-floating-visual-panel__tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.copy-ai-id-editor-floating-visual-panel__body::-webkit-scrollbar-thumb,
+.copy-ai-id-editor-floating-visual-panel__tabs::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(75, 85, 99, 0.82);
+  background-clip: padding-box;
+}
+
+.copy-ai-id-editor-floating-visual-panel__tab,
+.copy-ai-id-editor-floating-visual-panel__close,
+.copy-ai-id-editor-floating-visual-panel__breakpoint-badge {
+  user-select: none;
+}
+
+@keyframes copy-ai-id-editor-floating-panel-enter {
+  from {
+    transform: scale(0.985) translateY(2px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-ai-id-editor-quick-action-bar--above,
+  .copy-ai-id-editor-quick-action-bar--below,
+  .copy-ai-id-editor-floating-visual-panel {
+    animation: none;
   }
 }
 

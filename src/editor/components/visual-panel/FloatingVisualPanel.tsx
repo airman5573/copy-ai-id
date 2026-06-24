@@ -171,7 +171,7 @@ export function FloatingVisualPanel(): ReactElement | null {
     >
       <section
         ref={panelRef}
-        className="pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
+        className="copy-ai-id-editor-floating-visual-panel pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
         style={panelStyle}
         role="dialog"
         aria-label={`${meta.label} ${messages.visualEditor.panel.editPanelLabelSuffix}`}
@@ -184,7 +184,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         data-ai-editor-floating-panel-target-ai-id={target?.target.kind === 'ai-id' ? target.target.aiId : ''}
       >
         <header
-          className="shrink-0 border-b border-[color:var(--ai-editor-chrome-border)] bg-[color:var(--ai-editor-chrome-bg-translucent)] px-3.5 py-3"
+          className="copy-ai-id-editor-floating-visual-panel__header shrink-0 border-b border-[color:var(--ai-editor-chrome-border)] bg-[color:var(--ai-editor-chrome-bg-translucent)] px-3.5 py-3"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-header"
         >
           <div className="flex items-start gap-3" data-ai-id="copy-ai-id-editor-floating-visual-panel-header-row">
@@ -207,7 +207,7 @@ export function FloatingVisualPanel(): ReactElement | null {
             </div>
             <button
               type="button"
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-gray-600 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
+              className="copy-ai-id-editor-floating-visual-panel__close inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-gray-600 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
               title={messages.visualEditor.panel.close}
               aria-label={messages.visualEditor.panel.close}
               onClick={handleClosePanel}
@@ -220,7 +220,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         </header>
 
         <div
-          className="min-h-0 flex-1 overflow-y-auto bg-[color:var(--ai-editor-panel-body-bg)] p-3.5"
+          className="copy-ai-id-editor-floating-visual-panel__body min-h-0 flex-1 overflow-y-auto bg-[color:var(--ai-editor-panel-body-bg)] p-3.5"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-body"
         >
           <VisualPanelContent category={activeCategory} target={target} />
@@ -240,7 +240,7 @@ function FloatingVisualPanelTabs({ activeCategory, target }: FloatingVisualPanel
 
   return (
     <div
-      className="mt-3 flex gap-1 overflow-x-auto pb-0.5"
+      className="copy-ai-id-editor-floating-visual-panel__tabs mt-3 flex gap-1 overflow-x-auto pb-0.5"
       role="tablist"
       aria-label={messages.visualEditor.panel.categoriesLabel}
       data-ai-id="copy-ai-id-editor-floating-visual-panel-category-tabs"
@@ -271,9 +271,9 @@ function FloatingVisualPanelTab({ label, active, onClick, dataAiId }: FloatingVi
       type="button"
       role="tab"
       aria-selected={active}
-      className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${
+      className={`copy-ai-id-editor-floating-visual-panel__tab shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${
         active
-          ? 'border-blue-400/70 bg-blue-500/25 text-blue-50 shadow-sm shadow-blue-950/30'
+          ? 'is-active border-blue-400/70 bg-blue-500/25 text-blue-50 shadow-sm shadow-blue-950/30'
           : 'border-gray-700 bg-gray-950/40 text-gray-400 hover:border-gray-600 hover:bg-gray-900 hover:text-gray-100'
       }`}
       onClick={onClick}
@@ -290,7 +290,7 @@ function VisualPanelBreakpointBadge({ dataAiId }: { dataAiId: string }): ReactEl
 
   return (
     <span
-      className="shrink-0 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 shadow-sm"
+      className="copy-ai-id-editor-floating-visual-panel__breakpoint-badge shrink-0 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 shadow-sm"
       data-ai-id={dataAiId}
     >
       {activeBreakpoint.label}

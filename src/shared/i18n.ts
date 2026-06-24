@@ -283,8 +283,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         dragMoveTitle: 'Drag to move',
         structure: {
           duplicate: { label: 'Duplicate', title: 'Duplicate' },
-          'move-up': { label: 'Up', title: 'Move before the previous sibling' },
-          'move-down': { label: 'Down', title: 'Move after the next sibling' },
+          'move-up': { label: '↑', title: 'Move before the previous sibling' },
+          'move-down': { label: '↓', title: 'Move after the next sibling' },
           delete: { label: 'Delete', title: 'Delete' },
         },
       },
@@ -491,8 +491,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         dragMoveTitle: '드래그해서 이동',
         structure: {
           duplicate: { label: '복제', title: '복제' },
-          'move-up': { label: '위', title: '이전 형제 앞으로 이동' },
-          'move-down': { label: '아래', title: '다음 형제 뒤로 이동' },
+          'move-up': { label: '↑', title: '이전 형제 앞으로 이동' },
+          'move-down': { label: '↓', title: '다음 형제 뒤로 이동' },
           delete: { label: '삭제', title: '삭제' },
         },
       },

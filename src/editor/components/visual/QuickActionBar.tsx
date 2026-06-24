@@ -11,14 +11,6 @@ import {
   type PointerEvent as ReactPointerEvent,
   type SetStateAction,
 } from 'react';
-import {
-  ArrowDown,
-  ArrowUp,
-  Copy,
-  GripVertical,
-  Trash2,
-} from 'lucide-react';
-
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
@@ -58,13 +50,12 @@ const QUICK_ACTION_CATEGORIES: QuickActionCategory[] = ['content', 'layout', 'sp
 
 const STRUCTURE_ACTIONS: Array<{
   action: Exclude<VisualStructureOperation, 'restore' | 'drag-move'>;
-  icon: typeof Copy;
   destructive?: boolean;
 }> = [
-  { action: 'duplicate', icon: Copy },
-  { action: 'move-up', icon: ArrowUp },
-  { action: 'move-down', icon: ArrowDown },
-  { action: 'delete', icon: Trash2, destructive: true },
+  { action: 'duplicate' },
+  { action: 'move-up' },
+  { action: 'move-down' },
+  { action: 'delete', destructive: true },
 ];
 
 interface QuickActionRenderTarget extends EditorTargetReference {
@@ -359,7 +350,7 @@ export function QuickActionBar() {
           }
         }}
       >
-        <GripVertical size={13} aria-hidden="true" />
+        <span aria-hidden="true" data-ai-id="copy-ai-id-editor-quick-action-drag-grip-icon-text">⠿</span>
       </button>
 
       <span className="copy-ai-id-editor-quick-action-bar__separator" data-ai-id="copy-ai-id-editor-quick-action-drag-divider" />
@@ -380,7 +371,7 @@ export function QuickActionBar() {
 
       <span className="copy-ai-id-editor-quick-action-bar__separator" data-ai-id="copy-ai-id-editor-quick-action-structure-divider" />
 
-      {STRUCTURE_ACTIONS.map(({ action, icon: Icon, destructive }) => {
+      {STRUCTURE_ACTIONS.map(({ action, destructive }) => {
         const actionCopy = visualEditorMessages.quickActions.structure[action];
 
         return (
@@ -393,7 +384,6 @@ export function QuickActionBar() {
             title={actionCopy.title}
             onClick={() => handleStructureActionClick(action)}
           >
-            <Icon size={12} aria-hidden="true" />
             <span>{actionCopy.label}</span>
           </button>
         );
