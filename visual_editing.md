@@ -88,7 +88,7 @@
   - Notes: After any DOM/structure mutation, rebuild/post layout tree and keep hover/quick-action anchors fresh. Preserve existing `bridgeReady` and `layoutTree` behavior.
   - Parallelizable: no
 
-- [ ] Add runtime-artifact stripping helpers for HTML snapshots and rich-text export.
+- [x] Add runtime-artifact stripping helpers for HTML snapshots and rich-text export.
   - Files/areas: new `src/content/editor-bridge/runtime-artifacts.ts` or inside visual mutation module.
   - Notes: Mirror `ai-editor/src/bridge/mutations.ts` `stripRuntimeArtifacts` concept for extension-owned overlays, temp IDs, contenteditable markers, quick-action layers, and preview-only style markers.
   - Parallelizable: yes

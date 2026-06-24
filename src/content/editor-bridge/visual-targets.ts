@@ -30,6 +30,7 @@ import {
   fallbackMetadataForElement,
   fallbackTargetForElement,
 } from './fallback-target';
+import { stripRuntimeArtifacts } from './runtime-artifacts';
 import {
   buildLayoutTreeSnapshot,
   instancesOf,
@@ -719,7 +720,7 @@ function textValueForElement(element: Element): string | undefined {
 }
 
 function richHtmlForElement(element: Element): string | undefined {
-  const html = element.innerHTML;
+  const html = stripRuntimeArtifacts(element.innerHTML);
   return html.length > 0 ? html : undefined;
 }
 
