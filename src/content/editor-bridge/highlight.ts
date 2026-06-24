@@ -20,6 +20,11 @@ import {
 } from '../target/composed-dom';
 import { fallbackTargetForElement } from './fallback-target';
 import { hideOverlay, showOverlay } from './overlay';
+import {
+  isQuickActionToolbarElement,
+  requestQuickActionToolbarHide,
+  showQuickActionToolbar,
+} from './quick-action-toolbar';
 
 export type BridgePost = (message: BridgeToEditorMessage) => void;
 
@@ -58,11 +63,19 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
+    if (isQuickActionToolbarEvent(event)) {
+      return;
+    }
+
     setHighlightedElement(resolvePreviewHighlightElement(event), post, 'preview');
   };
 
   const handleMouseOut = (event: MouseEvent): void => {
     if (isHoverHighlightSuppressed()) {
+      return;
+    }
+
+    if (isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -84,6 +97,10 @@ export function installHoverHighlight(post: BridgePost): () => void {
     }
 
     lastMousePosition = position;
+
+    if (isQuickActionToolbarEvent(event)) {
+      return;
+    }
 
     if (!releasedKeyboardSuppression || isHoverHighlightSuppressed()) {
       return;
@@ -229,6 +246,19 @@ export function setHighlightedElement(
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     reason: quickActionAnchorReason(nextElement, origin),
   });
+
+  if (nextElement && nextTarget) {
+    showQuickActionToolbar({
+      target: nextTarget,
+      nodeId: nextNodeId,
+      element: nextElement,
+      availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+      post,
+    });
+    return;
+  }
+
+  requestQuickActionToolbarHide();
 }
 
 export function closestAiIdElement(start: Element): Element | null {
@@ -273,9 +303,18 @@ function targetForElement(element: Element): EditorTarget | null {
 }
 
 function resolvePreviewHighlightElement(event: MouseEvent): Element | null {
+  if (isQuickActionToolbarEvent(event)) {
+    return getHighlightedElement();
+  }
+
   const deepestElement = deepestElementForMouseEvent(event);
   const aiIdElement = deepestElement ? closestAiIdElement(deepestElement) : null;
   return aiIdElement ?? connectedHighlightElement(deepestElement);
+}
+
+function isQuickActionToolbarEvent(event: MouseEvent): boolean {
+  return isQuickActionToolbarElement(event.target)
+    || isQuickActionToolbarElement(event.relatedTarget);
 }
 
 function deepestElementForMouseEvent(event: MouseEvent): Element | null {

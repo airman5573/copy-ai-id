@@ -56,17 +56,17 @@
   - Parallelizable: no
 
 ### Phase 3 - Wire highlight and bridge lifecycle
-- [ ] Integrate the iframe toolbar with highlighted element updates.
+- [x] Integrate the iframe toolbar with highlighted element updates.
   - Files/areas: `src/content/editor-bridge/highlight.ts`
   - Notes: In `setHighlightedElement()`, after resolving `nextElement`, `nextTarget`, `nextNodeId`, `elementRect`, and `viewport`, call the new toolbar renderer when a targetable connected element exists and hide it when the highlight is cleared. Preserve the existing `targetHighlighted` and `quickActionAnchorChanged` messages for editor stores, layout tree synchronization, and floating panel state.
   - Parallelizable: no
 
-- [ ] Prevent toolbar pointer events from clearing or retargeting preview hover.
+- [x] Prevent toolbar pointer events from clearing or retargeting preview hover.
   - Files/areas: `src/content/editor-bridge/highlight.ts`, `src/shared/config.ts`
   - Notes: Update `mouseover`, `mouseout`, and `mousemove` handling so events whose target or related target is inside the iframe toolbar do not call `setHighlightedElement(null)` or resolve the toolbar as a page element. This is the iframe-side equivalent of making toolbar hover part of the hover-safe region.
   - Parallelizable: no
 
-- [ ] Clean up toolbar lifecycle when the preview bridge is destroyed.
+- [x] Clean up toolbar lifecycle when the preview bridge is destroyed.
   - Files/areas: `src/content/editor-bridge/index.ts`, `src/content/editor-bridge/quick-action-toolbar.ts`
   - Notes: Ensure `startPreviewBridge().destroy()` removes toolbar DOM, injected styles, event listeners, timers, pointer capture state, and scroll/resize listeners. The cleanup should run alongside `cleanupHoverHighlight()`, `cleanupBridgeKeyboard()`, and `cleanupOverlayTracking()`.
   - Parallelizable: no

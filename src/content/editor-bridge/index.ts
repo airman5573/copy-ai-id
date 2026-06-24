@@ -32,6 +32,7 @@ import {
   handleRestoreVisualElement,
   handleVisualDragMoveRequest,
 } from './visual-structure';
+import { destroyQuickActionToolbar } from './quick-action-toolbar';
 
 export const COPY_AI_ID_PREVIEW_PARAM = 'copy-ai-id-preview';
 const BRIDGE_SOURCE = 'copy-ai-id-preview-bridge';
@@ -115,6 +116,7 @@ export function startPreviewBridge(): PreviewBridgeController {
       cleanupHoverHighlight();
       cleanupBridgeKeyboard();
       cleanupOverlayTracking();
+      destroyQuickActionToolbar();
     },
   };
 }
