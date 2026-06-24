@@ -23,6 +23,10 @@ export interface NotebookLexicalExport {
   isEmpty: boolean;
 }
 
+export interface FormatNotebookCopyBodyOptions {
+  additionalTargetDetails?: string;
+}
+
 const CHIP_MARKER_PATTERN = /\[chip\](el-\d+)\[\/chip\]/g;
 
 export function formatChipMarker(chipId: string): string {
@@ -32,6 +36,7 @@ export function formatChipMarker(chipId: string): string {
 export function formatNotebookCopyBody(
   value: string,
   chips: readonly ExportedChipTarget[],
+  options: FormatNotebookCopyBodyOptions = {},
 ): string {
   const trimmedValue = value.trimEnd();
   const sections = [
@@ -39,7 +44,10 @@ export function formatNotebookCopyBody(
     '',
     formatRequestTextForCopy(trimmedValue),
   ];
-  const targetDetails = formatChipTargetDetails(chips);
+  const targetDetails = [
+    formatChipTargetDetails(chips),
+    options.additionalTargetDetails?.trim() ?? '',
+  ].filter(Boolean).join('\n\n');
 
   if (targetDetails) {
     sections.push('', '## Targets', '', targetDetails);

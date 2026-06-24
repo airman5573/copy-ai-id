@@ -6,6 +6,7 @@ import { formatNotebookCopyBody } from './lexical/chip-export';
 import { appendNotebookSuffixes } from './format';
 import {
   appendVisualEditsSection,
+  formatVisualEditTargetsForNotebookTargets,
   getVisualOnlyNotebookRequestText,
   hasAiIdVisualEditTargets,
   hasFallbackVisualEditTargets,
@@ -30,7 +31,13 @@ export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
   const notebookRequest = hasNotebookDraft
     ? trimmedDraft
     : getVisualOnlyNotebookRequestText();
-  const copiedBody = formatNotebookCopyBody(notebookRequest, notebook.activeChipTargets);
+  const visualEditTargetDetails = formatVisualEditTargetsForNotebookTargets(
+    visualEditRecords,
+    notebook.activeChipTargets,
+  );
+  const copiedBody = formatNotebookCopyBody(notebookRequest, notebook.activeChipTargets, {
+    additionalTargetDetails: visualEditTargetDetails,
+  });
   const hasAiIdTargets = notebook.activeChipTargets.some((chip) => chip.target.kind === 'ai-id')
     || hasAiIdVisualEditTargets(visualEditRecords);
   const hasFallbackTargets = notebook.hasFallbackTargets

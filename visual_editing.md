@@ -307,9 +307,9 @@
   - Notes: `formatVisualEditsSection()` now emits a `## Visual edits` section with target-grouped human summaries, per-target safety/locator notes, breakpoint intent lines, concise before/after summaries, deduped warnings, fallback-target safety guidance, and a fenced JSON export document built from ordered exportable records.
   - Parallelizable: no
 
-- [ ] Integrate visual edit export with existing notebook Markdown body.
+- [x] Integrate visual edit export with existing notebook Markdown body.
   - Files/areas: `src/editor/notebook/copy.ts`, `src/editor/notebook/lexical/chip-export.ts`, `src/editor/notebook/format.ts`.
-  - Notes: Preserve existing chip mention expansion and target details. If visual edits reference targets not present as note chips, include their target details in `## Visual edits` or append them to `## Targets` without requiring visible note chips.
+  - Notes: Notebook copy now passes visual-edit-only target details into the existing `## Targets` section without changing chip mention expansion. Visual edit targets already represented by note chips are skipped, while unchipped visual targets get `visual-edit-target-*` detail blocks with source record ids, stable/fallback locator data, context, and fallback safety notes; fallback visual target blocks are also recognized by the suffix/rules detector.
   - Parallelizable: no
 
 - [ ] Add copy eligibility for visual-edit-only sessions.

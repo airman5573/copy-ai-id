@@ -3,6 +3,7 @@ import {
   describeVisualEditTarget,
   visualEditTargetSerializationKey,
 } from '../../shared/visual-targets';
+import type { EditorTarget } from '../../shared/editor-messages';
 import type {
   VisualEditRecord,
   VisualEditTargetDescriptor,
@@ -14,6 +15,10 @@ import { createVisualEditsExportDocument } from '../stores/useVisualEditStore';
 interface VisualEditTargetGroup {
   target: VisualEditTargetDescriptor;
   records: VisualEditRecord[];
+}
+
+interface ExistingNotebookTarget {
+  target: EditorTarget;
 }
 
 const VISUAL_ONLY_REQUEST_TEXT = [
@@ -93,6 +98,21 @@ export function hasFallbackVisualEditTargets(records: readonly VisualEditRecord[
   return records.some((record) => record.target.strategy === 'fallback');
 }
 
+export function formatVisualEditTargetsForNotebookTargets(
+  records: readonly VisualEditRecord[],
+  existingTargets: readonly ExistingNotebookTarget[] = [],
+): string {
+  const exportableRecords = getOrderedExportableRecords(records);
+  if (exportableRecords.length === 0) {
+    return '';
+  }
+
+  return groupVisualEditRecordsByTarget(exportableRecords)
+    .filter((group) => !existingTargets.some((existing) => visualEditTargetMatchesEditorTarget(group.target, existing.target)))
+    .map(formatVisualEditNotebookTargetDetail)
+    .join('\n\n');
+}
+
 function formatVisualEditRecordSummary(record: VisualEditRecord): string[] {
   const lines = [
     `${record.order}. ${record.humanSummary}`,
@@ -116,6 +136,56 @@ function formatVisualEditRecordSummary(record: VisualEditRecord): string[] {
   }
 
   return lines;
+}
+
+function formatVisualEditNotebookTargetDetail(group: VisualEditTargetGroup, index: number): string {
+  const target = group.target;
+  const lines = [
+    `### ${formatInlineCode(`visual-edit-target-${index + 1}`)}`,
+    `- Source visual edits: ${group.records.map((record) => formatInlineCode(record.id)).join(', ')}`,
+  ];
+
+  if (target.strategy === 'ai-id') {
+    lines.push('- Kind: stable data-ai-id target');
+    if (target.aiId) {
+      lines.push(`- data-ai-id: ${formatInlineCode(target.aiId)}`);
+    }
+    if (target.tagName) {
+      lines.push(`- Element: ${formatInlineCode(target.tagName)}`);
+    }
+    if (target.instanceIndex && target.instanceIndex > 0) {
+      lines.push(`- Instance: ${target.instanceIndex + 1} of the repeated data-ai-id`);
+    }
+    if (target.textPreview) {
+      lines.push(`- Context: ${formatPlainPreview(target.textPreview)}`);
+    }
+
+    return lines.join('\n');
+  }
+
+  const selectorReliability = target.fallback?.selectorKind
+    ?? (target.target.kind === 'fallback' ? target.target.selectorKind : 'unknown');
+  lines.push(`- Kind: fallback visual edit target (selector reliability: ${formatInlineCode(selectorReliability)})`);
+  if (target.tagName || target.label) {
+    lines.push(`- Element: ${target.tagName ? formatInlineCode(target.tagName) : 'unknown'}${target.label ? ` — ${target.label}` : ''}`);
+  }
+  if (target.selector) {
+    lines.push(`- Selector: ${formatInlineCode(target.selector)}`);
+  }
+  if (target.path) {
+    lines.push(`- DOM path: ${formatInlineCode(target.path)}`);
+  }
+
+  const context = target.textPreview
+    ?? target.fallback?.nearbyText
+    ?? target.accessibility
+    ?? target.classTokens?.join(' ');
+  if (context) {
+    lines.push(`- Context: ${formatPlainPreview(context)}`);
+  }
+  lines.push(`- Safety: ${FALLBACK_TARGET_SAFETY_NOTE}`);
+
+  return lines.join('\n');
 }
 
 function formatVisualEditTargetGroup(
@@ -295,6 +365,33 @@ function groupVisualEditRecordsByTarget(records: readonly VisualEditRecord[]): V
     .sort((first, second) => compareVisualEditRecords(first.records[0], second.records[0]));
 }
 
+function visualEditTargetMatchesEditorTarget(
+  descriptor: VisualEditTargetDescriptor,
+  target: EditorTarget,
+): boolean {
+  if (descriptor.strategy !== target.kind) {
+    return false;
+  }
+
+  if (descriptor.strategy === 'ai-id' && target.kind === 'ai-id') {
+    return descriptor.aiId === target.aiId
+      && (descriptor.instanceIndex ?? 0) === target.instanceIndex;
+  }
+
+  if (descriptor.strategy === 'fallback' && target.kind === 'fallback') {
+    const descriptorTarget = descriptor.target.kind === 'fallback' ? descriptor.target : null;
+    if (descriptor.nodeId && target.nodeId && descriptor.nodeId === target.nodeId) {
+      return true;
+    }
+
+    return (descriptor.selector ?? descriptorTarget?.selector) === target.selector
+      && (descriptor.path ?? descriptorTarget?.path) === target.path
+      && (descriptor.tagName ?? descriptorTarget?.tagName) === target.tagName;
+  }
+
+  return false;
+}
+
 function formatNullableValue(value: string | null): string {
   if (value === null) {
     return '∅';
@@ -315,4 +412,13 @@ function formatQuotedPreview(value: string): string {
 
 function formatJsonInline(value: unknown): string {
   return JSON.stringify(value);
+}
+
+function formatInlineCode(value: string): string {
+  return `\`${value.replace(/`/g, '\\`')}\``;
+}
+
+function formatPlainPreview(value: string): string {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  return normalized.length > 160 ? `${normalized.slice(0, 159)}…` : normalized;
 }

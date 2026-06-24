@@ -68,5 +68,6 @@ function hasStableDataAiIdReference(value: string): boolean {
 
 function hasFallbackReferenceBlock(value: string): boolean {
   return /^\[fallback target\][\s\S]*?^\[\/fallback target\]/m.test(value)
-    || /^- Kind: fallback target /m.test(value);
+    || /^- Kind: fallback target /m.test(value)
+    || /^- Kind: fallback visual edit target /m.test(value);
 }
