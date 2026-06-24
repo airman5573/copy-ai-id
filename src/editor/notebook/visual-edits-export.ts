@@ -1,5 +1,8 @@
 import { breakpointById } from '../../shared/breakpoints';
-import { describeVisualEditTarget } from '../../shared/visual-targets';
+import {
+  describeVisualEditTarget,
+  visualEditTargetSerializationKey,
+} from '../../shared/visual-targets';
 import type {
   VisualEditRecord,
   VisualEditTargetDescriptor,
@@ -7,6 +10,11 @@ import type {
   VisualEditsExportDocument,
 } from '../../shared/visual-edits';
 import { createVisualEditsExportDocument } from '../stores/useVisualEditStore';
+
+interface VisualEditTargetGroup {
+  target: VisualEditTargetDescriptor;
+  records: VisualEditRecord[];
+}
 
 const VISUAL_ONLY_REQUEST_TEXT = [
   'Apply the preview-only visual edits listed in `## Visual edits` to the source implementation.',
@@ -16,6 +24,11 @@ const VISUAL_ONLY_REQUEST_TEXT = [
 const BREAKPOINT_INTENT_NOTE = [
   'Breakpoint labels on style edits are implementation intent.',
   'The preview applies style changes as inline DOM mutations for immediate feedback unless a future diff explicitly says scoped CSS was injected.',
+].join(' ');
+
+const FALLBACK_TARGET_SAFETY_NOTE = [
+  'Fallback visual-edit targets are selector/path/context references, not stable source IDs.',
+  'Before applying them, re-identify the element in the current DOM/source if nearby markup changed.',
 ].join(' ');
 
 export function getVisualOnlyNotebookRequestText(): string {
@@ -44,20 +57,25 @@ export function formatVisualEditsSection(
   records: readonly VisualEditRecord[],
   document?: VisualEditsExportDocument,
 ): string {
-  const exportableRecords = records.filter((record) => record.status !== 'failed' && record.status !== 'reverted');
+  const exportableRecords = getOrderedExportableRecords(records);
 
   if (exportableRecords.length === 0) {
     return '';
   }
 
   const exportDocument = document ?? createVisualEditsExportDocument(exportableRecords);
+  const targetGroups = groupVisualEditRecordsByTarget(exportableRecords);
+  const fallbackTargetNote = hasFallbackVisualEditTargets(exportableRecords)
+    ? ['', `Fallback target safety: ${FALLBACK_TARGET_SAFETY_NOTE}`]
+    : [];
   const lines = [
     '## Visual edits',
     '',
     'These edits were made only in the live preview. Recreate them in the actual source/CSS/markup; do not copy extension runtime artifacts.',
     BREAKPOINT_INTENT_NOTE,
+    ...fallbackTargetNote,
     '',
-    ...exportableRecords.flatMap((record, index) => formatVisualEditRecordSummary(record, index)),
+    ...targetGroups.flatMap((group, index) => formatVisualEditTargetGroup(group, index, targetGroups.length)),
     '',
     '```json',
     JSON.stringify(exportDocument, null, 2),
@@ -75,10 +93,10 @@ export function hasFallbackVisualEditTargets(records: readonly VisualEditRecord[
   return records.some((record) => record.target.strategy === 'fallback');
 }
 
-function formatVisualEditRecordSummary(record: VisualEditRecord, index: number): string[] {
+function formatVisualEditRecordSummary(record: VisualEditRecord): string[] {
   const lines = [
-    `${index + 1}. ${record.humanSummary}`,
-    `   - Target: ${formatTargetDescriptor(record.target)}`,
+    `${record.order}. ${record.humanSummary}`,
+    `   - Record id: ${record.id}`,
     `   - Category/control: ${record.control.category} / ${record.control.label}`,
     `   - Mutation: ${record.kind}; status: ${record.status}`,
   ];
@@ -100,6 +118,38 @@ function formatVisualEditRecordSummary(record: VisualEditRecord, index: number):
   return lines;
 }
 
+function formatVisualEditTargetGroup(
+  group: VisualEditTargetGroup,
+  index: number,
+  groupCount: number,
+): string[] {
+  const groupLabel = groupCount > 1 ? `Target ${index + 1}` : 'Target';
+  const lines = [
+    `### ${groupLabel}: ${formatTargetDescriptor(group.target)}`,
+    '',
+    `- Strategy: ${formatTargetStrategy(group.target)}`,
+    `- Visual edit records: ${group.records.length}`,
+  ];
+
+  const targetSafetyLine = formatTargetSafetyLine(group.target);
+  if (targetSafetyLine) {
+    lines.push(`- Safety: ${targetSafetyLine}`);
+  }
+
+  const targetLocatorLines = formatTargetLocatorLines(group.target);
+  if (targetLocatorLines.length > 0) {
+    lines.push(...targetLocatorLines);
+  }
+
+  const groupWarnings = formatWarningEntries(uniqueWarnings(group.records.flatMap((record) => record.warnings)));
+  if (groupWarnings) {
+    lines.push(`- Target warnings: ${groupWarnings}`);
+  }
+
+  lines.push('', ...group.records.flatMap((record) => formatVisualEditRecordSummary(record)));
+  return lines;
+}
+
 function formatTargetDescriptor(target: VisualEditTargetDescriptor): string {
   if (target.strategy === 'ai-id') {
     const instanceSuffix = target.instanceIndex && target.instanceIndex > 0
@@ -110,6 +160,43 @@ function formatTargetDescriptor(target: VisualEditTargetDescriptor): string {
   }
 
   return describeVisualEditTarget(target);
+}
+
+function formatTargetStrategy(target: VisualEditTargetDescriptor): string {
+  if (target.strategy === 'ai-id') {
+    return 'stable data-ai-id target';
+  }
+
+  return 'fallback target resolved from selector/path/context';
+}
+
+function formatTargetSafetyLine(target: VisualEditTargetDescriptor): string {
+  if (target.strategy === 'ai-id') {
+    return 'Apply the edit to the referenced element and do not remove or rename its data-ai-id attribute.';
+  }
+
+  return FALLBACK_TARGET_SAFETY_NOTE;
+}
+
+function formatTargetLocatorLines(target: VisualEditTargetDescriptor): string[] {
+  if (target.strategy !== 'fallback') {
+    return target.nodeId ? [`- Node id at capture time: ${target.nodeId}`] : [];
+  }
+
+  const lines: string[] = [];
+  if (target.selector) {
+    lines.push(`- Fallback selector: \`${target.selector}\``);
+  }
+  if (target.fallback?.selectorKind) {
+    lines.push(`- Fallback selector kind: ${target.fallback.selectorKind}`);
+  }
+  if (target.path) {
+    lines.push(`- Fallback path: \`${target.path}\``);
+  }
+  if (target.nodeId) {
+    lines.push(`- Node id at capture time: ${target.nodeId}`);
+  }
+  return lines;
 }
 
 function formatBreakpointLine(record: VisualEditRecord): string {
@@ -155,13 +242,57 @@ function formatPayloadSummary(record: VisualEditRecord): string {
 }
 
 function formatWarnings(warnings: readonly VisualEditWarning[]): string {
-  const uniqueWarnings = Array.from(
-    new Map(warnings.map((warning) => [warning.code, warning.message])).entries(),
-  );
+  return formatWarningEntries(uniqueWarnings(warnings));
+}
 
-  return uniqueWarnings
+function formatWarningEntries(warnings: ReadonlyArray<[string, string]>): string {
+  return warnings
     .map(([code, message]) => `${code}: ${message}`)
     .join('; ');
+}
+
+function uniqueWarnings(warnings: readonly VisualEditWarning[]): Array<[string, string]> {
+  return Array.from(
+    new Map(warnings.map((warning) => [warning.code, warning.message])).entries(),
+  );
+}
+
+function getOrderedExportableRecords(records: readonly VisualEditRecord[]): VisualEditRecord[] {
+  return records
+    .filter((record) => record.status !== 'failed' && record.status !== 'reverted')
+    .slice()
+    .sort(compareVisualEditRecords);
+}
+
+function compareVisualEditRecords(first: VisualEditRecord, second: VisualEditRecord): number {
+  return first.order - second.order
+    || first.timestamp.localeCompare(second.timestamp)
+    || first.id.localeCompare(second.id);
+}
+
+function groupVisualEditRecordsByTarget(records: readonly VisualEditRecord[]): VisualEditTargetGroup[] {
+  const groups = new Map<string, VisualEditTargetGroup>();
+
+  for (const record of records) {
+    const key = visualEditTargetSerializationKey(record.target);
+    const existing = groups.get(key);
+    if (existing) {
+      existing.records.push(record);
+      continue;
+    }
+
+    groups.set(key, {
+      target: record.target,
+      records: [record],
+    });
+  }
+
+  return Array.from(groups.values())
+    .map((group) => ({
+      ...group,
+      records: group.records.slice().sort(compareVisualEditRecords),
+    }))
+    .sort((first, second) => compareVisualEditRecords(first.records[0], second.records[0]));
 }
 
 function formatNullableValue(value: string | null): string {

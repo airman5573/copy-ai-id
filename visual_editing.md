@@ -302,9 +302,9 @@
   - Parallelizable: yes
 
 ### Phase 12 - Notebook export format
-- [ ] Implement visual edit export formatting.
+- [x] Implement visual edit export formatting.
   - Files/areas: new `src/editor/notebook/visual-edits-export.ts`.
-  - Notes: Output should include `## Visual edits`, grouped by target when helpful, with concise human summaries and a fenced JSON block containing ordered records. Include breakpoint id, target descriptor, mutation kind, before/after values, and safety notes for fallback targets.
+  - Notes: `formatVisualEditsSection()` now emits a `## Visual edits` section with target-grouped human summaries, per-target safety/locator notes, breakpoint intent lines, concise before/after summaries, deduped warnings, fallback-target safety guidance, and a fenced JSON export document built from ordered exportable records.
   - Parallelizable: no
 
 - [ ] Integrate visual edit export with existing notebook Markdown body.
