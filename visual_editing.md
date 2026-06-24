@@ -78,7 +78,7 @@
   - Notes: Resolution order should be live `nodeId`, then `data-ai-id + instanceIndex`, then fallback selector/path metadata. Return explicit `not-found`, `stale`, or `ambiguous` errors for export and UI feedback.
   - Parallelizable: no
 
-- [ ] Add visual target snapshot extraction for selected/hovered elements.
+- [x] Add visual target snapshot extraction for selected/hovered elements.
   - Files/areas: `src/content/editor-bridge/visual-targets.ts`, `src/shared/visual-edits.ts`.
   - Notes: Capture tagName, rect, computed style values for supported properties, inline style values, class tokens, safe attributes, text/value/rich HTML state, image/link fields, form field state, parent/sibling metadata, nodeId, and fallback metadata.
   - Parallelizable: no

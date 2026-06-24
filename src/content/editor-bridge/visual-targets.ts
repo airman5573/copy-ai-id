@@ -3,18 +3,27 @@ import {
   isExtensionOwnedElement,
 } from '../../shared/config';
 import type {
+  BridgeViewportRect,
   EditorTarget,
   FallbackEditorTarget,
   FallbackTargetMetadata,
   VisualMutationError,
   VisualMutationErrorCode,
+  VisualTargetSnapshot,
 } from '../../shared/editor-messages';
 import {
   hasSameEditorTarget,
   isAiIdTarget,
 } from '../../shared/editor-targets';
+import { VISUAL_STYLE_COMPUTED_PROPERTIES } from '../../shared/visual-style';
+import {
+  sanitizeAttributeMap,
+  sanitizeClassTokens,
+} from '../../shared/visual-targets';
 import {
   getComposedChildElements,
+  getComposedParentElement,
+  getComposedSiblingElement,
   getOpenShadowRoot,
 } from '../target/composed-dom';
 import {
@@ -58,12 +67,67 @@ export interface VisualTargetResolveFailure {
 
 export type VisualTargetResolveResult = VisualTargetResolveSuccess | VisualTargetResolveFailure;
 
+export interface VisualTargetSnapshotOptions {
+  computedStyleProperties?: readonly string[];
+  includeRichHtml?: boolean;
+}
+
+export interface VisualTargetSnapshotSuccess {
+  ok: true;
+  resolved: VisualTargetResolveSuccess;
+  snapshot: VisualTargetSnapshot;
+}
+
+export type VisualTargetSnapshotResult = VisualTargetSnapshotSuccess | VisualTargetResolveFailure;
+
 interface FallbackSelectorResolution {
   candidates: Element[];
   invalidSelector: boolean;
 }
 
 const SHADOW_SELECTOR_SEPARATOR = /\s+::shadow\s+/g;
+const SAFE_ATTRIBUTE_NAMES = new Set([
+  DATA_AI_ID_ATTRIBUTE,
+  'id',
+  'class',
+  'role',
+  'title',
+  'alt',
+  'href',
+  'target',
+  'rel',
+  'src',
+  'srcset',
+  'sizes',
+  'loading',
+  'decoding',
+  'width',
+  'height',
+  'name',
+  'type',
+  'value',
+  'placeholder',
+  'for',
+  'form',
+  'action',
+  'method',
+  'autocomplete',
+  'checked',
+  'selected',
+  'disabled',
+  'readonly',
+  'required',
+  'multiple',
+  'min',
+  'max',
+  'step',
+  'pattern',
+  'contenteditable',
+  'tabindex',
+  'lang',
+  'dir',
+]);
+const SAFE_ATTRIBUTE_PREFIXES = ['aria-', 'data-'] as const;
 
 export function resolveVisualTarget(
   request: VisualTargetResolveRequest,
@@ -86,6 +150,60 @@ export function createVisualTargetResolveError(
     code: visualTargetResolveErrorCode(reason),
     message: visualTargetResolveErrorMessage(reason),
     detail,
+  };
+}
+
+export function resolveVisualTargetSnapshot(
+  request: VisualTargetResolveRequest,
+  options: VisualTargetSnapshotOptions = {},
+): VisualTargetSnapshotResult {
+  const resolved = resolveVisualTarget(request);
+  if (!resolved.ok) {
+    return resolved;
+  }
+
+  return {
+    ok: true,
+    resolved,
+    snapshot: createVisualTargetSnapshot(resolved, options),
+  };
+}
+
+export function createVisualTargetSnapshot(
+  resolved: VisualTargetResolveSuccess,
+  options: VisualTargetSnapshotOptions = {},
+): VisualTargetSnapshot {
+  const element = resolved.element;
+  const computedStyle = window.getComputedStyle(element);
+  const fallback = fallbackMetadataForElement(element);
+  const target = targetForResolvedElement(element, resolved.target);
+  const nodeId = resolveNodeIdForElement(element) ?? resolved.nodeId;
+  const rect = viewportRectForElement(element);
+
+  return {
+    target,
+    nodeId,
+    tagName: tagNameOf(element),
+    label: labelForElement(element, target, fallback),
+    classTokens: sanitizeClassTokens(classTokensForElement(element)),
+    attributes: safeAttributeMapForElement(element),
+    inlineStyle: inlineStyleMapForElement(element),
+    computedStyle: computedStyleMapForElement(
+      computedStyle,
+      options.computedStyleProperties ?? VISUAL_STYLE_COMPUTED_PROPERTIES,
+    ),
+    textValue: textValueForElement(element),
+    richHtml: options.includeRichHtml === false ? undefined : richHtmlForElement(element),
+    formValue: formValueForElement(element),
+    image: imageSnapshotForElement(element),
+    link: linkSnapshotForElement(element),
+    parent: relationSnapshotForElement(getComposedParentElement(element)),
+    previousSibling: relationSnapshotForElement(getComposedSiblingElement(element, 'previous')),
+    nextSibling: relationSnapshotForElement(getComposedSiblingElement(element, 'next')),
+    fallback,
+    elementRect: rect,
+    viewport: viewportSize(),
+    isVisible: isVisiblyRendered(element, computedStyle, rect),
   };
 }
 
@@ -467,6 +585,220 @@ function hasClassTokenOverlap(first: string[], second: string[]): boolean {
 
 function normalizeContextText(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
+}
+
+function viewportRectForElement(element: Element): BridgeViewportRect {
+  const rect = element.getBoundingClientRect();
+  return {
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    left: rect.left,
+  };
+}
+
+function viewportSize(): { width: number; height: number } {
+  return {
+    width: window.visualViewport?.width ?? window.innerWidth,
+    height: window.visualViewport?.height ?? window.innerHeight,
+  };
+}
+
+function tagNameOf(element: Element): string {
+  return element.tagName.toLowerCase();
+}
+
+function labelForElement(
+  element: Element,
+  target: EditorTarget,
+  fallback: FallbackTargetMetadata | null,
+): string {
+  if (fallback?.label) {
+    return fallback.label;
+  }
+
+  if (isAiIdTarget(target)) {
+    return `data-ai-id "${target.aiId}"`;
+  }
+
+  const ariaLabel = element.getAttribute('aria-label')?.trim();
+  if (ariaLabel) {
+    return ariaLabel;
+  }
+
+  const text = normalizeContextText(element.textContent ?? '');
+  if (text) {
+    return text.length > 80 ? `${text.slice(0, 79)}…` : text;
+  }
+
+  return tagNameOf(element);
+}
+
+function classTokensForElement(element: Element): string[] {
+  return (element.getAttribute('class') ?? '')
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function safeAttributeMapForElement(element: Element): Record<string, string> {
+  const attributes: Record<string, string> = {};
+
+  for (const attribute of Array.from(element.attributes)) {
+    const name = attribute.name.toLowerCase();
+    if (!isSafeSnapshotAttribute(name)) {
+      continue;
+    }
+
+    attributes[name] = attribute.value;
+  }
+
+  return sanitizeAttributeMap(attributes);
+}
+
+function isSafeSnapshotAttribute(name: string): boolean {
+  if (name === 'style' || name === 'srcdoc' || name.startsWith('on')) {
+    return false;
+  }
+
+  return SAFE_ATTRIBUTE_NAMES.has(name)
+    || SAFE_ATTRIBUTE_PREFIXES.some((prefix) => name.startsWith(prefix));
+}
+
+function inlineStyleMapForElement(element: Element): Record<string, string> {
+  const style = styleDeclarationForElement(element);
+  if (!style) {
+    return {};
+  }
+
+  const values: Record<string, string> = {};
+  for (let index = 0; index < style.length; index += 1) {
+    const property = style.item(index);
+    if (!property) {
+      continue;
+    }
+
+    values[property] = style.getPropertyValue(property);
+  }
+
+  return values;
+}
+
+function styleDeclarationForElement(element: Element): CSSStyleDeclaration | null {
+  return element instanceof HTMLElement || element instanceof SVGElement
+    ? element.style
+    : null;
+}
+
+function computedStyleMapForElement(
+  computedStyle: CSSStyleDeclaration,
+  properties: readonly string[],
+): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const property of properties) {
+    values[property] = computedStyle.getPropertyValue(property);
+  }
+  return values;
+}
+
+function textValueForElement(element: Element): string | undefined {
+  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+    return element.value;
+  }
+
+  if (element instanceof HTMLSelectElement) {
+    return element.value;
+  }
+
+  const text = element.textContent ?? '';
+  return text.length > 0 ? text : undefined;
+}
+
+function richHtmlForElement(element: Element): string | undefined {
+  const html = element.innerHTML;
+  return html.length > 0 ? html : undefined;
+}
+
+function formValueForElement(element: Element): VisualTargetSnapshot['formValue'] {
+  if (element instanceof HTMLInputElement) {
+    const snapshot: NonNullable<VisualTargetSnapshot['formValue']> = {
+      value: element.value,
+    };
+    if (element.type === 'checkbox' || element.type === 'radio') {
+      snapshot.checked = element.checked;
+    }
+    return snapshot;
+  }
+
+  if (element instanceof HTMLTextAreaElement) {
+    return { value: element.value };
+  }
+
+  if (element instanceof HTMLSelectElement) {
+    return {
+      value: element.value,
+      selectedIndex: element.selectedIndex,
+      selectedValues: Array.from(element.selectedOptions, (option) => option.value),
+    };
+  }
+
+  return undefined;
+}
+
+function imageSnapshotForElement(element: Element): VisualTargetSnapshot['image'] {
+  if (!(element instanceof HTMLImageElement)) {
+    return undefined;
+  }
+
+  return {
+    src: element.currentSrc || element.src,
+    alt: element.alt || undefined,
+    width: element.naturalWidth || element.width || undefined,
+    height: element.naturalHeight || element.height || undefined,
+  };
+}
+
+function linkSnapshotForElement(element: Element): VisualTargetSnapshot['link'] {
+  if (!(element instanceof HTMLAnchorElement)) {
+    return undefined;
+  }
+
+  return {
+    href: element.href,
+    target: element.target || undefined,
+    rel: element.rel || undefined,
+    text: normalizeContextText(element.textContent ?? '') || undefined,
+  };
+}
+
+function relationSnapshotForElement(element: Element | null): VisualTargetSnapshot['parent'] {
+  if (!element || !isResolvableElement(element)) {
+    return undefined;
+  }
+
+  const aiId = element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() || null;
+  return {
+    nodeId: resolveNodeIdForElement(element),
+    tagName: tagNameOf(element),
+    aiId,
+    fallback: aiId ? null : fallbackMetadataForElement(element),
+  };
+}
+
+function isVisiblyRendered(
+  _element: Element,
+  computedStyle: CSSStyleDeclaration,
+  rect: BridgeViewportRect,
+): boolean {
+  return rect.width > 0
+    && rect.height > 0
+    && computedStyle.display !== 'none'
+    && computedStyle.visibility !== 'hidden'
+    && computedStyle.contentVisibility !== 'hidden';
 }
 
 export function hasSameResolvedVisualTarget(
