@@ -5,7 +5,7 @@
 
 [한국어](README.ko.md)
 
-Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a layout tree, responsive iframe preview, and note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected through generated fallback targets.
+Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a layout tree, responsive iframe preview, preview-only visual editing controls, and note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
 
 ## Editor workflow
 
@@ -13,16 +13,29 @@ Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. T
 2. Press **Shift + Z + Space**, or open the extension popup and click **Turn ON**.
 3. Copy AI ID opens a full-screen editor over the current tab:
    - **Left — Layout tree:** full DOM hierarchy for structure; every DOM row is keyboard-navigable/selectable. Rows with `data-ai-id` insert stable chip targets, and no-ID rows insert fallback chip targets when fallback metadata is available.
-   - **Center — Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, six breakpoint buttons, zoom controls, and fit/reset controls.
-   - **Right — Note panel:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips.
+   - **Center — Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, hover quick-action bar, and floating visual control panel.
+   - **Right — Note panel:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
 4. Highlight DOM nodes from the preview, the layout tree, or the keyboard.
 5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
-6. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, and `## Rules` sections. Inline chips are rendered as readable `@el-N` mentions, and fallback targets include selector/path/context details.
-7. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
+6. Optionally hover a preview element to show the quick-action bar. Category buttons open the floating visual panel for content, layout, spacing, size, style, and border edits; structure buttons duplicate, move, delete, or drag elements in the preview. These mutations are preview-only and are recorded as AI-readable visual edit instructions.
+7. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, `## Rules`, and, when applicable, `## Visual edits` sections. Inline chips are rendered as readable `@el-N` mentions, fallback targets include selector/path/context details, and visual edits include human summaries plus machine-readable JSON diffs.
+8. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
 
 If the same `data-ai-id` appears multiple times, Copy AI ID shows each instance separately with an instance badge and duplicate warning so the selected DOM node stays unambiguous.
 
 Some sites block iframe embedding with `X-Frame-Options` or `frame-ancestors` CSP. Copy AI ID reports that state inside the editor, but it cannot bypass the site policy.
+
+## Preview-only visual editing
+
+Visual editing is an interface for creating precise implementation prompts. It does not save changes back to the inspected page, project source, CMS, or remote service.
+
+- Hover an element in the preview to show the quick-action bar. The toolbar stays usable while the pointer moves from the element to the toolbar.
+- Category buttons open the floating visual panel. Desktop placement follows the selected element/toolbar; mobile and tablet breakpoints place the panel beside the preview iframe.
+- The first supported categories are **Content**, **Layout**, **Spacing**, **Size**, **Style**, and **Border**. Content controls can edit text, rich HTML fragments, safe links/attributes, and form values. Style controls apply preview-only DOM/inline-style changes for immediate feedback.
+- Structure controls duplicate, move up/down, delete, and drag elements inside the preview DOM. These are still preview-only operations.
+- Elements without `data-ai-id` can be edited through fallback target metadata. The copied output marks these as less stable and includes selector/path/context details so an AI or developer can re-identify the element in source.
+- Visual edit prompt text is intentionally hidden while editing. The note panel only shows status/counts. On **Copy**, Copy AI ID appends a `## Visual edits` section with human-readable summaries and a fenced JSON diff.
+- A successful copy clears both the visible notebook draft and the accumulated visual edit records. Reset clears those editor records too, but it does not restore preview DOM mutations that were already applied; reload/reopen the preview to return the rendered page to its original state.
 
 ## Shortcuts
 
@@ -111,4 +124,4 @@ To fix it:
 
 ## Product scope
 
-Copy AI ID is now editor-only. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings pages, prompt sending, analytics, or remote AI processing. Notes are copied only when the user explicitly clicks **Copy** or presses **Shift + Enter**.
+Copy AI ID is now editor-only. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings pages, remote prompt sending, analytics, or remote AI processing. Notes and preview-only visual edit instructions are copied only when the user explicitly clicks **Copy** or presses **Shift + Enter**.

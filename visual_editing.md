@@ -333,9 +333,9 @@
   - Notes: Quick-action bar now uses source-like text glyphs for the drag grip and move controls instead of lucide icons, keeps source-matched dark toolbar/button sizing, and sits above the preview with scroll-safe overflow. Floating visual panel keeps the source Tailwind shell while adding stable `copy-ai-id-editor-floating-visual-panel*` classes for scoped chrome polish, body/tab scrollbars, reduced-motion-safe entry animation, and nonselectable panel controls. Tailwind config already matched the source `[data-ai-editor-ui]` scoped/no-preflight setup, so no config change was needed.
   - Parallelizable: yes
 
-- [ ] Update user documentation for preview-only visual editing.
+- [x] Update user documentation for preview-only visual editing.
   - Files/areas: `README.md`, `README.ko.md`, `docs/editor-usage.md`, possibly Chrome Web Store disclosure docs.
-  - Notes: Explain that visual edits mutate only the preview iframe, are not saved to the source page, and become precise prompt instructions when copied.
+  - Notes: Updated English/Korean READMEs and editor usage docs to describe the hover quick-action bar, floating visual panel, preview-only DOM/style/structure mutations, fallback target safety, hidden visual prompt text, `## Visual edits` copy export, and copy/reset lifecycle. Updated Chrome Web Store clipboard/privacy/listing support docs so disclosure language includes preview-only visual edit records and explicit-copy-only clipboard behavior.
   - Parallelizable: yes
 
 - [ ] Remove or ignore obsolete references to the prior broad visual-editing checklist if any remain.

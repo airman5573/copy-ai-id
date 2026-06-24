@@ -1,6 +1,6 @@
 # Copy AI ID Editor Usage
 
-Copy AI ID opens a full-screen editor on top of the current tab. The editor is intentionally narrow: inspect rendered DOM structure, navigate layout-tree nodes, write notes for stable `data-ai-id` targets or generated fallback targets, and copy the notebook text. The product remains `data-ai-id`-first: fallback targets are a bridge for no-ID or partially-ID pages, not a replacement for semantic IDs.
+Copy AI ID opens a full-screen editor on top of the current tab. The editor is intentionally narrow: inspect rendered DOM structure, navigate layout-tree nodes, write notes for stable `data-ai-id` targets or generated fallback targets, make preview-only visual edits, and copy the resulting AI-ready Markdown. The product remains `data-ai-id`-first: fallback targets are a bridge for no-ID or partially-ID pages, not a replacement for semantic IDs.
 
 ## Open and close
 
@@ -15,21 +15,23 @@ The enabled state is runtime-only. Reloading the page or extension context reset
 | Area | Purpose |
 | --- | --- |
 | Left layout tree | Full DOM hierarchy for context. Every DOM row is keyboard-navigable/selectable for inspection. Rows with `data-ai-id` insert stable notebook chips; no-ID rows insert fallback chips when metadata is available. |
-| Center preview | Iframe preview of the current URL with the `copy-ai-id-preview=1` query marker. The preview bridge handles click selection, keyboard navigation, hover outlines, and tree synchronization. |
-| Right note panel | Always-visible Lexical-backed notebook draft, selected target chips, viewport scope controls, Tailwind suffix toggle, and Copy button. |
+| Center preview | Iframe preview of the current URL with the `copy-ai-id-preview=1` query marker. The preview bridge handles click selection, keyboard navigation, hover outlines, tree synchronization, hover quick-action anchoring, and preview-only DOM mutations for visual editing. |
+| Right note panel | Always-visible Lexical-backed notebook draft, selected target chips, viewport scope controls, Tailwind suffix toggle, hidden visual-edit status/counts, and Copy button. Visual edit prompt text is hidden until copied. |
 
 ## Breakpoints and zoom
 
-The preview toolbar uses the six AI Editor-style breakpoints:
+The preview toolbar uses these AI Editor-style breakpoints:
 
 | ID | Label | Width |
 | --- | --- | ---: |
-| `base` | Mobile | 390px |
-| `sm` | sm | 640px |
-| `md` | Tablet | 768px |
-| `lg` | lg | 1024px |
-| `xl` | Desktop | 1440px |
-| `2xl` | 2xl | 1536px |
+| `base` | Base | 390px |
+| `mobile` | Mobile | 640px |
+| `tablet` | Tablet | 768px |
+| `desktop` | Desktop | 1024px |
+| `desktop1280` | 1280 | 1280px |
+| `desktop1440` | 1440 | 1440px |
+| `desktop1536` | 1536 | 1536px |
+| `desktop1920` | 1920 | 1920px |
 
 Zoom controls are editor-only display controls. They do not change the page source.
 
@@ -40,6 +42,40 @@ Zoom controls are editor-only display controls. They do not change the page sour
 - Keyboard traversal moves through every layout-tree DOM node, not only `data-ai-id` nodes.
 - Rows with `data-ai-id` are stable reference targets. Rows without `data-ai-id` can become generated fallback targets with selector/path/context metadata.
 - Duplicate `data-ai-id` values are shown as separate instances with `n/total` badges and a warning marker.
+
+## Preview-only visual editing
+
+Visual editing is a prompt-building interface. It changes only the live preview DOM so the user can see the intended result and so Copy AI ID can generate precise instructions for an AI/developer to apply in the actual source.
+
+### Quick-action bar
+
+- Hover a preview element to show the editor-owned quick-action bar above that element when there is space, or below it when needed.
+- Moving the pointer from the hovered element to the toolbar keeps the toolbar visible long enough to click it.
+- Category buttons open the floating visual panel for `content`, `layout`, `spacing`, `size`, `style`, and `border`.
+- Structure controls perform preview-only duplicate, move up, move down, delete, and drag-move operations.
+- The toolbar is rendered in the editor Shadow DOM, not injected into the page/iframe document.
+
+### Floating visual panel
+
+- Desktop placement follows the selected target/toolbar and clamps to the editor viewport.
+- Mobile and tablet breakpoints place the panel beside the preview iframe where possible.
+- Content controls can edit plain text, rich HTML fragments, curated safe attributes/links, and form values.
+- Layout, spacing, size, style, and border controls apply CSS-property changes as inline preview mutations for immediate feedback. Style records keep the active breakpoint label as implementation intent.
+- Fallback targets without `data-ai-id` are editable, but the copied output warns that selector/path/context references are less stable than semantic IDs.
+
+### Copy and reset behavior
+
+Visual edit records stay out of the visible notebook text while editing. The note panel may show counts/status, but not the generated prompt. On **Copy**, Copy AI ID appends a hidden `## Visual edits` section containing:
+
+- a short preview-only warning
+- target-grouped human-readable summaries
+- fallback target safety notes when applicable
+- breakpoint intent notes for style records
+- a fenced JSON export with exact target descriptors, before/after payloads, mutation kinds, statuses, and warnings
+
+Copy is allowed even when the visible notebook is empty if there are copyable visual edits. In that case, Copy AI ID creates a default request asking the recipient to apply the preview-only visual edits to the source implementation.
+
+A successful copy clears both the visible notebook draft and accumulated visual edit records. The Reset button clears the same editor records. Neither action automatically restores already-applied preview DOM mutations; reload/reopen the preview if you need the page rendered from its original source again.
 
 ## Notebook copy format
 
@@ -74,14 +110,14 @@ When copied, the visible chips become readable `@el-N` mentions in an AI-friendl
 
 Fallback chip targets are less stable than real `data-ai-id` references because they depend on the current DOM selector/path/context, but selector/path/context metadata is only added to the copied `## Targets` section and is no longer inserted into the editable note while you write.
 
-Press **Shift + Enter** or click **Copy** to copy the whole notebook draft. Copy AI ID appends these items under `## Rules` when applicable:
+Press **Shift + Enter** or click **Copy** to copy the whole notebook draft. If visual edit records exist, the copied Markdown also includes `## Visual edits` after the normal notebook sections. Copy AI ID appends these items under `## Rules` when applicable:
 
 - optional viewport scope suffix when manual scope is selected
 - optional `works with tailwind only`
 - the target notice that the `data-ai-id` attribute itself must not be edited and that the element with that `data-ai-id` should be edited
 - when fallback chip targets are present, an additional notice that fallback references are generated from the current DOM selector/path/context and may need re-identification if the DOM changes
 
-After a successful copy, the visible notebook draft is cleared.
+After a successful copy, the visible notebook draft and accumulated visual edit records are cleared.
 
 ## Keyboard shortcuts
 
@@ -113,4 +149,4 @@ The center preview is an iframe. Some sites block iframe embedding with `X-Frame
 
 ## Removed surfaces
 
-The editor-only product does not include Codex sidepanel/chat/native-host flows, settings/history screens, prompt sending, or browser automation tooling. No native host installation is required.
+The editor-only product does not include Codex sidepanel/chat/native-host flows, settings/history screens, remote prompt sending, AI-generated control panels, or browser automation tooling. Visual edits are local preview mutations plus clipboard export instructions; no native host installation is required.
