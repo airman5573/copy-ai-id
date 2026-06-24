@@ -19,6 +19,7 @@ import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
 import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualBridgeStore, type VisualMutationResultMessage } from '../stores/useVisualBridgeStore';
+import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 import { appendTargetReferenceToNotebook, handleEditorShortcutAction } from '../shortcut-actions';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
@@ -176,6 +177,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
   switch (message.type) {
     case EDITOR_MESSAGE_TYPES.bridgeReady:
       useVisualBridgeStore.getState().resetVisualBridgeState();
+      useVisualEditStore.getState().resetVisualEditStore();
       useVisualSelectionStore.getState().resetVisualSelectionState();
       useBridgeStore.getState().markReady(message.url, message.aiIdCount);
       useRuntimeStore.getState().setPreviewUrl(message.url);
@@ -256,10 +258,18 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         message as VisualMutationResultMessage,
         message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
       );
+      if (message.error) {
+        useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+      } else if (message.applied) {
+        useVisualEditStore.getState().markMutationApplied(message.mutationId);
+      }
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
       useVisualBridgeStore.getState().setVisualMutationError(message);
       useVisualSelectionStore.getState().setMutationError(message);
+      if (message.mutationId !== undefined) {
+        useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+      }
       return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       if (isArrowShortcut(message.shortcut)) {

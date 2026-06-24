@@ -115,7 +115,7 @@
   - Notes: Store hover target, active toolbar target, selected/open panel target, snapshot status/error, latest target rect, and stale state. Keep this separate from notebook-focused `useHighlightStore` unless a small extension is cleaner.
   - Parallelizable: no
 
-- [ ] Add editor state for accumulated preview-only visual edit records.
+- [x] Add editor state for accumulated preview-only visual edit records.
   - Files/areas: new `src/editor/stores/useVisualEditStore.ts`.
   - Notes: Track ordered records, pending mutation state, error messages, undo/redo stacks if included in the first pass, and helper selectors for `hasVisualEdits` and exportable JSON.
   - Parallelizable: no
