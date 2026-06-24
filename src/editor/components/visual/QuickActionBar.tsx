@@ -26,6 +26,7 @@ import type {
   QuickActionCategory,
   VisualStructureOperation,
 } from '../../../shared/editor-messages';
+import { getCurrentMessages } from '../../../shared/i18n';
 import {
   bridgeViewportRectToEditorViewportRect,
   calculateQuickActionBarPlacement,
@@ -53,26 +54,17 @@ const QUICK_ACTION_BAR_GAP = 8;
 const QUICK_ACTION_BAR_PADDING = 12;
 const DEFAULT_QUICK_ACTION_BAR_SIZE: OverlaySize = { width: 520, height: 40 };
 
-const QUICK_ACTION_CATEGORIES: Array<{ category: QuickActionCategory; label: string }> = [
-  { category: 'content', label: '콘텐츠' },
-  { category: 'layout', label: '레이아웃' },
-  { category: 'spacing', label: '간격' },
-  { category: 'size', label: '크기' },
-  { category: 'style', label: '스타일' },
-  { category: 'border', label: '선' },
-];
+const QUICK_ACTION_CATEGORIES: QuickActionCategory[] = ['content', 'layout', 'spacing', 'size', 'style', 'border'];
 
 const STRUCTURE_ACTIONS: Array<{
   action: Exclude<VisualStructureOperation, 'restore' | 'drag-move'>;
-  label: string;
-  title: string;
   icon: typeof Copy;
   destructive?: boolean;
 }> = [
-  { action: 'duplicate', label: '복제', title: '복제', icon: Copy },
-  { action: 'move-up', label: '위', title: '이전 형제 앞으로 이동', icon: ArrowUp },
-  { action: 'move-down', label: '아래', title: '다음 형제 뒤로 이동', icon: ArrowDown },
-  { action: 'delete', label: '삭제', title: '삭제', icon: Trash2, destructive: true },
+  { action: 'duplicate', icon: Copy },
+  { action: 'move-up', icon: ArrowUp },
+  { action: 'move-down', icon: ArrowDown },
+  { action: 'delete', icon: Trash2, destructive: true },
 ];
 
 interface QuickActionRenderTarget extends EditorTargetReference {
@@ -216,6 +208,8 @@ export function QuickActionBar() {
     return null;
   }
 
+  const messages = getCurrentMessages();
+  const visualEditorMessages = messages.visualEditor;
   const visibleCategories = getVisibleCategories(renderTarget.availableCategories);
   const style = createToolbarStyle(placement);
   const handlePointerEnter = (): void => {
@@ -338,7 +332,7 @@ export function QuickActionBar() {
       data-copy-ai-id-visual-focus-guard="true"
       data-visual-target-updated-at={renderTarget.updatedAt}
       role="toolbar"
-      aria-label="Visual editor quick actions"
+      aria-label={visualEditorMessages.quickActions.toolbarLabel}
       style={style}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
@@ -350,8 +344,8 @@ export function QuickActionBar() {
         className={`copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--icon copy-ai-id-editor-quick-action-bar__button--grip${isDraggingStructure ? ' is-dragging' : ''}`}
         data-ai-id="copy-ai-id-editor-quick-action-drag-grip-button"
         data-ai-editor-drag-grip="1"
-        title="드래그해서 이동"
-        aria-label="드래그해서 이동"
+        title={visualEditorMessages.quickActions.dragMoveTitle}
+        aria-label={visualEditorMessages.quickActions.dragMoveTitle}
         aria-pressed={isDraggingStructure}
         onPointerDown={handleDragGripPointerDown}
         onPointerMove={handleDragGripPointerMove}
@@ -370,7 +364,7 @@ export function QuickActionBar() {
 
       <span className="copy-ai-id-editor-quick-action-bar__separator" data-ai-id="copy-ai-id-editor-quick-action-drag-divider" />
 
-      {QUICK_ACTION_CATEGORIES.filter(({ category }) => visibleCategories.has(category)).map(({ category, label }) => (
+      {QUICK_ACTION_CATEGORIES.filter((category) => visibleCategories.has(category)).map((category) => (
         <button
           key={category}
           type="button"
@@ -380,26 +374,30 @@ export function QuickActionBar() {
           aria-pressed={panelCategory === category}
           onClick={() => handleCategoryClick(category)}
         >
-          {label}
+          {visualEditorMessages.categories[category].label}
         </button>
       ))}
 
       <span className="copy-ai-id-editor-quick-action-bar__separator" data-ai-id="copy-ai-id-editor-quick-action-structure-divider" />
 
-      {STRUCTURE_ACTIONS.map(({ action, label, title, icon: Icon, destructive }) => (
-        <button
-          key={action}
-          type="button"
-          className={`copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--structure${destructive ? ' copy-ai-id-editor-quick-action-bar__button--danger' : ''}`}
-          data-ai-id={`copy-ai-id-editor-quick-action-structure-${action}-button`}
-          data-ai-editor-structure-action={action}
-          title={title}
-          onClick={() => handleStructureActionClick(action)}
-        >
-          <Icon size={12} aria-hidden="true" />
-          <span>{label}</span>
-        </button>
-      ))}
+      {STRUCTURE_ACTIONS.map(({ action, icon: Icon, destructive }) => {
+        const actionCopy = visualEditorMessages.quickActions.structure[action];
+
+        return (
+          <button
+            key={action}
+            type="button"
+            className={`copy-ai-id-editor-quick-action-bar__button copy-ai-id-editor-quick-action-bar__button--structure${destructive ? ' copy-ai-id-editor-quick-action-bar__button--danger' : ''}`}
+            data-ai-id={`copy-ai-id-editor-quick-action-structure-${action}-button`}
+            data-ai-editor-structure-action={action}
+            title={actionCopy.title}
+            onClick={() => handleStructureActionClick(action)}
+          >
+            <Icon size={12} aria-hidden="true" />
+            <span>{actionCopy.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -427,7 +425,7 @@ function resolveLiveQuickActionTarget(
       elementRect: hoverTarget.elementRect,
       editorRect: hoverTarget.editorRect,
       viewport: hoverTarget.viewport,
-      availableCategories: QUICK_ACTION_CATEGORIES.map(({ category }) => category),
+      availableCategories: QUICK_ACTION_CATEGORIES,
       updatedAt: hoverTarget.updatedAt,
     };
   }
@@ -438,12 +436,11 @@ function resolveLiveQuickActionTarget(
 function getVisibleCategories(categories: readonly QuickActionCategory[]): Set<QuickActionCategory> {
   const requested = new Set(categories);
   if (requested.size === 0) {
-    return new Set(QUICK_ACTION_CATEGORIES.map(({ category }) => category));
+    return new Set(QUICK_ACTION_CATEGORIES);
   }
 
   return new Set(
     QUICK_ACTION_CATEGORIES
-      .map(({ category }) => category)
       .filter((category) => requested.has(category)),
   );
 }

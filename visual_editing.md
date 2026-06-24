@@ -323,9 +323,9 @@
   - Parallelizable: yes
 
 ### Phase 13 - Styling, i18n, docs, and cleanup
-- [ ] Port source visual panel copy and labels into current i18n structure.
+- [x] Port source visual panel copy and labels into current i18n structure.
   - Files/areas: `src/shared/i18n.ts`, possibly `public/_locales/*/messages.json` only if extension metadata changes.
-  - Notes: Add English/Korean labels for quick actions, categories, visual controls, errors, stale target states, copy warnings, and reset text. The visible UI can use Korean labels first to match source, but keep English coverage if existing app expects it.
+  - Notes: Added an English/Korean `visualEditor` i18n namespace for quick-action categories, structure controls, floating-panel copy, runtime/status labels, stale target states, and selected-target fallback text. Wired the quick-action bar, floating visual panel, panel content notices, and readiness/stale summaries to consume those localized messages. Existing notebook copy warning/rule i18n from the prior item remains integrated; extension metadata locale files were not changed because no manifest copy changed.
   - Parallelizable: yes
 
 - [ ] Style the quick-action bar and floating panel to match `ai-editor`.

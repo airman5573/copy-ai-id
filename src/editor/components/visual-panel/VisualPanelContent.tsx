@@ -4,6 +4,7 @@ import type {
   QuickActionCategory,
   VisualTargetSnapshot,
 } from '../../../shared/editor-messages';
+import { getCurrentMessages } from '../../../shared/i18n';
 import {
   describeVisualSelectionStaleReason,
   selectVisualPanelReadinessSummary,
@@ -30,38 +31,9 @@ import { TextControls } from '../controls/TextControls';
 import { TypographyControls } from '../controls/TypographyControls';
 import { VisualSection } from '../visual/VisualSection';
 
-export const VISUAL_PANEL_CATEGORY_META: Record<QuickActionCategory, { label: string; description: string; placeholder: string }> = {
-  content: {
-    label: '콘텐츠',
-    description: '텍스트, 링크, 속성, HTML을 선택 요소 바로 옆에서 조정합니다.',
-    placeholder: '텍스트와 HTML 편집 컨트롤이 이 섹션에 표시됩니다.',
-  },
-  layout: {
-    label: '레이아웃',
-    description: 'display, flex/grid, 정렬 값을 현재 선택 요소에 적용합니다.',
-    placeholder: 'display, flex, grid, 정렬 컨트롤이 이 섹션에 표시됩니다.',
-  },
-  spacing: {
-    label: '간격',
-    description: 'padding, margin, gap 값을 캔버스 근처에서 조정합니다.',
-    placeholder: 'padding, margin, row/column gap 컨트롤이 이 섹션에 표시됩니다.',
-  },
-  size: {
-    label: '크기',
-    description: 'width, height, min/max 크기 값을 바로 수정합니다.',
-    placeholder: 'width, height, min/max, object-fit 컨트롤이 이 섹션에 표시됩니다.',
-  },
-  style: {
-    label: '스타일',
-    description: '텍스트 스타일, 색상, 배경, 그림자 값을 조정합니다.',
-    placeholder: 'typography, color, background, opacity, shadow 컨트롤이 이 섹션에 표시됩니다.',
-  },
-  border: {
-    label: '선',
-    description: 'border, radius, outline 계열 값을 선택 요소에 적용합니다.',
-    placeholder: 'border width/style/color, radius, outline 컨트롤이 이 섹션에 표시됩니다.',
-  },
-};
+export function getVisualPanelCategoryMeta(category: QuickActionCategory) {
+  return getCurrentMessages().visualEditor.categories[category];
+}
 
 export interface VisualPanelContentProps {
   category: QuickActionCategory;
@@ -72,7 +44,8 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const readiness = useVisualSelectionStore((state) => selectVisualPanelReadinessSummary(state, Boolean(target)));
   const runtimeStatus = useVisualEditStore(selectVisualEditRuntimeStatus);
-  const meta = VISUAL_PANEL_CATEGORY_META[category];
+  const messages = getCurrentMessages();
+  const meta = messages.visualEditor.categories[category];
   const sectionId = QUICK_ACTION_SECTION_IDS[category];
 
   return (
@@ -106,7 +79,9 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
             className="rounded-full border border-gray-700 bg-gray-950/70 px-2 py-0.5 text-[10px] font-bold text-gray-400"
             data-ai-id={`copy-ai-id-editor-visual-panel-${category}-section-status`}
           >
-            {readiness.canShowControls ? '준비됨' : '대기 중'}
+            {readiness.canShowControls
+              ? messages.visualEditor.panel.readyStatus
+              : messages.visualEditor.panel.waitingStatus}
           </span>
         </div>
         {category === 'content' && readiness.canShowControls ? (
@@ -135,7 +110,7 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
           >
             {readiness.canShowControls
               ? meta.placeholder
-              : '선택 요소 snapshot이 준비되면 이 섹션의 컨트롤을 사용할 수 있습니다.'}
+              : messages.visualEditor.panel.controlsWaitingPlaceholder}
           </p>
         )}
       </VisualSection>
@@ -148,6 +123,7 @@ function VisualPanelStateNotice({ readiness }: { readiness: VisualPanelReadiness
     return null;
   }
 
+  const messages = getCurrentMessages();
   const toneClassName = noticeClassNameForTone(readiness.tone);
 
   return (
@@ -166,12 +142,12 @@ function VisualPanelStateNotice({ readiness }: { readiness: VisualPanelReadiness
       </span>
       {readiness.staleReason ? (
         <span className="mt-1 block opacity-75" data-ai-id={`copy-ai-id-editor-visual-panel-${readiness.status}-notice-reason`}>
-          사유: {describeVisualSelectionStaleReason(readiness.staleReason)}
+          {messages.visualEditor.panel.reasonLabel}: {describeVisualSelectionStaleReason(readiness.staleReason)}
         </span>
       ) : null}
       {readiness.errorCode ? (
         <span className="mt-1 block font-mono text-[10px] opacity-75" data-ai-id={`copy-ai-id-editor-visual-panel-${readiness.status}-notice-code`}>
-          code: {readiness.errorCode}
+          {messages.visualEditor.panel.codeLabel}: {readiness.errorCode}
         </span>
       ) : null}
     </div>
@@ -183,6 +159,9 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
     return null;
   }
 
+  const messages = getCurrentMessages();
+  const panelMessages = messages.visualEditor.panel;
+
   return (
     <div
       className="rounded-xl border border-gray-700/80 bg-gray-950/60 px-3.5 py-2.5 text-xs leading-relaxed text-gray-300 shadow-sm"
@@ -192,17 +171,17 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
     >
       {status.hasHiddenPromptText ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-hidden-prompt-count">
-          숨겨진 visual edit 프롬프트: {status.hiddenPromptCount}개 · 복사할 때만 포함됩니다.
+          {panelMessages.hiddenPromptLabel}: {status.hiddenPromptCount}{panelMessages.countSuffix} · {panelMessages.copyOnlySuffix}
         </span>
       ) : null}
       {status.hasPending ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-runtime-pending-count">
-          적용 중인 visual edit: {status.pendingCount}개
+          {panelMessages.pendingLabel}: {status.pendingCount}{panelMessages.countSuffix}
         </span>
       ) : null}
       {status.hasErrors ? (
         <span className="block text-amber-200" data-ai-id="copy-ai-id-editor-visual-panel-runtime-error-count">
-          실패한 visual edit: {status.failedCount}개{status.latestErrorCode ? ` · latest code: ${status.latestErrorCode}` : ''}
+          {panelMessages.failedLabel}: {status.failedCount}{panelMessages.countSuffix}{status.latestErrorCode ? ` · ${panelMessages.latestCodeLabel}: ${status.latestErrorCode}` : ''}
         </span>
       ) : null}
     </div>
@@ -259,7 +238,7 @@ function FloatingVisualPanelSelectionSummary({
 
 function getTargetLabel(target: FloatingVisualPanelTarget | null): string {
   if (!target) {
-    return '선택 요소';
+    return getCurrentMessages().visualEditor.panel.selectedElementFallback;
   }
 
   if (target.target.kind === 'ai-id') {

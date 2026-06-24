@@ -12,6 +12,7 @@ import {
 
 import { breakpointById, type BreakpointId } from '../../../shared/breakpoints';
 import type { QuickActionCategory } from '../../../shared/editor-messages';
+import { getCurrentMessages } from '../../../shared/i18n';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
 import {
   bridgeViewportRectToEditorViewportRect,
@@ -30,7 +31,7 @@ import {
 } from '../../stores/useFloatingVisualPanelStore';
 import { useVisualSelectionStore } from '../../stores/useVisualSelectionStore';
 import {
-  VISUAL_PANEL_CATEGORY_META,
+  getVisualPanelCategoryMeta,
   VisualPanelContent,
 } from './VisualPanelContent';
 
@@ -58,14 +59,7 @@ interface FloatingPanelPlacement {
 
 const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
 
-const QUICK_CATEGORY_TABS: Array<{ category: QuickActionCategory; label: string }> = [
-  { category: 'content', label: '콘텐츠' },
-  { category: 'layout', label: '레이아웃' },
-  { category: 'spacing', label: '간격' },
-  { category: 'size', label: '크기' },
-  { category: 'style', label: '스타일' },
-  { category: 'border', label: '선' },
-];
+const QUICK_CATEGORY_TABS: QuickActionCategory[] = ['content', 'layout', 'spacing', 'size', 'style', 'border'];
 
 export function FloatingVisualPanel(): ReactElement | null {
   const isOpen = useFloatingVisualPanelStore((state) => state.isOpen);
@@ -163,7 +157,8 @@ export function FloatingVisualPanel(): ReactElement | null {
     return null;
   }
 
-  const meta = VISUAL_PANEL_CATEGORY_META[activeCategory];
+  const messages = getCurrentMessages();
+  const meta = getVisualPanelCategoryMeta(activeCategory);
   const handleClosePanel = (): void => {
     closePanel();
     closeVisualSelectionPanel();
@@ -179,7 +174,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         className="pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
         style={panelStyle}
         role="dialog"
-        aria-label={`${meta.label} 편집 패널`}
+        aria-label={`${meta.label} ${messages.visualEditor.panel.editPanelLabelSuffix}`}
         data-ai-id="copy-ai-id-editor-floating-visual-panel"
         data-ai-editor-floating-visual-panel="1"
         data-copy-ai-id-visual-focus-guard="true"
@@ -213,8 +208,8 @@ export function FloatingVisualPanel(): ReactElement | null {
             <button
               type="button"
               className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-gray-600 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
-              title="패널 닫기"
-              aria-label="패널 닫기"
+              title={messages.visualEditor.panel.close}
+              aria-label={messages.visualEditor.panel.close}
               onClick={handleClosePanel}
               data-ai-id="copy-ai-id-editor-floating-visual-panel-close-button"
             >
@@ -241,17 +236,19 @@ type FloatingVisualPanelTabsProps = {
 };
 
 function FloatingVisualPanelTabs({ activeCategory, target }: FloatingVisualPanelTabsProps): ReactElement {
+  const messages = getCurrentMessages();
+
   return (
     <div
       className="mt-3 flex gap-1 overflow-x-auto pb-0.5"
       role="tablist"
-      aria-label="Visual editing categories"
+      aria-label={messages.visualEditor.panel.categoriesLabel}
       data-ai-id="copy-ai-id-editor-floating-visual-panel-category-tabs"
     >
-      {QUICK_CATEGORY_TABS.map(({ category, label }) => (
+      {QUICK_CATEGORY_TABS.map((category) => (
         <FloatingVisualPanelTab
           key={category}
-          label={label}
+          label={messages.visualEditor.categories[category].label}
           active={activeCategory === category}
           onClick={() => openCategory(category, target)}
           dataAiId={`copy-ai-id-editor-floating-visual-panel-${category}-tab-button`}
