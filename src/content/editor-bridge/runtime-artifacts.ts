@@ -3,6 +3,8 @@ import {
   EDITOR_UI_ATTR,
   OVERLAY_HOST_ATTR,
   PREVIEW_OVERLAY_ATTR,
+  QUICK_ACTION_BAR_ATTR,
+  QUICK_ACTION_STYLE_ATTR,
 } from '../../shared/config';
 
 export interface RuntimeArtifactStripResult {
@@ -18,12 +20,13 @@ const RUNTIME_ELEMENT_SELECTORS = [
   '[data-ai-editor-overlay]',
   '[data-ai-editor-quick-actions]',
   '[data-ai-editor-floating-panel]',
-  '[data-copy-ai-id-quick-action-bar]',
+  `[${QUICK_ACTION_BAR_ATTR}]`,
   '[data-copy-ai-id-floating-visual-panel]',
   '[data-copy-ai-id-visual-panel]',
   '[data-copy-ai-id-visual-overlay]',
   '[data-copy-ai-id-runtime-element]',
   'style[data-ai-editor-preview-scope]',
+  `style[${QUICK_ACTION_STYLE_ATTR}]`,
   'style[data-copy-ai-id-preview-style]',
   'style[data-copy-ai-id-runtime-style]',
 ].join(', ');
@@ -53,7 +56,8 @@ const RUNTIME_ONLY_ATTRIBUTES = new Set([
   'data-copy-ai-id-preview-mutation',
   'data-copy-ai-id-inline-text-active',
   'data-copy-ai-id-inline-text-protected',
-  'data-copy-ai-id-quick-action-bar',
+  QUICK_ACTION_BAR_ATTR,
+  QUICK_ACTION_STYLE_ATTR,
   'data-copy-ai-id-floating-visual-panel',
   'data-copy-ai-id-visual-panel',
   'data-copy-ai-id-visual-overlay',

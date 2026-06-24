@@ -24,12 +24,12 @@
 
 ## Checklist
 ### Phase 1 - Define bridge contract and runtime ownership
-- [ ] Add quick-toolbar runtime ownership constants/selectors.
+- [x] Add quick-toolbar runtime ownership constants/selectors.
   - Files/areas: `src/shared/config.ts`, `src/content/editor-bridge/runtime-artifacts.ts`
   - Notes: Ensure the new iframe toolbar root and any injected style nodes are treated as extension-owned/runtime-only. Existing stripping already mentions `[data-copy-ai-id-quick-action-bar]`; confirm it covers the exact attributes/classes/styles used by the new toolbar. Update `EXTENSION_OWNED_DOM_SELECTOR` or an equivalent helper so hover/fallback/layout-tree/visual-target code excludes the iframe toolbar.
   - Parallelizable: no
 
-- [ ] Add typed bridge-to-editor quick toolbar request messages.
+- [x] Add typed bridge-to-editor quick toolbar request messages.
   - Files/areas: `src/shared/editor-messages.ts`
   - Notes: Add explicit message types/interfaces for iframe toolbar requests, such as category selection, structure operation, drag preview, drag commit, and drag clear. Payloads should include `target`, `nodeId`, and the needed category/operation/bridge viewport point. Include `elementRect`/`viewport` where useful so the editor can open the existing floating panel with the same selected target geometry. Add the new interfaces to `BridgeToEditorMessage`, not just `EditorToBridgeMessage`.
   - Parallelizable: no
