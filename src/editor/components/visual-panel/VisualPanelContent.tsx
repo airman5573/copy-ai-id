@@ -17,6 +17,7 @@ import {
 } from '../../stores/useVisualEditStore';
 import type { FloatingVisualPanelTarget } from '../../stores/useFloatingVisualPanelStore';
 import { QUICK_ACTION_SECTION_IDS } from '../visual/sectionJump';
+import { LayoutControls } from '../controls/LayoutControls';
 import { VisualSection } from '../visual/VisualSection';
 
 export const VISUAL_PANEL_CATEGORY_META: Record<QuickActionCategory, { label: string; description: string; placeholder: string }> = {
@@ -98,14 +99,18 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
             {readiness.canShowControls ? '준비됨' : '대기 중'}
           </span>
         </div>
-        <p
-          className="mt-2 text-xs leading-relaxed text-gray-400"
-          data-ai-id={`copy-ai-id-editor-visual-panel-${category}-section-placeholder`}
-        >
-          {readiness.canShowControls
-            ? meta.placeholder
-            : '선택 요소 snapshot이 준비되면 이 섹션의 컨트롤을 사용할 수 있습니다.'}
-        </p>
+        {category === 'layout' && readiness.canShowControls ? (
+          <LayoutControls disabled={!readiness.canShowControls} />
+        ) : (
+          <p
+            className="mt-2 text-xs leading-relaxed text-gray-400"
+            data-ai-id={`copy-ai-id-editor-visual-panel-${category}-section-placeholder`}
+          >
+            {readiness.canShowControls
+              ? meta.placeholder
+              : '선택 요소 snapshot이 준비되면 이 섹션의 컨트롤을 사용할 수 있습니다.'}
+          </p>
+        )}
       </VisualSection>
     </div>
   );

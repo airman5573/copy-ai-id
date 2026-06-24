@@ -193,9 +193,9 @@
   - Notes: Added `useStyleEdit()` with `commitStyle(propertyId, cssValue)`, `commitStyles()`, value lookup helpers, visual edit record integration through the existing mutation client, and a `useVisualStyleForm()` adapter for length/edge controls. Added the preview bridge `updateVisualStyle` route/handler so inline style mutations apply to arbitrary resolved elements, return snapshots, and mark visual edit records applied/failed.
   - Parallelizable: no
 
-- [ ] Implement layout controls using inline CSS properties.
+- [x] Implement layout controls using inline CSS properties.
   - Files/areas: new/adapted `src/editor/components/controls/LayoutControls.tsx`.
-  - Notes: Cover display, flex direction, justify content, align items, grid template columns, position, overflow, and related layout properties where practical. Values should commit as CSS declarations on the target element.
+  - Notes: Added `LayoutControls` and wired it into the layout floating panel category. The controls now commit inline CSS declarations for display, flex direction/wrap, justify/align/align-content, grid template columns/rows, grid auto flow/place-items, position/inset/z-index, and overflow/axis overflow, with reset buttons and practical grid presets.
   - Parallelizable: yes
 
 - [ ] Implement spacing controls for padding, margin, and gap.
