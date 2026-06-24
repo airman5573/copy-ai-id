@@ -30,11 +30,7 @@ export default defineManifest({
     128: 'icons/icon-128.png',
   },
   permissions: ['storage'],
-  host_permissions: ['<all_urls>', 'http://127.0.0.1/*', 'http://localhost/*'],
-  background: {
-    service_worker: 'src/background/index.ts',
-    type: 'module',
-  },
+  host_permissions: ['<all_urls>'],
   action: {
     default_title: '__MSG_extensionName__',
     default_popup: 'src/popup/index.html',

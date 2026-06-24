@@ -1,5 +1,3 @@
-import { logNotebookWebmate } from './debug/webmatelog';
-
 const NOTE_EDITOR_HOVER_PROTECTION_MS = 250;
 
 type HoverProtectionListener = (protectedFromHover: boolean) => void;
@@ -13,12 +11,6 @@ export function protectNoteEditorFromHover(durationMs = NOTE_EDITOR_HOVER_PROTEC
   hoverProtectedUntil = Math.max(hoverProtectedUntil, performance.now() + durationMs);
 
   if (!wasProtected) {
-    logNotebookWebmate('hover-protection-armed', {
-      diagnosticArea: 'highlight-blur',
-      durationMs,
-      listenerCount: hoverProtectionListeners.size,
-      protectedUntilDeltaMs: Math.round(hoverProtectedUntil - performance.now()),
-    });
     notifyHoverProtectionListeners(true);
   }
 

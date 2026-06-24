@@ -23,7 +23,6 @@ import {
   type EditorShellController,
 } from '../editor-shell/mount';
 import { createShiftZSpaceToggleController } from './shift-z-space-toggle';
-import { hashNotebookLogValue, logNotebookWebmate } from '../../editor/debug/webmatelog';
 
 declare global {
   interface Window {
@@ -113,14 +112,6 @@ function destroyPreviousContentScriptInstances(): void {
   removeExtensionOwnedHosts();
 }
 
-logNotebookWebmate('content-bootstrap-start', {
-  diagnosticArea: 'bootstrap',
-  readyState: document.readyState,
-  topFrame: isTopFrame(),
-  locationScopeHash: hashNotebookLogValue(getLocationScopeForLog()),
-  hasCopyAiIdActiveQuery: hasQueryParamValueForLog(ACTIVE_QUERY_PARAM_NAME, ACTIVE_QUERY_PARAM_VALUE),
-  hasWebmateLogQuery: hasQueryParamValueForLog('copyaiidWebmateLog', '1'),
-});
 
 destroyPreviousContentScriptInstances();
 
@@ -310,23 +301,3 @@ async function bootstrap(): Promise<void> {
 }
 
 void bootstrap();
-
-function hasQueryParamValueForLog(name: string, expectedValue: string): boolean {
-  return readQueryParamForLog(name) === expectedValue;
-}
-
-function readQueryParamForLog(name: string): string | null {
-  try {
-    return new URL(window.location.href).searchParams.get(name);
-  } catch {
-    return null;
-  }
-}
-
-function getLocationScopeForLog(): string | null {
-  try {
-    return window.location.protocol === 'file:' ? 'file://' : window.location.origin;
-  } catch {
-    return null;
-  }
-}

@@ -14,14 +14,8 @@
     "storage"
   ],
   "host_permissions": [
-    "<all_urls>",
-    "http://127.0.0.1/*",
-    "http://localhost/*"
+    "<all_urls>"
   ],
-  "background": {
-    "service_worker": "service-worker-loader.js",
-    "type": "module"
-  },
   "action": {
     "default_title": "__MSG_extensionName__",
     "default_popup": "src/popup/index.html",
@@ -35,7 +29,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-_J34r6PU.js"
+        "assets/index.ts-loader-lThCpx8b.js"
       ],
       "matches": [
         "<all_urls>"
@@ -52,8 +46,7 @@
       ],
       "resources": [
         "assets/i18n-Vv3-88eH.js",
-        "assets/webmatelog-relay-CUohcHEk.js",
-        "assets/index.ts-DxmuvDI6.js"
+        "assets/index.ts-DbvuQ-z4.js"
       ],
       "use_dynamic_url": false
     }

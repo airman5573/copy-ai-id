@@ -1,5 +1,4 @@
 import { mountCopyAiIdEditor, type MountedCopyAiIdEditor } from '../../editor/main';
-import { logNotebookWebmate } from '../../editor/debug/webmatelog';
 import { EDITOR_HOST_ATTR, OVERLAY_Z_INDEX } from '../../shared/config';
 
 export interface EditorShellControllerOptions {
@@ -40,12 +39,6 @@ export function createEditorShellController(
   }
 
   function mount(): void {
-    logNotebookWebmate('editor-shell-enable', {
-      diagnosticArea: 'bootstrap',
-      hadExistingHost: Boolean(document.querySelector<HTMLElement>(`[${EDITOR_HOST_ATTR}]`)),
-      alreadyMounted: Boolean(mountedEditor),
-    });
-
     if (mountedEditor) {
       return;
     }
