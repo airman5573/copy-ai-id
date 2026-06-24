@@ -45,6 +45,8 @@ const REGION_ALPHA: Record<Region, number> = {
 };
 
 const HOVER_ALPHA_SCALE = 0.45;
+const HIGHLIGHT_ALPHA = 0.78;
+const DIMMED_ALPHA_SCALE = 0.18;
 
 const layers = new Map<OverlayKind, HTMLElement>();
 const shownElements = new Map<OverlayKind, Element>();
@@ -91,11 +93,9 @@ function render(kind: OverlayKind): void {
   }
 
   const filter = shownFilters.get(kind);
-  const regions = filter
-    ? computeRegionRects(element).filter((region) => regionMatchesFilter(region, filter))
-    : computeRegionRects(element);
+  const regions = computeRegionRects(element);
   const layer = ensureLayer(kind);
-  layer.replaceChildren(...regions.map((region) => createRegionNode(kind, region)));
+  layer.replaceChildren(...regions.map((region) => createRegionNode(kind, region, filter)));
   layer.style.display = regions.length > 0 ? 'block' : 'none';
 }
 
@@ -122,7 +122,11 @@ function ensureLayer(kind: OverlayKind): HTMLElement {
 }
 
 
-function regionMatchesFilter(region: RegionRect, filter: BoxModelRegionFilter): boolean {
+function isHighlightedRegion(region: RegionRect, filter: BoxModelRegionFilter | undefined): boolean {
+  if (!filter) {
+    return false;
+  }
+
   if (filter.region === 'border') {
     return false;
   }
@@ -147,7 +151,11 @@ function regionMatchesFilter(region: RegionRect, filter: BoxModelRegionFilter): 
   return region.edge === filter.edge;
 }
 
-function createRegionNode(kind: OverlayKind, region: RegionRect): HTMLElement {
+function createRegionNode(
+  kind: OverlayKind,
+  region: RegionRect,
+  filter: BoxModelRegionFilter | undefined,
+): HTMLElement {
   const node = document.createElement('div');
   node.setAttribute('data-ai-id', [
     'copy-ai-id-preview-box-model',
@@ -159,8 +167,9 @@ function createRegionNode(kind: OverlayKind, region: RegionRect): HTMLElement {
   ].filter(Boolean).join('-'));
 
   const [red, green, blue] = REGION_COLORS[region.region];
-  const alpha = REGION_ALPHA[region.region] * (kind === 'hover' ? HOVER_ALPHA_SCALE : 1);
+  const alpha = resolveRegionAlpha(kind, region, filter);
   const rgba = (nextAlpha: number): string => `rgba(${red}, ${green}, ${blue}, ${nextAlpha})`;
+  const highlighted = kind === 'control' && isHighlightedRegion(region, filter);
 
   Object.assign(node.style, {
     position: 'absolute',
@@ -180,7 +189,31 @@ function createRegionNode(kind: OverlayKind, region: RegionRect): HTMLElement {
     node.style.backgroundColor = rgba(alpha);
   }
 
+  if (highlighted) {
+    Object.assign(node.style, {
+      outline: `1px solid ${rgba(1)}`,
+      outlineOffset: '-1px',
+    });
+  }
+
   return node;
+}
+
+function resolveRegionAlpha(
+  kind: OverlayKind,
+  region: RegionRect,
+  filter: BoxModelRegionFilter | undefined,
+): number {
+  const base = REGION_ALPHA[region.region];
+  if (kind === 'hover') {
+    return base * HOVER_ALPHA_SCALE;
+  }
+
+  if (!filter) {
+    return base;
+  }
+
+  return isHighlightedRegion(region, filter) ? HIGHLIGHT_ALPHA : base * DIMMED_ALPHA_SCALE;
 }
 
 function pxToNumber(value: string): number {

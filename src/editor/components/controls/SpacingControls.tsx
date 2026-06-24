@@ -46,6 +46,12 @@ export function SpacingControls({ disabled = false }: SpacingControlsProps): Rea
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-spacing-controls">
+      <BoxModelRegionLegend
+        disabled={!canEdit}
+        gapEnabled={form.gapEnabled}
+        onHighlightChange={(region, active) => highlight(region, undefined, active)}
+      />
+
       <SpacingControlGroup
         title="Padding"
         description="선택 요소 내부 여백을 top/right/bottom/left 별로 조정합니다."
@@ -56,6 +62,7 @@ export function SpacingControls({ disabled = false }: SpacingControlsProps): Rea
           group={form.padding}
           presets={SPACING_PRESETS}
           disabled={!canEdit}
+          onHighlightChange={(active) => highlight('padding', undefined, active)}
         />
         <EdgeBoxControl
           label="Padding edges"
@@ -85,6 +92,7 @@ export function SpacingControls({ disabled = false }: SpacingControlsProps): Rea
           group={form.margin}
           presets={MARGIN_PRESETS}
           disabled={!canEdit}
+          onHighlightChange={(active) => highlight('margin', undefined, active)}
         />
         <EdgeBoxControl
           label="Margin edges"
@@ -133,7 +141,30 @@ export function SpacingControls({ disabled = false }: SpacingControlsProps): Rea
             onHighlightChange={(active) => highlight('gap', 'column', active)}
           />
         </div>
-        <div className="flex flex-wrap gap-1.5" data-ai-id="copy-ai-id-editor-spacing-gap-presets">
+        <div
+          className="flex flex-wrap gap-1.5"
+          data-ai-id="copy-ai-id-editor-spacing-gap-presets"
+          onMouseEnter={() => {
+            if (!gapDisabled) {
+              highlight('gap', undefined, true);
+            }
+          }}
+          onMouseLeave={() => {
+            if (!gapDisabled) {
+              highlight('gap', undefined, false);
+            }
+          }}
+          onFocus={() => {
+            if (!gapDisabled) {
+              highlight('gap', undefined, true);
+            }
+          }}
+          onBlur={(event) => {
+            if (!gapDisabled && !event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              highlight('gap', undefined, false);
+            }
+          }}
+        >
           {SPACING_PRESETS.map((preset) => (
             <button
               key={`${preset.value}${preset.unit}`}
@@ -203,6 +234,63 @@ function SpacingControlGroup({
   );
 }
 
+const REGION_LEGEND: Array<{
+  region: VisualBoxRegion;
+  label: string;
+  className: string;
+}> = [
+  { region: 'margin', label: 'Margin', className: 'border-orange-300/40 bg-orange-300/15 text-orange-100' },
+  { region: 'padding', label: 'Padding', className: 'border-green-300/40 bg-green-300/15 text-green-100' },
+  { region: 'content', label: 'Content', className: 'border-sky-300/40 bg-sky-300/15 text-sky-100' },
+  { region: 'gap', label: 'Gap', className: 'border-violet-300/40 bg-violet-300/15 text-violet-100' },
+];
+
+function BoxModelRegionLegend({
+  disabled,
+  gapEnabled,
+  onHighlightChange,
+}: {
+  disabled: boolean;
+  gapEnabled: boolean;
+  onHighlightChange: (region: VisualBoxRegion, active: boolean) => void;
+}): ReactElement {
+  return (
+    <div
+      className="rounded-xl border border-gray-800 bg-gray-950/35 p-3"
+      data-ai-id="copy-ai-id-editor-spacing-box-model-legend"
+    >
+      <div className="mb-2 flex items-center justify-between gap-2" data-ai-id="copy-ai-id-editor-spacing-box-model-legend-header">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400" data-ai-id="copy-ai-id-editor-spacing-box-model-legend-title">
+          Box model hover map
+        </span>
+        <span className="text-[10px] text-gray-600" data-ai-id="copy-ai-id-editor-spacing-box-model-legend-help">
+          hover/focus to preview
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5" data-ai-id="copy-ai-id-editor-spacing-box-model-legend-chips">
+        {REGION_LEGEND.map(({ region, label, className }) => {
+          const regionDisabled = disabled || (region === 'gap' && !gapEnabled);
+          return (
+            <button
+              key={region}
+              type="button"
+              className={`rounded-full border px-2 py-1 text-[10px] font-bold transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+              disabled={regionDisabled}
+              onMouseEnter={() => onHighlightChange(region, true)}
+              onMouseLeave={() => onHighlightChange(region, false)}
+              onFocus={() => onHighlightChange(region, true)}
+              onBlur={() => onHighlightChange(region, false)}
+              data-ai-id={`copy-ai-id-editor-spacing-box-model-${region}-legend-chip`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 type EdgePreset = {
   label: string;
   value: string;
@@ -214,14 +302,27 @@ function EdgePresetRow({
   group,
   presets,
   disabled,
+  onHighlightChange,
 }: {
   dataAiId: string;
   group: EdgeGroupApi;
   presets: readonly EdgePreset[];
   disabled: boolean;
+  onHighlightChange?: (active: boolean) => void;
 }): ReactElement {
   return (
-    <div className="flex flex-wrap items-center gap-1.5" data-ai-id={dataAiId}>
+    <div
+      className="flex flex-wrap items-center gap-1.5"
+      data-ai-id={dataAiId}
+      onMouseEnter={() => onHighlightChange?.(true)}
+      onMouseLeave={() => onHighlightChange?.(false)}
+      onFocus={() => onHighlightChange?.(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          onHighlightChange?.(false);
+        }
+      }}
+    >
       <span className="mr-1 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500" data-ai-id={`${dataAiId}-label-text`}>
         All
       </span>

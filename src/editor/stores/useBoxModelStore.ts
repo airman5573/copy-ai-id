@@ -13,5 +13,8 @@ export const useBoxModelStore = create<BoxModelStore>((set) => ({
   setEnabled: (enabled) => {
     set({ enabled });
     postToBridge({ type: EDITOR_MESSAGE_TYPES.setBoxModelMode, enabled });
+    if (!enabled) {
+      postToBridge({ type: EDITOR_MESSAGE_TYPES.highlightVisualBoxRegion, highlight: null });
+    }
   },
 }));

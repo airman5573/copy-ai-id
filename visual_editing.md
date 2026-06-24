@@ -281,9 +281,9 @@
   - Parallelizable: no
 
 ### Phase 11 - Box model and hover interaction polish
-- [ ] Extend box-model highlighting for padding, margin, content, and gap while editing spacing controls.
-  - Files/areas: `src/content/editor-bridge/box-model.ts`, `src/content/editor-bridge/overlay.ts`, `SpacingControls.tsx`, `useBoxModelStore.ts`.
-  - Notes: Source `ai-editor` sends `HIGHLIGHT_BOX_REGION`; adapt that pattern for the current copy-ai-id box-model overlay.
+- [x] Extend box-model highlighting for padding, margin, content, and gap while editing spacing controls.
+  - Files/areas: `src/content/editor-bridge/box-model.ts`, `src/editor/components/controls/SpacingControls.tsx`, `src/editor/stores/useBoxModelStore.ts`.
+  - Notes: The control-driven box-model overlay now mirrors the source `HIGHLIGHT_BOX_REGION` pattern by rendering the full box-model context while emphasizing the hovered/focused region and dimming the rest. Spacing controls now expose hover/focus chips for margin, padding, content, and gap, plus all-edge/all-gap preset highlighting. Disabling box-model mode also clears any active control region highlight.
   - Parallelizable: yes
 
 - [ ] Add toolbar/floating-panel focus and keyboard guards.
