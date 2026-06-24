@@ -255,7 +255,7 @@
   - Notes: Resolve target, capture before values, set/remove style declarations, post result with applied count and updated snapshot. Do not mutate extension-owned DOM.
   - Parallelizable: no
 
-- [ ] Implement text, rich-text, attribute, and form-value mutation handlers.
+- [x] Implement text, rich-text, attribute, and form-value mutation handlers.
   - Files/areas: `visual-mutations.ts`, shared sanitize/attribute helpers.
   - Notes: Mirror source `ai-editor/src/bridge/mutations.ts` concepts, but adapt to `EditorTarget` and fallback target resolution. Post result messages with before/after payloads and rejection reasons.
   - Parallelizable: no
