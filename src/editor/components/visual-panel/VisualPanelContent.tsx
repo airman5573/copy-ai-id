@@ -20,6 +20,12 @@ import { QUICK_ACTION_SECTION_IDS } from '../visual/sectionJump';
 import { LayoutControls } from '../controls/LayoutControls';
 import { SpacingControls } from '../controls/SpacingControls';
 import { SizeControls } from '../controls/SizeControls';
+import { BackgroundImageControls } from '../controls/BackgroundImageControls';
+import { ColorControls } from '../controls/ColorControls';
+import { OpacityControls } from '../controls/OpacityControls';
+import { ShadowControls } from '../controls/ShadowControls';
+import { TextControls } from '../controls/TextControls';
+import { TypographyControls } from '../controls/TypographyControls';
 import { VisualSection } from '../visual/VisualSection';
 
 export const VISUAL_PANEL_CATEGORY_META: Record<QuickActionCategory, { label: string; description: string; placeholder: string }> = {
@@ -107,6 +113,15 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
           <SpacingControls disabled={!readiness.canShowControls} />
         ) : category === 'size' && readiness.canShowControls ? (
           <SizeControls disabled={!readiness.canShowControls} />
+        ) : category === 'style' && readiness.canShowControls ? (
+          <div className="space-y-4" data-ai-id="copy-ai-id-editor-visual-style-controls">
+            <TextControls disabled={!readiness.canShowControls} />
+            <TypographyControls disabled={!readiness.canShowControls} />
+            <ColorControls disabled={!readiness.canShowControls} />
+            <OpacityControls disabled={!readiness.canShowControls} />
+            <BackgroundImageControls disabled={!readiness.canShowControls} />
+            <ShadowControls disabled={!readiness.canShowControls} />
+          </div>
         ) : (
           <p
             className="mt-2 text-xs leading-relaxed text-gray-400"

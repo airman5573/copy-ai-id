@@ -208,9 +208,9 @@
   - Notes: Added `SizeControls` and wired the size floating panel category to inline CSS mutations for box-sizing, width, height, min/max width, min/max height, aspect-ratio, object-fit, and object-position. Extended `useVisualStyleForm()` with min/max size fields and broader size units, plus keyword preset buttons for auto/100%/fit-content/max-content/min-content/none where practical.
   - Parallelizable: yes
 
-- [ ] Implement style controls.
+- [x] Implement style controls.
   - Files/areas: `TextControls.tsx`, `TypographyControls.tsx`, `ColorControls.tsx`, `OpacityControls.tsx`, `ShadowControls.tsx`, `BackgroundImageControls.tsx` as applicable.
-  - Notes: Use CSS property mutations for typography, text color, background color/image, opacity, and shadow. Preserve source panel visuals but adapt data flow.
+  - Notes: Added style-panel controls for text format toggles, typography, text/background color, opacity, background image, background size/repeat/position, box/text shadows, filter, and backdrop-filter. All controls use the CSS-property `useStyleEdit()` mutation path and the source-like visual control primitives, with a shared style control helper for text inputs, textareas, preset selects, reset buttons, and preset chips.
   - Parallelizable: yes
 
 - [ ] Implement border controls.
