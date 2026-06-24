@@ -18,6 +18,10 @@ import {
 import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
 import { handleUpdateVisualStyle } from './visual-style';
 import {
+  handleUpdateVisualRichText,
+  handleUpdateVisualText,
+} from './visual-content';
+import {
   handleDeleteVisualElement,
   handleDuplicateVisualElement,
   handleMoveVisualElement,
@@ -139,6 +143,12 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.updateVisualStyle:
       handleUpdateVisualStyle(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.updateVisualText:
+      handleUpdateVisualText(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.updateVisualRichText:
+      handleUpdateVisualRichText(message, post);
       return;
     case EDITOR_MESSAGE_TYPES.duplicateVisualElement:
       handleDuplicateVisualElement(message, post);

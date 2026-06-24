@@ -224,12 +224,12 @@
   - Parallelizable: no
 
 ### Phase 9 - Content, rich text, attributes, and form values
-- [ ] Implement content controls for text and rich HTML editing.
+- [x] Implement content controls for text and rich HTML editing.
   - Files/areas: `TextControls.tsx`, optional `RichTextControls.tsx`, `src/content/editor-bridge/visual-mutations.ts`.
   - Notes: The user requested rich-text editing with internal HTML tag detail and immediate preview updates. Provide a contenteditable editor and/or HTML fragment textarea. Commit rich HTML through sanitized `innerHTML` mutation; commit plain text/form values through text/value mutation.
   - Parallelizable: no
 
-- [ ] Add safe rich-text sanitization.
+- [x] Add safe rich-text sanitization.
   - Files/areas: new `src/shared/sanitize.ts` or `src/shared/visual-html.ts`, `TextControls.tsx`, preview mutation module.
   - Notes: Use `dompurify` or a strict allowlist for safe HTML fragments. Block scripts, event handlers, javascript URLs, extension-owned attributes, and runtime overlay artifacts.
   - Parallelizable: yes

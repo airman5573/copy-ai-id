@@ -18,6 +18,7 @@ import {
 import type { FloatingVisualPanelTarget } from '../../stores/useFloatingVisualPanelStore';
 import { QUICK_ACTION_SECTION_IDS } from '../visual/sectionJump';
 import { LayoutControls } from '../controls/LayoutControls';
+import { ContentControls } from '../controls/ContentControls';
 import { SpacingControls } from '../controls/SpacingControls';
 import { SizeControls } from '../controls/SizeControls';
 import { BackgroundImageControls } from '../controls/BackgroundImageControls';
@@ -108,7 +109,9 @@ export function VisualPanelContent({ category, target }: VisualPanelContentProps
             {readiness.canShowControls ? '준비됨' : '대기 중'}
           </span>
         </div>
-        {category === 'layout' && readiness.canShowControls ? (
+        {category === 'content' && readiness.canShowControls ? (
+          <ContentControls disabled={!readiness.canShowControls} />
+        ) : category === 'layout' && readiness.canShowControls ? (
           <LayoutControls disabled={!readiness.canShowControls} />
         ) : category === 'spacing' && readiness.canShowControls ? (
           <SpacingControls disabled={!readiness.canShowControls} />

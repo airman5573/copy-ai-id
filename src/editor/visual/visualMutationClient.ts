@@ -33,6 +33,7 @@ import {
   getVisualStylePropertyDefinition,
   type VisualStyleCategory,
 } from '../../shared/visual-style';
+import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
 import {
   createVisualEditTargetDescriptor,
   createVisualEditTargetDescriptorFromSnapshot,
@@ -274,9 +275,19 @@ export function dispatchVisualRichTextMutation(
 ): VisualMutationDispatchResult<'rich-text'> {
   const context = resolveVisualMutationContext({ ...options, category: options.category ?? 'content' });
   const mutationId = getNextVisualMutationId();
+  const sanitizedResult = sanitizeVisualHtmlFragment(options.richText.html);
+  const richText = {
+    ...options.richText,
+    html: sanitizedResult.html,
+  };
   const beforeHtml = options.richText.previousHtml ?? context.snapshot?.richHtml ?? '';
-  const afterHtml = options.richText.html;
-  const warnings = options.sanitized
+  const afterHtml = richText.html;
+  const sanitized = Boolean(options.sanitized || sanitizedResult.changed);
+  const strippedRuntimeArtifacts = mergeStrippedRuntimeArtifacts(
+    options.strippedRuntimeArtifacts,
+    sanitizedResult.strippedRuntimeArtifacts,
+  );
+  const warnings = sanitized
     ? [...context.warnings, { code: 'sanitized-html' as const, message: 'The rich HTML fragment was sanitized before applying the preview mutation.' }]
     : context.warnings;
   const control = createControlDescriptor(options, {
@@ -296,24 +307,24 @@ export function dispatchVisualRichTextMutation(
       richText: {
         beforeHtml,
         afterHtml,
-        sanitized: Boolean(options.sanitized),
-        strippedRuntimeArtifacts: options.strippedRuntimeArtifacts,
+        sanitized,
+        strippedRuntimeArtifacts,
       },
     },
     before: {
       kind: 'rich-text',
       richText: {
         html: beforeHtml,
-        sanitized: Boolean(options.sanitized),
-        strippedRuntimeArtifacts: options.strippedRuntimeArtifacts,
+        sanitized,
+        strippedRuntimeArtifacts,
       },
     },
     after: {
       kind: 'rich-text',
       richText: {
         html: afterHtml,
-        sanitized: Boolean(options.sanitized),
-        strippedRuntimeArtifacts: options.strippedRuntimeArtifacts,
+        sanitized,
+        strippedRuntimeArtifacts,
       },
     },
     humanSummary,
@@ -324,11 +335,19 @@ export function dispatchVisualRichTextMutation(
     target: context.reference.target,
     nodeId: context.reference.nodeId,
     breakpointId: context.breakpointId,
-    richText: options.richText,
+    richText,
   };
 
   postVisualMutation(message, context.reference);
   return { mutationId, record, message };
+}
+
+function mergeStrippedRuntimeArtifacts(
+  first: readonly string[] | undefined,
+  second: readonly string[] | undefined,
+): string[] | undefined {
+  const merged = Array.from(new Set([...(first ?? []), ...(second ?? [])].filter(Boolean)));
+  return merged.length > 0 ? merged : undefined;
 }
 
 export function dispatchVisualAttributeMutation(
