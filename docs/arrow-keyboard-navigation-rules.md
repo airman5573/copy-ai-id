@@ -25,6 +25,9 @@ Copy AI ID의 방향키 네비게이션은 DOM/layout-tree의 계층 구조를 �
 - **부모의 right sibling**: 현재 요소의 부모와 같은 레벨에 있는 다음 sibling.
 
 > 여기서 left/right는 화면 좌표가 아니라 DOM/layout-tree 순서 기준의 previous/next sibling이다.
+>
+> 구현 기준: fallback은 **현재 요소의 직접 부모까지만** 본다. 조부모/상위 ancestor까지 계속 올라가지 않는다.
+> branch로 들어갈 때도 **직접 child만** 사용한다. `ArrowLeft`는 deepest descendant가 아니라 마지막 직접 child를 사용한다.
 
 ## 최종 동작 규칙
 
@@ -42,28 +45,34 @@ Copy AI ID의 방향키 네비게이션은 DOM/layout-tree의 계층 구조를 �
 2. 첫 번째 자식이 있으면 그 자식을 select한다.
 3. 자식이 없다면 직접 right sibling을 찾는다.
 4. 직접 right sibling이 있으면 그 right sibling을 select한다.
-5. 직접 right sibling도 없다면 부모의 right sibling을 찾는다.
-6. 부모의 right sibling이 있고, 그 부모의 right sibling에 첫 번째 자식이 있으면 그 첫 번째 자식을 select한다.
-7. 부모의 right sibling은 있는데 자식이 없다면 부모의 right sibling을 select한다.
-8. 부모의 right sibling도 없으면 이동하지 않는다.
+5. 직접 right sibling도 없다면 **직접 부모의** right sibling을 찾는다.
+6. 직접 부모의 right sibling이 있고, 그 sibling에 첫 번째 **직접 자식**이 있으면 그 첫 번째 직접 자식을 select한다.
+7. 직접 부모의 right sibling은 있는데 직접 자식이 없다면 그 sibling 자체를 select한다.
+8. 직접 부모의 right sibling도 없으면 이동하지 않는다.
+
+`ArrowDown`은 조부모/상위 ancestor의 right sibling까지 계속 올라가지 않는다.
 
 ### ArrowLeft
 
 1. 직접 left sibling을 찾는다.
 2. 직접 left sibling이 있으면 그 left sibling을 select한다.
-3. 직접 left sibling이 없다면 부모의 left sibling을 찾는다.
-4. 부모의 left sibling이 있고, 그 부모의 left sibling에 마지막 자식이 있으면 그 마지막 자식을 select한다.
-5. 부모의 left sibling은 있는데 자식이 없다면 부모의 left sibling을 select한다.
-6. 부모의 left sibling도 없으면 이동하지 않는다.
+3. 직접 left sibling이 없다면 **직접 부모의** left sibling을 찾는다.
+4. 직접 부모의 left sibling이 있고, 그 sibling에 마지막 **직접 자식**이 있으면 그 마지막 직접 자식을 select한다.
+5. 직접 부모의 left sibling은 있는데 직접 자식이 없다면 그 sibling 자체를 select한다.
+6. 직접 부모의 left sibling도 없으면 이동하지 않는다.
+
+`ArrowLeft`는 조부모/상위 ancestor의 left sibling까지 계속 올라가지 않으며, branch의 deepest last descendant로 재귀 진입하지 않는다.
 
 ### ArrowRight
 
 1. 직접 right sibling을 찾는다.
 2. 직접 right sibling이 있으면 그 right sibling을 select한다.
-3. 직접 right sibling이 없다면 부모의 right sibling을 찾는다.
-4. 부모의 right sibling이 있고, 그 부모의 right sibling에 첫 번째 자식이 있으면 그 첫 번째 자식을 select한다.
-5. 부모의 right sibling은 있는데 자식이 없다면 부모의 right sibling을 select한다.
-6. 부모의 right sibling도 없으면 이동하지 않는다.
+3. 직접 right sibling이 없다면 **직접 부모의** right sibling을 찾는다.
+4. 직접 부모의 right sibling이 있고, 그 sibling에 첫 번째 **직접 자식**이 있으면 그 첫 번째 직접 자식을 select한다.
+5. 직접 부모의 right sibling은 있는데 직접 자식이 없다면 그 sibling 자체를 select한다.
+6. 직접 부모의 right sibling도 없으면 이동하지 않는다.
+
+`ArrowRight`는 조부모/상위 ancestor의 right sibling까지 계속 올라가지 않는다.
 
 ## 예시 트리
 
@@ -145,6 +154,7 @@ body
 
 `pricing-link`에는 자식도 직접 right sibling도 없다.
 부모인 `nav`에도 right sibling이 없으므로 이동하지 않는다.
+상위 ancestor인 `header`의 right sibling `main`은 있어도, fallback은 직접 부모인 `nav`까지만 보기 때문에 `main`으로 이동하지 않는다.
 
 ### `p`에서 ArrowDown
 
@@ -190,7 +200,8 @@ header의 마지막 자식: nav
 ```
 
 `hero`에는 직접 left sibling이 없다.
-부모인 `main`의 left sibling은 `header`이고, `header`의 마지막 자식은 `nav`이므로 `nav`로 이동한다.
+부모인 `main`의 left sibling은 `header`이고, `header`의 마지막 직접 자식은 `nav`이므로 `nav`로 이동한다.
+`nav` 아래에 `pricing-link`가 있어도 deepest descendant로 재귀 진입하지 않는다.
 
 ### `main`에서 ArrowLeft
 
@@ -222,6 +233,7 @@ header의 마지막 자식: nav
 ```
 
 직접 right sibling이 없고, 부모인 `nav`의 right sibling도 없으므로 이동하지 않는다.
+상위 ancestor인 `header`의 right sibling `main`은 있어도, fallback은 직접 부모인 `nav`까지만 보기 때문에 `main` 또는 `main`의 첫 자식으로 이동하지 않는다.
 
 ### `header`에서 ArrowRight
 
@@ -242,8 +254,8 @@ cards의 첫 번째 자식: card-a
 결과: card-a
 ```
 
-직접 right sibling이 없으므로 부모의 right sibling인 `cards`를 찾는다.
-`cards`에 첫 번째 자식 `card-a`가 있으므로 `card-a`로 이동한다.
+직접 right sibling이 없으므로 직접 부모의 right sibling인 `cards`를 찾는다.
+`cards`에 첫 번째 직접 자식 `card-a`가 있으므로 `card-a`로 이동한다.
 
 ## 구현 매핑
 
@@ -251,6 +263,6 @@ runtime 구현은 preview iframe의 DOM navigation과 editor layout-tree row nav
 
 | 영역 | 파일 | 적용 내용 |
 | --- | --- | --- |
-| Preview DOM navigation | `src/content/editor-bridge/navigation.ts` | hover/highlight된 실제 DOM 요소 기준 방향키 이동 |
-| Editor layout tree navigation | `src/editor/components/tree/treeKeyboardNavigation.ts` | focus된 layout-tree row 기준 방향키 이동 |
+| Preview DOM navigation | `src/content/editor-bridge/navigation.ts` | hover/highlight된 실제 DOM 요소 기준 방향키 이동. `html`, `head`, `script`, `style`, `link`, `meta`, `noscript`, `template`, extension-owned element는 navigation 대상에서 제외한다. |
+| Editor layout tree navigation | `src/editor/components/tree/treeKeyboardNavigation.ts` | focus된 layout-tree row 기준 방향키 이동. preview와 동일하게 한 단계 parent-sibling fallback과 직접 child branch entry를 사용한다. |
 
