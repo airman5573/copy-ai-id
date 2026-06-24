@@ -9,7 +9,10 @@ import {
   type RequestVisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
-import { createVisualEditTargetDescriptor } from '../../shared/visual-targets';
+import {
+  createVisualEditTargetDescriptor,
+  isVisualTargetResolutionError,
+} from '../../shared/visual-targets';
 import type { VisualEditRecord } from '../../shared/visual-edits';
 import {
   bridgeViewportRectToEditorViewportRect,
@@ -37,7 +40,12 @@ import {
   onNoteEditorHoverProtectionChange,
 } from '../note-hover-guard';
 import { suppressHoverUntilMouseMove } from '../keyboard-hover-guard';
-import { showMissingDataAiIdToast, showStaleFallbackTargetToast } from '../toast';
+import {
+  showDeletedVisualTargetToast,
+  showMissingDataAiIdToast,
+  showStaleFallbackTargetToast,
+  showStaleVisualTargetToast,
+} from '../toast';
 
 const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
 
@@ -286,6 +294,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         message,
         message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
       );
+      if (isVisualTargetResolutionError(message.error)) {
+        showStaleVisualTargetToast(message.error);
+      }
       return;
     case EDITOR_MESSAGE_TYPES.visualStyleUpdated:
     case EDITOR_MESSAGE_TYPES.visualTextUpdated:
@@ -307,11 +318,18 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       );
       if (message.error) {
         useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+        if (isVisualTargetResolutionError(message.error)) {
+          showStaleVisualTargetToast(message.error);
+        }
       } else if (message.applied) {
         useVisualEditStore.getState().markMutationApplied(
           message.mutationId,
           createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
         );
+        if (message.kind === 'structure' && message.operation === 'delete') {
+          useFloatingVisualPanelStore.getState().closePanel();
+          showDeletedVisualTargetToast();
+        }
         queuePostMutationSnapshotRefresh(message as VisualMutationResultMessage);
       }
       return;
@@ -320,6 +338,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       useVisualSelectionStore.getState().setMutationError(message);
       if (message.mutationId !== undefined) {
         useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+      }
+      if (isVisualTargetResolutionError(message.error)) {
+        showStaleVisualTargetToast(message.error);
       }
       return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:

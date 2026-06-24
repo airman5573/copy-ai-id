@@ -296,9 +296,9 @@
   - Notes: Escape now closes the visual panel first, then clears the quick-action toolbar/selection and falls back to the existing preview highlight clear. Visual focus-guarded Escape is handled without deleting note draft or visual edit records, and the close button keeps both floating-panel and visual-selection panel state in sync.
   - Parallelizable: yes
 
-- [ ] Add stale target handling for fallback and structure-edited elements.
+- [x] Add stale target handling for fallback and structure-edited elements.
   - Files/areas: `useVisualSelectionStore.ts`, `visual-targets.ts`, `toast.ts`.
-  - Notes: If a target cannot be resolved after DOM changes, close panel or show a concise stale-state message and ask the user to hover/select again.
+  - Notes: Visual target resolution errors (`target-not-found`, `stale-target`, `ambiguous-target`) now mark the selection as stale, clear hover/toolbar anchors, disable panel controls with a concise reselect message, and show localized toast guidance. Successful structure delete closes the floating panel, marks the selection deleted, and asks the user to hover another element.
   - Parallelizable: yes
 
 ### Phase 12 - Notebook export format

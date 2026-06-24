@@ -10,6 +10,8 @@ import type {
   FallbackEditorTarget,
   FallbackTargetMetadata,
   LayoutTreeNode,
+  VisualMutationError,
+  VisualMutationErrorCode,
   VisualTargetSnapshot,
 } from './editor-messages';
 import {
@@ -279,6 +281,20 @@ export function isVisualEditRuntimeAttribute(name: string, value: string | null 
 
 export function isSerializableVisualEditTarget(target: EditorTarget | null | undefined): target is EditorTarget {
   return isAiIdTarget(target) || isFallbackTarget(target);
+}
+
+export function isVisualTargetResolutionError(
+  error: Pick<VisualMutationError, 'code'> | null | undefined,
+): boolean {
+  return Boolean(error && isVisualTargetResolutionErrorCode(error.code));
+}
+
+export function isVisualTargetResolutionErrorCode(
+  code: VisualMutationErrorCode | null | undefined,
+): boolean {
+  return code === 'target-not-found'
+    || code === 'stale-target'
+    || code === 'ambiguous-target';
 }
 
 function pickRecord(

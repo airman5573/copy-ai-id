@@ -31,6 +31,9 @@ export interface CopyAiIdMessages {
     fallbackTarget: string;
     fallbackSelectorType: string;
     staleFallbackTarget: string;
+    staleVisualTarget: string;
+    ambiguousVisualTarget: string;
+    deletedVisualTarget: string;
     zoomFit: string;
     zoomIn: string;
     zoomOut: string;
@@ -125,6 +128,12 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       fallbackSelectorType: 'Selector type/reliability',
       staleFallbackTarget:
         'This fallback target is stale. Move the cursor over the element again and retry.',
+      staleVisualTarget:
+        'The selected visual target is no longer resolvable. Hover the element again and reopen visual editing.',
+      ambiguousVisualTarget:
+        'The selected visual target now matches multiple elements. Hover the exact element again and reopen visual editing.',
+      deletedVisualTarget:
+        'The selected element was deleted. Hover another element to continue visual editing.',
       zoomFit: 'Fit',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
@@ -221,6 +230,12 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       fallbackSelectorType: 'Selector 종류/신뢰도',
       staleFallbackTarget:
         '이 fallback target은 오래되었습니다. 요소 위에 다시 커서를 올린 뒤 재시도하세요.',
+      staleVisualTarget:
+        '선택한 visual target을 더 이상 정확히 찾을 수 없습니다. 요소를 다시 hover한 뒤 visual editing을 다시 여세요.',
+      ambiguousVisualTarget:
+        '선택한 visual target이 여러 요소와 겹칩니다. 정확한 요소를 다시 hover한 뒤 visual editing을 다시 여세요.',
+      deletedVisualTarget:
+        '선택한 요소가 삭제되었습니다. 다른 요소를 hover해서 visual editing을 계속하세요.',
       zoomFit: '맞춤',
       zoomIn: '확대',
       zoomOut: '축소',

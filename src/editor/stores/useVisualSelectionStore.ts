@@ -17,6 +17,7 @@ import {
   type VisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
+import { isVisualTargetResolutionError } from '../../shared/visual-targets';
 import type { EditorViewportRect } from '../bridge/geometry';
 
 export type VisualSnapshotStatus = 'idle' | 'loading' | 'ready' | 'error' | 'stale';
@@ -227,14 +228,18 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
     const error = message.error ?? null;
 
     if (error || !message.snapshot) {
+      if (isVisualTargetResolutionError(error)) {
+        return staleVisualTargetState(snapshotTarget, error, 'stale-target');
+      }
+
       return {
-        snapshotStatus: isStaleError(error?.code) ? 'stale' : 'error',
+        snapshotStatus: 'error',
         snapshotTarget,
         snapshot: null,
         snapshotEditorRect: null,
         snapshotError: error,
         snapshotReceivedAt: Date.now(),
-        staleReason: isStaleError(error?.code) ? 'stale-target' : 'snapshot-error',
+        staleReason: 'snapshot-error',
       };
     }
 
@@ -250,7 +255,10 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
   }),
   applyMutationResult: (message, editorRect = null) => set((state) => {
     if (message.error) {
-      return selectionErrorState(state, message.error, 'mutation-error');
+      return selectionErrorState(state, message.error, 'mutation-error', {
+        target: message.target,
+        nodeId: message.nodeId,
+      });
     }
 
     if (message.snapshot) {
@@ -294,22 +302,22 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
 
     if (message.kind === 'structure' && message.operation === 'delete' && message.applied) {
       return {
-        snapshotStatus: 'stale' as VisualSnapshotStatus,
-        snapshotTarget: {
+        ...staleVisualTargetState({
           target: message.target,
           nodeId: message.nodeId,
-        },
-        snapshot: null,
-        snapshotEditorRect: null,
-        snapshotError: null,
-        snapshotReceivedAt: Date.now(),
-        staleReason: 'deleted' as VisualSelectionStaleReason,
+        }, null, 'deleted'),
+        panelTarget: null,
       };
     }
 
     return state;
   }),
-  setMutationError: (message) => set((state) => selectionErrorState(state, message.error, 'mutation-error')),
+  setMutationError: (message) => set((state) => selectionErrorState(
+    state,
+    message.error,
+    'mutation-error',
+    message.target ? { target: message.target, nodeId: message.nodeId ?? null } : undefined,
+  )),
   syncEditorRects: ({
     hoverEditorRect,
     activeToolbarEditorRect,
@@ -382,8 +390,8 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'stale',
       tone: 'warning',
-      title: '선택 요소가 변경되었습니다',
-      message: 'preview DOM이 바뀌었거나 선택 요소가 더 이상 같은 위치에 없습니다. 같은 요소를 다시 hover해서 panel을 갱신해 주세요.',
+      title: staleReadinessTitle(state.staleReason),
+      message: staleReadinessMessage(state.staleReason),
       errorCode: state.snapshotError?.code ?? null,
       staleReason: state.staleReason,
       canShowControls: false,
@@ -580,18 +588,52 @@ function selectionErrorState(
   state: VisualSelectionStateSnapshot,
   error: VisualMutationError,
   reason: VisualSelectionStaleReason,
+  fallbackTarget?: EditorTargetReference | null,
 ): Partial<VisualSelectionStateSnapshot> {
+  if (isVisualTargetResolutionError(error)) {
+    return staleVisualTargetState(fallbackTarget ?? state.snapshotTarget, error, 'stale-target');
+  }
+
   return {
-    snapshotStatus: isStaleError(error.code) ? 'stale' : 'error',
+    snapshotStatus: 'error',
     snapshotError: error,
-    staleReason: isStaleError(error.code) ? 'stale-target' : reason,
+    staleReason: reason,
     snapshotReceivedAt: Date.now(),
-    snapshotTarget: state.snapshotTarget,
+    snapshotTarget: fallbackTarget ?? state.snapshotTarget,
   };
 }
 
-function isStaleError(code: VisualMutationErrorCode | undefined): boolean {
-  return code === 'stale-target'
-    || code === 'target-not-found'
-    || code === 'ambiguous-target';
+function staleVisualTargetState(
+  snapshotTarget: EditorTargetReference | null,
+  snapshotError: VisualMutationError | null,
+  staleReason: VisualSelectionStaleReason,
+): Partial<VisualSelectionStateSnapshot> {
+  return {
+    hoverTarget: null,
+    activeToolbarTarget: null,
+    quickActionDismissedAt: Date.now(),
+    snapshotStatus: 'stale',
+    snapshotTarget,
+    snapshot: null,
+    snapshotEditorRect: null,
+    snapshotError,
+    snapshotReceivedAt: Date.now(),
+    staleReason,
+  };
+}
+
+function staleReadinessTitle(reason: VisualSelectionStaleReason | null): string {
+  if (reason === 'deleted') {
+    return '선택 요소가 삭제되었습니다';
+  }
+
+  return '선택 요소를 다시 찾아야 합니다';
+}
+
+function staleReadinessMessage(reason: VisualSelectionStaleReason | null): string {
+  if (reason === 'deleted') {
+    return '선택한 요소가 preview DOM에서 삭제되었습니다. 다른 요소를 다시 hover하거나 선택해서 visual editing을 계속해 주세요.';
+  }
+
+  return 'preview DOM 변경으로 선택 요소를 더 이상 정확히 찾을 수 없습니다. 같은 요소를 다시 hover한 뒤 quick-action을 다시 눌러 주세요.';
 }

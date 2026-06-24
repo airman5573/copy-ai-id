@@ -1,4 +1,5 @@
 import { getCurrentMessages } from '../shared/i18n';
+import type { VisualMutationError } from '../shared/editor-messages';
 import { useToastStore, type EditorToastTone } from './stores/useToastStore';
 
 const TOAST_RESET_MS = 1600;
@@ -10,6 +11,19 @@ export function showMissingDataAiIdToast(): void {
 
 export function showStaleFallbackTargetToast(): void {
   showEditorToast(getCurrentMessages().editor.staleFallbackTarget, 'error');
+}
+
+export function showStaleVisualTargetToast(error?: Pick<VisualMutationError, 'code'> | null): void {
+  const messages = getCurrentMessages().editor;
+  const message = error?.code === 'ambiguous-target'
+    ? messages.ambiguousVisualTarget
+    : messages.staleVisualTarget;
+
+  showEditorToast(message, 'error');
+}
+
+export function showDeletedVisualTargetToast(): void {
+  showEditorToast(getCurrentMessages().editor.deletedVisualTarget, 'info');
 }
 
 export function showEditorToast(message: string, tone: EditorToastTone = 'info'): void {
