@@ -94,7 +94,7 @@
   - Parallelizable: yes
 
 ### Phase 4 - Editor bridge client and geometry
-- [ ] Add editor-side bridge routing for visual messages.
+- [x] Add editor-side bridge routing for visual messages.
   - Files/areas: `src/editor/bridge/bridgeClient.ts`.
   - Notes: Route quick-action anchor changes, quick-action category clicks, visual target snapshots, mutation results, mutation errors, structure results, and layout refreshes into visual stores without disturbing notebook shortcut behavior.
   - Parallelizable: no

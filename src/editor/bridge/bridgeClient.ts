@@ -3,11 +3,14 @@ import {
   type BridgeToEditorMessage,
   type EditorToBridgeMessage,
   type EditorKeyboardShortcut,
+  type EditorTargetReference,
+  type QuickActionCategory,
 } from '../../shared/editor-messages';
 import { useBridgeStore } from '../stores/useBridgeStore';
 import { useBoxModelStore } from '../stores/useBoxModelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
+import { useVisualBridgeStore, type VisualMutationResultMessage } from '../stores/useVisualBridgeStore';
 import { appendTargetReferenceToNotebook, handleEditorShortcutAction } from '../shortcut-actions';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
 import {
@@ -36,6 +39,24 @@ export function registerPreviewFrame(frame: HTMLIFrameElement | null): void {
 
 export function postToBridge(message: EditorToBridgeMessage): void {
   previewFrame?.contentWindow?.postMessage(message, '*');
+}
+
+export function selectQuickActionCategory(
+  reference: EditorTargetReference,
+  category: QuickActionCategory,
+): void {
+  useVisualBridgeStore.getState().setQuickActionCategorySelection({
+    target: reference.target,
+    nodeId: reference.nodeId,
+    category,
+  });
+
+  postToBridge({
+    type: EDITOR_MESSAGE_TYPES.quickActionCategorySelected,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    category,
+  });
 }
 
 export function installBridgeClient(): () => void {
@@ -70,6 +91,7 @@ export function installBridgeClient(): () => void {
 function routeBridgeMessage(message: BridgeToEditorMessage): void {
   switch (message.type) {
     case EDITOR_MESSAGE_TYPES.bridgeReady:
+      useVisualBridgeStore.getState().resetVisualBridgeState();
       useBridgeStore.getState().markReady(message.url, message.aiIdCount);
       useRuntimeStore.getState().setPreviewUrl(message.url);
       if (useBoxModelStore.getState().enabled) {
@@ -81,6 +103,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       return;
     case EDITOR_MESSAGE_TYPES.layoutTree:
       useLayoutTreeStore.getState().setTree(message.root, message.url);
+      useVisualBridgeStore.getState().markLayoutTreeRefreshed();
       return;
     case EDITOR_MESSAGE_TYPES.targetHighlighted:
       if (isNoteEditorHoverProtected()) {
@@ -104,6 +127,27 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       return;
     case EDITOR_MESSAGE_TYPES.iframeStatus:
       useBridgeStore.getState().setIframeStatus(message.status, message.message);
+      return;
+    case EDITOR_MESSAGE_TYPES.quickActionAnchorChanged:
+      useVisualBridgeStore.getState().setQuickActionAnchor(message);
+      return;
+    case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
+      useVisualBridgeStore.getState().setVisualTargetSnapshot(message);
+      return;
+    case EDITOR_MESSAGE_TYPES.visualStyleUpdated:
+    case EDITOR_MESSAGE_TYPES.visualTextUpdated:
+    case EDITOR_MESSAGE_TYPES.visualRichTextUpdated:
+    case EDITOR_MESSAGE_TYPES.visualAttributeUpdated:
+    case EDITOR_MESSAGE_TYPES.visualFormValueUpdated:
+    case EDITOR_MESSAGE_TYPES.visualElementDuplicated:
+    case EDITOR_MESSAGE_TYPES.visualElementMoved:
+    case EDITOR_MESSAGE_TYPES.visualElementDeleted:
+    case EDITOR_MESSAGE_TYPES.visualElementRestored:
+    case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
+      useVisualBridgeStore.getState().setVisualMutationResult(message as VisualMutationResultMessage);
+      return;
+    case EDITOR_MESSAGE_TYPES.visualMutationError:
+      useVisualBridgeStore.getState().setVisualMutationError(message);
       return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       if (isArrowShortcut(message.shortcut)) {
