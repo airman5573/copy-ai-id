@@ -46,6 +46,7 @@ const PROTECTED_STRUCTURE_TAGS = new Set(['html', 'head', 'body']);
 interface StructureMutationSuccess {
   resolved: VisualTargetResolveSuccess;
   structure: VisualStructureMutationSnapshot;
+  afterStructure?: VisualStructureMutationSnapshot;
   duplicateTarget?: EditorTarget;
   duplicateNodeId?: string | null;
   dropTarget?: EditorTarget;
@@ -75,15 +76,17 @@ export function handleDuplicateVisualElement(
     return;
   }
 
-  const clone = resolved.element.cloneNode(true) as Element;
   const structure = createStructureSnapshot(resolved.element, 'duplicate');
+  const clone = cloneStructureElement(resolved.element);
   parent.insertBefore(clone, resolved.element.nextSibling);
+  const afterStructure = createStructureSnapshot(clone, 'duplicate');
   const duplicateTarget = editorTargetForElement(clone) ?? undefined;
   const duplicateNodeId = resolveNodeIdForElement(clone);
 
   postStructureSuccess(post, message, {
     resolved,
     structure,
+    afterStructure,
     duplicateTarget,
     duplicateNodeId,
   });
@@ -130,8 +133,9 @@ export function handleMoveVisualElement(
   } else {
     parent.insertBefore(resolved.element, sibling.nextSibling);
   }
+  const afterStructure = createStructureSnapshot(resolved.element, operation);
 
-  postStructureSuccess(post, message, { resolved, structure });
+  postStructureSuccess(post, message, { resolved, structure, afterStructure });
 }
 
 export function handleDeleteVisualElement(
@@ -256,7 +260,7 @@ function postStructureFailure(
 ): void {
   const operation = forcedOperation ?? operationForRequest(request);
   const base = createVisualMutationResultBase({ request, resolved, error, applied: false });
-  const result = structureResultForOperation(request, base, operation, undefined);
+  const result = structureResultForOperation(request, base, operation, undefined, undefined);
   postVisualMutationResult(post, result, { layoutTree: false, overlays: false, highlight: false });
 }
 
@@ -269,7 +273,13 @@ function createStructureResult(
     resolved: success.resolved,
     applied: true,
   });
-  const result = structureResultForOperation(request, base, operationForRequest(request), success.structure);
+  const result = structureResultForOperation(
+    request,
+    base,
+    operationForRequest(request),
+    success.structure,
+    success.afterStructure,
+  );
 
   switch (result.type) {
     case EDITOR_MESSAGE_TYPES.visualElementDuplicated:
@@ -295,6 +305,7 @@ function structureResultForOperation(
   base: ReturnType<typeof createVisualMutationResultBase>,
   operation: VisualStructureOperation,
   structure: VisualStructureMutationSnapshot | undefined,
+  afterStructure: VisualStructureMutationSnapshot | undefined,
 ): VisualMutationResultMessage {
   switch (operation) {
     case 'duplicate':
@@ -304,6 +315,7 @@ function structureResultForOperation(
         kind: 'structure',
         operation,
         structure,
+        afterStructure,
       } satisfies VisualElementDuplicatedMessage;
     case 'move-up':
     case 'move-down':
@@ -313,6 +325,7 @@ function structureResultForOperation(
         kind: 'structure',
         operation,
         structure,
+        afterStructure,
       } satisfies VisualElementMovedMessage;
     case 'delete':
       return {
@@ -630,17 +643,70 @@ function editorTargetForElement(element: Element): EditorTarget | null {
     return {
       kind: 'ai-id',
       aiId,
-      instanceIndex: Math.max(0, instancesOf(aiId).indexOf(element)),
+      instanceIndex: resolveAiIdInstanceIndex(aiId, element),
     };
   }
 
   return fallbackTargetForElement(element, resolveNodeIdForElement(element));
 }
 
+function resolveAiIdInstanceIndex(aiId: string, element: Element): number {
+  const knownIndex = instancesOf(aiId).indexOf(element);
+  if (knownIndex >= 0) {
+    return knownIndex;
+  }
+
+  const liveIndex = liveAiIdInstances(aiId).indexOf(element);
+  return Math.max(0, liveIndex);
+}
+
+function liveAiIdInstances(aiId: string): Element[] {
+  return Array.from(document.querySelectorAll(`[${DATA_AI_ID_ATTRIBUTE}]`))
+    .filter((candidate) => (
+      !isExtensionOwnedElement(candidate)
+      && candidate.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() === aiId
+    ));
+}
+
 function elementFromHtml(html: string): Element | null {
   const template = document.createElement('template');
   template.innerHTML = html.trim();
   return template.content.firstElementChild;
+}
+
+function cloneStructureElement(element: Element): Element {
+  const cleanedHtml = stripRuntimeArtifacts(element.outerHTML);
+  const parsedClone = elementFromHtml(cleanedHtml);
+
+  if (parsedClone && parsedClone.tagName.toLowerCase() === element.tagName.toLowerCase()) {
+    return parsedClone;
+  }
+
+  const clone = element.cloneNode(true) as Element;
+  removeRuntimeArtifactsFromClone(clone);
+  return clone;
+}
+
+function removeRuntimeArtifactsFromClone(root: Element): void {
+  const candidates = [root, ...Array.from(root.querySelectorAll('*'))];
+
+  for (const candidate of candidates) {
+    if (candidate !== root && isExtensionOwnedElement(candidate)) {
+      candidate.remove();
+      continue;
+    }
+
+    for (const attribute of Array.from(candidate.attributes)) {
+      const name = attribute.name.toLowerCase();
+      if (
+        name === 'data-ai-temp-id'
+        || name.startsWith('data-ai-editor-')
+        || name.startsWith('data-copy-ai-id-')
+      ) {
+        candidate.removeAttribute(attribute.name);
+      }
+    }
+  }
 }
 
 function resolveParentByNodeId(nodeId: string): Element | null {

@@ -448,6 +448,7 @@ export interface VisualElementDuplicatedMessage extends VisualMutationResultBase
   duplicateTarget?: EditorTarget;
   duplicateNodeId?: string | null;
   structure?: VisualStructureMutationSnapshot;
+  afterStructure?: VisualStructureMutationSnapshot;
 }
 
 export interface MoveVisualElementMessage extends VisualMutationRequestBase {
@@ -460,6 +461,7 @@ export interface VisualElementMovedMessage extends VisualMutationResultBase {
   kind: 'structure';
   operation: 'move-up' | 'move-down';
   structure?: VisualStructureMutationSnapshot;
+  afterStructure?: VisualStructureMutationSnapshot;
 }
 
 export interface DeleteVisualElementMessage extends VisualMutationRequestBase {

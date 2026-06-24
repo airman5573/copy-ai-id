@@ -9,6 +9,7 @@ import {
   type RequestVisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
+import { createVisualEditTargetDescriptor } from '../../shared/visual-targets';
 import type { VisualEditRecord } from '../../shared/visual-edits';
 import {
   bridgeViewportRectToEditorViewportRect,
@@ -339,7 +340,13 @@ function createVisualEditRecordPatchForMutationResult(
     return undefined;
   }
 
-  if (message.operation !== 'delete' && message.operation !== 'restore') {
+  if (
+    message.operation !== 'delete'
+    && message.operation !== 'restore'
+    && message.operation !== 'duplicate'
+    && message.operation !== 'move-up'
+    && message.operation !== 'move-down'
+  ) {
     return undefined;
   }
 
@@ -355,10 +362,11 @@ function createVisualEditRecordPatchForMutationResult(
 
   const structureRecord = record as VisualEditRecord<'structure'>;
   const currentStructure = structureRecord.payload.structure;
-  const before = message.operation === 'delete'
-    ? message.structure
-    : currentStructure.before ?? structureRecord.before.structure.structure ?? null;
-  const after = message.operation === 'restore' ? message.structure : null;
+  const before = structureBeforeForMutationResult(message, structureRecord);
+  const after = structureAfterForMutationResult(message);
+  const duplicatedTarget = message.operation === 'duplicate' && message.duplicateTarget
+    ? createVisualEditTargetDescriptor(message.duplicateTarget, { nodeId: message.duplicateNodeId ?? null })
+    : currentStructure.duplicatedTarget;
 
   return {
     payload: {
@@ -368,6 +376,12 @@ function createVisualEditRecordPatchForMutationResult(
         operation: message.operation,
         before,
         after,
+        movedDirection: message.operation === 'move-up'
+          ? 'up'
+          : message.operation === 'move-down'
+            ? 'down'
+            : currentStructure.movedDirection,
+        duplicatedTarget,
       },
     },
     before: {
@@ -379,4 +393,46 @@ function createVisualEditRecordPatchForMutationResult(
       structure: { structure: after },
     },
   } as Partial<VisualEditRecord>;
+}
+
+function structureBeforeForMutationResult(
+  message: VisualMutationResultMessage,
+  record: VisualEditRecord<'structure'>,
+) {
+  if (
+    message.kind === 'structure'
+    && (
+      message.operation === 'delete'
+      || message.operation === 'duplicate'
+      || message.operation === 'move-up'
+      || message.operation === 'move-down'
+    )
+  ) {
+    return message.structure ?? null;
+  }
+
+  return record.payload.structure.before ?? record.before.structure.structure ?? null;
+}
+
+function structureAfterForMutationResult(
+  message: VisualMutationResultMessage,
+) {
+  if (message.kind !== 'structure') {
+    return null;
+  }
+
+  switch (message.operation) {
+    case 'delete':
+      return null;
+    case 'restore':
+      return message.structure ?? null;
+    case 'duplicate':
+    case 'move-up':
+    case 'move-down':
+      return message.afterStructure ?? null;
+    case 'drag-move':
+      return null;
+    default:
+      return null;
+  }
 }

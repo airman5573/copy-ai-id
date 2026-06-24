@@ -265,9 +265,9 @@
   - Notes: Delete now preserves parent, sibling, child-index, and stripped HTML context in the structure snapshot. Restore uses the saved parent/sibling/index context to reinsert near the original location. Applied delete/restore bridge results patch the pending visual edit record so copy export includes before/after structure diffs instead of an empty optimistic shell.
   - Parallelizable: yes
 
-- [ ] Implement duplicate and move up/down mutations.
-  - Files/areas: `visual-mutations.ts`, `QuickActionBar.tsx`, visual structure helpers.
-  - Notes: Duplicate should clone the target node and strip or mark runtime-only identifiers if needed. Move up/down should skip extension-owned overlay elements and operate among real siblings.
+- [x] Implement duplicate and move up/down mutations.
+  - Files/areas: `src/content/editor-bridge/visual-structure.ts`, `src/shared/editor-messages.ts`, `src/editor/bridge/bridgeClient.ts`, `QuickActionBar.tsx`.
+  - Notes: Duplicate now inserts a cleaned clone next to the source element, strips runtime-only editor artifacts from the cloned DOM path, records before/after structure snapshots, and exports the duplicated target when resolvable. Move up/down already skip extension-owned overlay elements and now record both before and after sibling/index context so visual edit copy output includes a real structure diff.
   - Parallelizable: yes
 
 - [ ] Implement drag grip movement.
