@@ -1,5 +1,11 @@
 import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode } from 'react';
 
+import {
+  announceVisualDropdownOpen,
+  listenForOtherVisualDropdowns,
+  listenForVisualDropdownCloseAll,
+} from './dropdownCoordinator';
+
 export type DropdownSelectOption = {
   value: string;
   label: string;
@@ -50,6 +56,9 @@ export function DropdownSelect({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const selected = options.find((option) => option.value === value) ?? null;
 
+  useEffect(() => listenForOtherVisualDropdowns(dropdownId, () => setOpen(false)), [dropdownId]);
+  useEffect(() => listenForVisualDropdownCloseAll(() => setOpen(false)), []);
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -87,6 +96,7 @@ export function DropdownSelect({
     const nextIndex = currentIndex < 0
       ? direction > 0 ? 0 : options.length - 1
       : (currentIndex + direction + options.length) % options.length;
+    announceVisualDropdownOpen(dropdownId);
     onChange?.(options[nextIndex].value);
     setOpen(true);
   };
@@ -102,7 +112,15 @@ export function DropdownSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          setOpen((current) => {
+            if (current) {
+              return false;
+            }
+            announceVisualDropdownOpen(dropdownId);
+            return true;
+          });
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.preventDefault();

@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode } from 'react';
 
+import {
+  announceVisualDropdownOpen,
+  listenForOtherVisualDropdowns,
+  listenForVisualDropdownCloseAll,
+} from './dropdownCoordinator';
+import { selectTextInputValue } from './inputSelection';
 import { VisualControl, VisualResetButton } from './VisualControl';
 
 export type ColorPresetOption = {
@@ -41,6 +47,7 @@ export function ColorInput({
   onReset,
 }: ColorInputProps): ReactElement {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const dropdownId = useId();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const parsedColor = parseColorInputValue(value);
   const colorValue = parsedColor.hex;
@@ -56,6 +63,9 @@ export function ColorInput({
       setHexDraft(colorValue);
     }
   }, [colorValue, hexFocused]);
+
+  useEffect(() => listenForOtherVisualDropdowns(dropdownId, () => setPaletteOpen(false)), [dropdownId]);
+  useEffect(() => listenForVisualDropdownCloseAll(() => setPaletteOpen(false)), []);
 
   useEffect(() => {
     if (!paletteOpen) {
@@ -127,6 +137,7 @@ export function ColorInput({
     if (!nextValue) {
       return;
     }
+    announceVisualDropdownOpen(dropdownId);
     setPaletteOpen(true);
     onChange?.(nextValue);
     onPresetSelect?.(nextValue);
@@ -217,7 +228,15 @@ export function ColorInput({
               aria-expanded={paletteOpen}
               aria-label={presetPlaceholderLabel}
               title={presetPlaceholderLabel}
-              onClick={() => setPaletteOpen((current) => !current)}
+              onClick={() => {
+                setPaletteOpen((current) => {
+                  if (current) {
+                    return false;
+                  }
+                  announceVisualDropdownOpen(dropdownId);
+                  return true;
+                });
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Escape') {
                   event.preventDefault();
@@ -290,10 +309,6 @@ export function ColorInput({
       </div>
     </VisualControl>
   );
-}
-
-function selectTextInputValue(input: HTMLInputElement): void {
-  window.requestAnimationFrame(() => input.select());
 }
 
 function normalizeColorInputValue(value: string): string {

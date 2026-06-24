@@ -177,9 +177,9 @@
   - Notes: Added source-like visual control primitives for section shells, form rows, unit inputs, edge boxes, presets, dropdowns, and color inputs without source-map/chat coupling. Quick-action categories now map to stable copy-ai-id visual section IDs, and `VisualSection` consumes the existing section jump store to expand, scroll, focus, and flash the target section. Dedicated dropdown coordination/input helper extraction remains in the next checklist item.
   - Parallelizable: yes
 
-- [ ] Port dropdown coordination and input selection helpers used by visual controls.
+- [x] Port dropdown coordination and input selection helpers used by visual controls.
   - Files/areas: `src/editor/components/visual/dropdownCoordinator.ts`, `inputSelection.ts`, `src/editor/utils/numericInput.ts`.
-  - Notes: These are mostly UI helpers and can be adapted with minimal project coupling.
+  - Notes: Added copy-ai-id scoped dropdown coordination events, shared input value selection, and numeric input formatting/stepping/unit conversion helpers. Dropdown and color palette controls now announce open state and close when another visual dropdown opens or a global close event fires. Unit/color inputs now reuse the shared helpers instead of local copies.
   - Parallelizable: yes
 
 - [ ] Add floating panel empty/stale/error states.

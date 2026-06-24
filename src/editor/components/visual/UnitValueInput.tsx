@@ -1,7 +1,9 @@
 import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 
 import { DropdownSelect } from './DropdownSelect';
+import { selectTextInputValue } from './inputSelection';
 import { VisualControl, VisualResetButton } from './VisualControl';
+import { stepNumericInputValue, type NumericStepDirection } from '../../utils/numericInput';
 
 export type UnitOption = {
   value: string;
@@ -28,8 +30,6 @@ export type UnitValueInputProps = {
   onReset?: () => void;
   onHighlightChange?: (active: boolean) => void;
 };
-
-type NumericStepDirection = 1 | -1;
 
 export function UnitValueInput({
   label,
@@ -172,21 +172,4 @@ export function UnitValueInput({
       </div>
     </VisualControl>
   );
-}
-
-function selectTextInputValue(input: HTMLInputElement): void {
-  window.requestAnimationFrame(() => input.select());
-}
-
-function stepNumericInputValue(value: string, direction: NumericStepDirection, step: number): string {
-  const parsed = Number.parseFloat(value);
-  const next = (Number.isFinite(parsed) ? parsed : 0) + (direction * step);
-  const precision = decimalPlaces(step);
-  return Number(next.toFixed(precision)).toString();
-}
-
-function decimalPlaces(value: number): number {
-  const text = value.toString();
-  const decimalIndex = text.indexOf('.');
-  return decimalIndex === -1 ? 0 : text.length - decimalIndex - 1;
 }
