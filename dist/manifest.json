@@ -29,7 +29,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-Bqjf5P6B.js"
+        "assets/index.ts-loader-CjcyKe1T.js"
       ],
       "matches": [
         "<all_urls>"
@@ -46,7 +46,7 @@
       ],
       "resources": [
         "assets/i18n-CQ1KP1v-.js",
-        "assets/index.ts-BsMo0w4e.js"
+        "assets/index.ts-DPZJaXII.js"
       ],
       "use_dynamic_url": false
     }

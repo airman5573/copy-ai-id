@@ -7,11 +7,13 @@ import {
   type ReactNode,
 } from 'react';
 
+import { breakpointById } from '../../../shared/breakpoints';
 import type { QuickActionCategory } from '../../../shared/editor-messages';
 import {
   getVisualStylePropertyDefinition,
   type VisualStylePreset,
 } from '../../../shared/visual-style';
+import { useBreakpointStore } from '../../stores/useBreakpointStore';
 import { useStyleEdit } from '../../visual/useStyleEdit';
 import { PresetSelect, type VisualPresetOption } from '../visual/PresetSelect';
 import { selectTextInputValue } from '../visual/inputSelection';
@@ -42,18 +44,46 @@ export function StyleControlGroup({
       data-ai-id={dataAiId}
       data-ai-editor-style-control-group-tone={tone}
     >
-      <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
-          {title}
-        </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-          {description}
-        </p>
+      <div className="mb-3 flex items-start justify-between gap-3" data-ai-id={`${dataAiId}-header`}>
+        <div className="min-w-0">
+          <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
+            {title}
+          </h4>
+          <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
+            {description}
+          </p>
+        </div>
+        <StyleControlBreakpointBadge dataAiId={`${dataAiId}-breakpoint-badge`} />
       </div>
       <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
         {children}
       </div>
     </section>
+  );
+}
+
+function StyleControlBreakpointBadge({ dataAiId }: { dataAiId: string }): ReactElement {
+  const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
+  const activeBreakpoint = breakpointById(activeBreakpointId);
+  const isBaseBreakpoint = activeBreakpointId === 'base';
+  const title = isBaseBreakpoint
+    ? 'Style edits are recorded for the base breakpoint and applied inline in the preview.'
+    : `Style edits are recorded as ${activeBreakpoint.label} breakpoint intent, while the preview applies inline styles for immediate feedback.`;
+
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm ${
+        isBaseBreakpoint
+          ? 'border-gray-700 bg-gray-950/70 text-gray-400'
+          : 'border-blue-500/30 bg-blue-500/10 text-blue-300'
+      }`}
+      title={title}
+      data-ai-id={dataAiId}
+      data-ai-editor-breakpoint-id={activeBreakpointId}
+      data-ai-editor-breakpoint-inline-preview={isBaseBreakpoint ? 'false' : 'true'}
+    >
+      {isBaseBreakpoint ? activeBreakpoint.label : `${activeBreakpoint.label} intent`}
+    </span>
   );
 }
 

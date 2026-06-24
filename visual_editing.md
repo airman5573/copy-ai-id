@@ -218,7 +218,7 @@
   - Notes: Added `BorderControls` and wired the border floating panel category to inline CSS mutations for border width per edge, border style/color, uniform and per-corner radius, and outline width/style/color/offset. Extended `useVisualStyleForm()` with radius corner fields and outline length fields, and generalized style control helpers so border controls record under the border category while preserving per-property before/after export data.
   - Parallelizable: yes
 
-- [ ] Add breakpoint-aware style records and export labeling.
+- [x] Add breakpoint-aware style records and export labeling.
   - Files/areas: `useVisualEditStore.ts`, `useBreakpointStore.ts`, `visual-edits-export.ts`, visual control badges.
   - Notes: At minimum record the active breakpoint id with each edit. If responsive scoped styles are implemented, inject preview-only scoped CSS; otherwise export breakpoint intent clearly while applying inline style for immediate preview.
   - Parallelizable: no

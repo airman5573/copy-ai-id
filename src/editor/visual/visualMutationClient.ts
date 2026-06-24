@@ -1,4 +1,4 @@
-import type { BreakpointId } from '../../shared/breakpoints';
+import { breakpointById, type BreakpointId } from '../../shared/breakpoints';
 import {
   EDITOR_MESSAGE_TYPES,
   type BridgeViewportPoint,
@@ -136,6 +136,7 @@ export function dispatchVisualStyleMutation(
   options: DispatchVisualStyleMutationOptions,
 ): VisualMutationDispatchResult<'style'> {
   const context = resolveVisualMutationContext(options);
+  const recordContext = addStyleBreakpointIntentWarning(context);
   const mutationId = getNextVisualMutationId();
   const category = resolveStyleCategory(options, context);
   const declarations = options.declarations.map((declaration) => ({ ...declaration }));
@@ -159,7 +160,7 @@ export function dispatchVisualStyleMutation(
     property: declarations.length === 1 ? declarations[0].property : undefined,
   });
   const humanSummary = summarizeStyleEdit(diffs, context.targetLabel);
-  const record = addOptimisticRecord<'style'>(context, mutationId, {
+  const record = addOptimisticRecord<'style'>(recordContext, mutationId, {
     category,
     controlKind: control.kind,
     control,
@@ -199,6 +200,27 @@ export function dispatchVisualStyleMutation(
 
   postVisualMutation(message, context.reference);
   return { mutationId, record, message };
+}
+
+function addStyleBreakpointIntentWarning(context: ResolvedVisualMutationContext): ResolvedVisualMutationContext {
+  if (context.breakpointId === 'base') {
+    return context;
+  }
+
+  const breakpoint = breakpointById(context.breakpointId);
+  const warning: VisualEditWarning = {
+    code: 'breakpoint-intent-inline-preview',
+    message: `The ${breakpoint.label} breakpoint (${context.breakpointId}, ${breakpoint.width}px) was recorded as implementation intent, but the preview mutation used inline styles for immediate feedback. Recreate it as responsive/scoped source CSS when applying the diff.`,
+  };
+
+  if (context.warnings.some((candidate) => candidate.code === warning.code)) {
+    return context;
+  }
+
+  return {
+    ...context,
+    warnings: [...context.warnings, warning],
+  };
 }
 
 export function dispatchVisualTextMutation(

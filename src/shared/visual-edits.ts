@@ -39,6 +39,7 @@ export type VisualEditWarningCode =
   | 'fallback-target'
   | 'target-became-stale'
   | 'computed-style-only'
+  | 'breakpoint-intent-inline-preview'
   | 'sanitized-html'
   | 'runtime-artifacts-stripped'
   | 'preview-only'

@@ -13,6 +13,11 @@ const VISUAL_ONLY_REQUEST_TEXT = [
   'Use the human-readable summaries first, then the fenced JSON diff for exact target, before/after, and breakpoint details.',
 ].join(' ');
 
+const BREAKPOINT_INTENT_NOTE = [
+  'Breakpoint labels on style edits are implementation intent.',
+  'The preview applies style changes as inline DOM mutations for immediate feedback unless a future diff explicitly says scoped CSS was injected.',
+].join(' ');
+
 export function getVisualOnlyNotebookRequestText(): string {
   return VISUAL_ONLY_REQUEST_TEXT;
 }
@@ -50,6 +55,7 @@ export function formatVisualEditsSection(
     '## Visual edits',
     '',
     'These edits were made only in the live preview. Recreate them in the actual source/CSS/markup; do not copy extension runtime artifacts.',
+    BREAKPOINT_INTENT_NOTE,
     '',
     ...exportableRecords.flatMap((record, index) => formatVisualEditRecordSummary(record, index)),
     '',
@@ -78,8 +84,7 @@ function formatVisualEditRecordSummary(record: VisualEditRecord, index: number):
   ];
 
   if (record.breakpointId) {
-    const breakpoint = breakpointById(record.breakpointId);
-    lines.push(`   - Breakpoint: ${breakpoint.label} (${record.breakpointId}, ${breakpoint.width}px)`);
+    lines.push(`   - ${formatBreakpointLine(record)}`);
   }
 
   const payloadLine = formatPayloadSummary(record);
@@ -105,6 +110,23 @@ function formatTargetDescriptor(target: VisualEditTargetDescriptor): string {
   }
 
   return describeVisualEditTarget(target);
+}
+
+function formatBreakpointLine(record: VisualEditRecord): string {
+  const breakpointId = record.breakpointId;
+
+  if (!breakpointId) {
+    return 'Breakpoint: not recorded';
+  }
+
+  const breakpoint = breakpointById(breakpointId);
+  const baseLabel = `Breakpoint intent: ${breakpoint.label} (${breakpointId}, ${breakpoint.width}px)`;
+
+  if (record.kind === 'style' && breakpointId !== 'base') {
+    return `${baseLabel}; preview was applied inline for immediate feedback, so implement this as responsive/scoped CSS for that breakpoint.`;
+  }
+
+  return baseLabel;
 }
 
 function formatPayloadSummary(record: VisualEditRecord): string {
