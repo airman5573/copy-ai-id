@@ -12,6 +12,7 @@ import {
   revealTreeNode,
   setHoverHighlightSuppressed,
 } from './highlight';
+import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
 
 export const COPY_AI_ID_PREVIEW_PARAM = 'copy-ai-id-preview';
 const BRIDGE_SOURCE = 'copy-ai-id-preview-bridge';
@@ -119,6 +120,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.setBoxModelMode:
       setBoxModelMode(message.enabled);
+      return;
+    case EDITOR_MESSAGE_TYPES.requestVisualTargetSnapshot:
+      handleVisualTargetSnapshotRequest(message, post);
       return;
     default:
       return;

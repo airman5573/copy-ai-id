@@ -118,6 +118,10 @@ export function suppressHoverHighlightUntilMouseMove(): void {
   suppressionStartPosition = lastMousePosition;
 }
 
+export function refreshHighlightedElement(post: BridgePost): void {
+  setHighlightedElement(getHighlightedElement(), post, highlightedOrigin ?? 'preview');
+}
+
 export function handleHoverTreeNode(nodeId: string | null, post: BridgePost): void {
   if (!nodeId) {
     setHighlightedElement(null, post, 'layout-tree');

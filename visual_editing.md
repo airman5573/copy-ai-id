@@ -83,7 +83,7 @@
   - Notes: Capture tagName, rect, computed style values for supported properties, inline style values, class tokens, safe attributes, text/value/rich HTML state, image/link fields, form field state, parent/sibling metadata, nodeId, and fallback metadata.
   - Parallelizable: no
 
-- [ ] Add bridge-side mutation result helpers and layout-tree refresh hooks.
+- [x] Add bridge-side mutation result helpers and layout-tree refresh hooks.
   - Files/areas: `src/content/editor-bridge/index.ts`, `src/content/editor-bridge/layout-tree.ts`, new mutation helpers.
   - Notes: After any DOM/structure mutation, rebuild/post layout tree and keep hover/quick-action anchors fresh. Preserve existing `bridgeReady` and `layoutTree` behavior.
   - Parallelizable: no

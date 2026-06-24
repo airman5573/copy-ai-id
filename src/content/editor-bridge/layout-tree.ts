@@ -22,6 +22,8 @@ export interface LayoutTreeBuildResult {
   aiIdCount: number;
 }
 
+export type LayoutTreePost = (message: LayoutTreeMessage) => void;
+
 export function resolveTreeNode(nodeId: string): Element | null {
   const element = nodeElements.get(nodeId) ?? null;
   return element && element.isConnected ? element : null;
@@ -42,6 +44,12 @@ export function resolveAiTarget(aiId: string, instanceIndex: number): Element | 
 
 export function buildLayoutTreeMessage(): LayoutTreeMessage {
   return buildLayoutTreeSnapshot().message;
+}
+
+export function buildAndPostLayoutTreeSnapshot(post: LayoutTreePost): LayoutTreeBuildResult {
+  const result = buildLayoutTreeSnapshot();
+  post(result.message);
+  return result;
 }
 
 export function buildLayoutTreeSnapshot(): LayoutTreeBuildResult {
