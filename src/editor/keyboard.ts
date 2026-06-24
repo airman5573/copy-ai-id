@@ -1,7 +1,7 @@
 import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../shared/editor-messages';
 import { postToBridge } from './bridge/bridgeClient';
 import { suppressHoverUntilMouseMove } from './keyboard-hover-guard';
-import { handleEditorShortcutAction } from './shortcut-actions';
+import { handleEditorEscapeAction, handleEditorShortcutAction } from './shortcut-actions';
 import { useHighlightStore } from './stores/useHighlightStore';
 import {
   isVisualEditorFocusGuardEvent,
@@ -28,6 +28,10 @@ export function installEditorKeyboard(): () => void {
 
     if (isVisualEditorFocusGuardEvent(event)) {
       protectVisualEditorInteractionFromHover();
+      if (event.key === 'Escape' && hasNoModifier(event)) {
+        consumeKeyboardEvent(event);
+        clearVisualEditorEscapeState();
+      }
       return;
     }
 
@@ -70,8 +74,7 @@ export function installEditorKeyboard(): () => void {
 
     if (event.key === 'Escape' && hasNoModifier(event)) {
       consumeKeyboardEvent(event);
-      handleEditorShortcutAction('escape');
-      postToBridge({ type: EDITOR_MESSAGE_TYPES.hoverTreeNode, nodeId: null });
+      clearVisualEditorEscapeState();
     }
   };
 
@@ -80,6 +83,13 @@ export function installEditorKeyboard(): () => void {
   return () => {
     window.removeEventListener('keydown', handleKeyDown, true);
   };
+}
+
+function clearVisualEditorEscapeState(): void {
+  const result = handleEditorEscapeAction();
+  if (result !== 'visual-panel') {
+    postToBridge({ type: EDITOR_MESSAGE_TYPES.hoverTreeNode, nodeId: null });
+  }
 }
 
 function isShiftEnter(event: KeyboardEvent): boolean {

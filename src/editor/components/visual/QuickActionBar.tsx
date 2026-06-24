@@ -97,6 +97,7 @@ const QUICK_ACTION_DRAG_THRESHOLD_PX = 8;
 export function QuickActionBar() {
   const hoverTarget = useVisualSelectionStore((state) => state.hoverTarget);
   const activeToolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
+  const quickActionDismissedAt = useVisualSelectionStore((state) => state.quickActionDismissedAt);
   const panelCategory = useFloatingVisualPanelStore((state) => state.category);
   const liveTarget = useMemo(() => resolveLiveQuickActionTarget(activeToolbarTarget, hoverTarget), [
     activeToolbarTarget,
@@ -181,6 +182,17 @@ export function QuickActionBar() {
   }, [renderTarget]);
 
   useEffect(() => () => clearHideTimer(hideTimerRef), []);
+
+  useEffect(() => {
+    if (quickActionDismissedAt === null) {
+      return;
+    }
+
+    clearHideTimer(hideTimerRef);
+    setToolbarHovered(false);
+    setToolbarFocusWithin(false);
+    setRenderTarget(null);
+  }, [quickActionDismissedAt]);
 
   const placement = useMemo(() => {
     if (!renderTarget) {

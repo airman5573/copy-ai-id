@@ -28,6 +28,7 @@ import {
   useFloatingVisualPanelStore,
   type FloatingVisualPanelTarget,
 } from '../../stores/useFloatingVisualPanelStore';
+import { useVisualSelectionStore } from '../../stores/useVisualSelectionStore';
 import {
   VISUAL_PANEL_CATEGORY_META,
   VisualPanelContent,
@@ -71,6 +72,7 @@ export function FloatingVisualPanel(): ReactElement | null {
   const activeCategory = useFloatingVisualPanelStore((state) => state.category);
   const target = useFloatingVisualPanelStore((state) => state.target);
   const closePanel = useFloatingVisualPanelStore((state) => state.closePanel);
+  const closeVisualSelectionPanel = useVisualSelectionStore((state) => state.closePanel);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
   const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
   const panelRef = useRef<HTMLElement | null>(null);
@@ -162,6 +164,10 @@ export function FloatingVisualPanel(): ReactElement | null {
   }
 
   const meta = VISUAL_PANEL_CATEGORY_META[activeCategory];
+  const handleClosePanel = (): void => {
+    closePanel();
+    closeVisualSelectionPanel();
+  };
 
   return (
     <div
@@ -209,7 +215,7 @@ export function FloatingVisualPanel(): ReactElement | null {
               className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-gray-600 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
               title="패널 닫기"
               aria-label="패널 닫기"
-              onClick={closePanel}
+              onClick={handleClosePanel}
               data-ai-id="copy-ai-id-editor-floating-visual-panel-close-button"
             >
               <span aria-hidden="true" data-ai-id="copy-ai-id-editor-floating-visual-panel-close-icon-text">×</span>

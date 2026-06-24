@@ -1,9 +1,13 @@
 import type { EditorKeyboardShortcut, EditorTargetReference } from '../shared/editor-messages';
 import { requestNotePanelFocus } from './note-panel-focus';
 import { copyNotebookDraftFromStore } from './notebook/copy';
+import { useFloatingVisualPanelStore } from './stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from './stores/useHighlightStore';
 import { useNotebookStore } from './stores/useNotebookStore';
+import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 import { showStaleFallbackTargetToast } from './toast';
+
+export type EditorEscapeActionResult = 'visual-panel' | 'visual-toolbar' | 'highlight';
 
 export function handleEditorShortcutAction(shortcut: EditorKeyboardShortcut): boolean {
   switch (shortcut) {
@@ -13,11 +17,29 @@ export function handleEditorShortcutAction(shortcut: EditorKeyboardShortcut): bo
       void copyNotebookDraftFromStore();
       return true;
     case 'escape':
-      useHighlightStore.getState().clearHighlightedTarget();
+      handleEditorEscapeAction();
       return true;
     default:
       return false;
   }
+}
+
+export function handleEditorEscapeAction(): EditorEscapeActionResult {
+  const floatingPanel = useFloatingVisualPanelStore.getState();
+  if (floatingPanel.isOpen) {
+    floatingPanel.closePanel();
+    useVisualSelectionStore.getState().closePanel();
+    return 'visual-panel';
+  }
+
+  const visualSelection = useVisualSelectionStore.getState();
+  if (visualSelection.activeToolbarTarget || visualSelection.hoverTarget) {
+    visualSelection.clearQuickActionTargets();
+    return 'visual-toolbar';
+  }
+
+  useHighlightStore.getState().clearHighlightedTarget();
+  return 'highlight';
 }
 
 function appendHighlightedTargetToNotebook(): boolean {

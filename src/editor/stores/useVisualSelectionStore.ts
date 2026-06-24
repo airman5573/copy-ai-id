@@ -73,6 +73,7 @@ interface VisualPanelTargetInput extends EditorTargetReference {
 export interface VisualSelectionStateSnapshot {
   hoverTarget: VisualHoverTargetState | null;
   activeToolbarTarget: VisualToolbarTargetState | null;
+  quickActionDismissedAt: number | null;
   panelTarget: VisualPanelTargetState | null;
   snapshotStatus: VisualSnapshotStatus;
   snapshotTarget: EditorTargetReference | null;
@@ -87,6 +88,7 @@ export interface VisualSelectionStateSnapshot {
 interface VisualSelectionStore extends VisualSelectionStateSnapshot {
   setHoverTarget(message: TargetHighlightedMessage, editorRect?: EditorViewportRect | null): void;
   setQuickActionAnchor(message: QuickActionAnchorChangedMessage, editorRect?: EditorViewportRect | null): void;
+  clearQuickActionTargets(): void;
   openPanelForTarget(input: VisualPanelTargetInput): void;
   closePanel(): void;
   setSnapshotLoading(reference: EditorTargetReference): void;
@@ -127,6 +129,7 @@ export interface VisualPanelReadinessSummary {
 const initialVisualSelectionState: VisualSelectionStateSnapshot = {
   hoverTarget: null,
   activeToolbarTarget: null,
+  quickActionDismissedAt: null,
   panelTarget: null,
   snapshotStatus: 'idle',
   snapshotTarget: null,
@@ -150,6 +153,7 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
       viewport: message.viewport ?? null,
       updatedAt: Date.now(),
     },
+    quickActionDismissedAt: null,
   }),
   setQuickActionAnchor: (message, editorRect = null) => set((state) => {
     if (!message.target || !message.elementRect || isClearingQuickActionReason(message.reason)) {
@@ -170,8 +174,15 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
         reason: message.reason,
         updatedAt: Date.now(),
       },
+      quickActionDismissedAt: null,
       staleReason: null,
     };
+  }),
+  clearQuickActionTargets: () => set({
+    hoverTarget: null,
+    activeToolbarTarget: null,
+    quickActionDismissedAt: Date.now(),
+    staleReason: 'cleared',
   }),
   openPanelForTarget: (input) => set((state) => {
     const now = Date.now();

@@ -291,9 +291,9 @@
   - Notes: Added a visual focus guard that protects preview hover while interacting with the editor-owned quick-action bar or floating visual panel, and the editor keyboard handler now ignores global shortcuts from guarded visual UI so Space, Shift+Enter, arrow navigation, and hover suppression do not fire while typing/clicking controls. Quick-action toolbar stays visible while focus remains inside it. Editable detection now also covers plaintext contenteditable and role=textbox rich-text surfaces while preserving Lexical notebook Shift+Enter copy behavior.
   - Parallelizable: no
 
-- [ ] Add Escape behavior for visual panel and toolbar.
+- [x] Add Escape behavior for visual panel and toolbar.
   - Files/areas: `src/editor/keyboard.ts`, `FloatingVisualPanel.tsx`, `QuickActionBar.tsx`, visual stores.
-  - Notes: Escape should close the visual panel first, then clear toolbar/selection as appropriate, without deleting note draft or visual edit records.
+  - Notes: Escape now closes the visual panel first, then clears the quick-action toolbar/selection and falls back to the existing preview highlight clear. Visual focus-guarded Escape is handled without deleting note draft or visual edit records, and the close button keeps both floating-panel and visual-selection panel state in sync.
   - Parallelizable: yes
 
 - [ ] Add stale target handling for fallback and structure-edited elements.
