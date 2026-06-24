@@ -151,9 +151,9 @@
   - Notes: Place above the element when space exists and below otherwise, matching `ai-editor` behavior. Keep visual size stable across preview zoom.
   - Parallelizable: no
 
-- [ ] Wire quick-action category buttons to open the floating visual panel.
+- [x] Wire quick-action category buttons to open the floating visual panel.
   - Files/areas: `QuickActionBar.tsx`, `src/editor/stores/useFloatingVisualPanelStore.ts`, `src/editor/stores/useSectionJumpStore.ts`.
-  - Notes: Clicking a category opens the panel for the current target and queues a section jump to the matching control section.
+  - Notes: Clicking a category now opens the store-backed floating panel state for the current target and queues a section jump to the matching control section. The visible floating panel shell is implemented in the next Phase 7 item.
   - Parallelizable: no
 
 - [ ] Wire quick-action structure buttons and drag grip to preview-only structure operations.

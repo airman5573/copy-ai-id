@@ -33,6 +33,7 @@ import {
   type OverlaySize,
 } from '../../bridge/geometry';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
+import { useFloatingVisualPanelStore } from '../../stores/useFloatingVisualPanelStore';
 import {
   useVisualSelectionStore,
   type VisualHoverTargetState,
@@ -77,7 +78,7 @@ interface QuickActionRenderTarget extends EditorTargetReference {
 export function QuickActionBar() {
   const hoverTarget = useVisualSelectionStore((state) => state.hoverTarget);
   const activeToolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
-  const panelCategory = useVisualSelectionStore((state) => state.panelTarget?.category ?? null);
+  const panelCategory = useFloatingVisualPanelStore((state) => state.category);
   const liveTarget = useMemo(() => resolveLiveQuickActionTarget(activeToolbarTarget, hoverTarget), [
     activeToolbarTarget,
     hoverTarget,
@@ -197,7 +198,10 @@ export function QuickActionBar() {
     selectQuickActionCategory({
       target: renderTarget.target,
       nodeId: renderTarget.nodeId,
-    }, category);
+    }, category, {
+      elementRect: renderTarget.elementRect,
+      editorRect: renderTarget.editorRect,
+    });
   };
   const preventPlaceholderStructureAction = (event: ReactPointerEvent<HTMLButtonElement>): void => {
     event.preventDefault();

@@ -1,6 +1,7 @@
 import {
   EDITOR_MESSAGE_TYPES,
   type BridgeToEditorMessage,
+  type BridgeViewportRect,
   type EditorToBridgeMessage,
   type EditorKeyboardShortcut,
   type EditorTargetReference,
@@ -11,16 +12,22 @@ import { hasSameEditorTarget } from '../../shared/editor-targets';
 import {
   bridgeViewportRectToEditorViewportRect,
   getBridgeIframeElement,
+  type EditorViewportRect,
   registerBridgeIframeElement,
 } from './geometry';
 import { useBridgeStore } from '../stores/useBridgeStore';
 import { useBoxModelStore } from '../stores/useBoxModelStore';
+import { useFloatingVisualPanelStore } from '../stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
 import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualBridgeStore, type VisualMutationResultMessage } from '../stores/useVisualBridgeStore';
 import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
+import {
+  quickActionCategoryToSectionId,
+  useSectionJumpStore,
+} from '../stores/useSectionJumpStore';
 import { appendTargetReferenceToNotebook, handleEditorShortcutAction } from '../shortcut-actions';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
 import {
@@ -95,6 +102,13 @@ export function syncVisualBridgeGeometry(): void {
     panelEditorRect,
     snapshotEditorRect: selectionSnapshotEditorRect,
   });
+
+  if (selectionState.panelTarget && useFloatingVisualPanelStore.getState().isOpen) {
+    useFloatingVisualPanelStore.getState().updateAnchorRects({
+      elementRect: selectionState.panelTarget.elementRect,
+      editorRect: panelEditorRect,
+    });
+  }
 }
 
 export function requestVisualTargetSnapshot(
@@ -114,6 +128,10 @@ export function requestVisualTargetSnapshot(
 export function selectQuickActionCategory(
   reference: EditorTargetReference,
   category: QuickActionCategory,
+  options: {
+    elementRect?: BridgeViewportRect | null;
+    editorRect?: EditorViewportRect | null;
+  } = {},
 ): void {
   const activeToolbarTarget = useVisualSelectionStore.getState().activeToolbarTarget;
   const isActiveToolbarTarget = Boolean(activeToolbarTarget)
@@ -125,12 +143,30 @@ export function selectQuickActionCategory(
     nodeId: reference.nodeId,
     category,
   });
+  const elementRect = options.elementRect
+    ?? (isActiveToolbarTarget ? activeToolbarTarget?.elementRect ?? null : null);
+  const editorRect = options.editorRect
+    ?? (isActiveToolbarTarget ? activeToolbarTarget?.editorRect ?? null : null);
+
   useVisualSelectionStore.getState().openPanelForTarget({
     target: reference.target,
     nodeId: reference.nodeId,
     category,
-    elementRect: isActiveToolbarTarget ? activeToolbarTarget?.elementRect : null,
-    editorRect: isActiveToolbarTarget ? activeToolbarTarget?.editorRect : null,
+    elementRect,
+    editorRect,
+  });
+  useFloatingVisualPanelStore.getState().openForTarget({
+    target: reference.target,
+    nodeId: reference.nodeId,
+    category,
+    elementRect,
+    editorRect,
+  });
+  useSectionJumpStore.getState().queueSectionJump({
+    target: reference.target,
+    nodeId: reference.nodeId,
+    category,
+    sectionId: quickActionCategoryToSectionId(category),
   });
 
   postToBridge({
@@ -179,6 +215,8 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       useVisualBridgeStore.getState().resetVisualBridgeState();
       useVisualEditStore.getState().resetVisualEditStore();
       useVisualSelectionStore.getState().resetVisualSelectionState();
+      useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
+      useSectionJumpStore.getState().resetSectionJumpStore();
       useBridgeStore.getState().markReady(message.url, message.aiIdCount);
       useRuntimeStore.getState().setPreviewUrl(message.url);
       postCurrentCanvasZoomToBridge();
