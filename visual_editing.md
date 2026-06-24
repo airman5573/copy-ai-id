@@ -234,7 +234,7 @@
   - Notes: Use `dompurify` or a strict allowlist for safe HTML fragments. Block scripts, event handlers, javascript URLs, extension-owned attributes, and runtime overlay artifacts.
   - Parallelizable: yes
 
-- [ ] Implement link and curated attribute controls under the content category.
+- [x] Implement link and curated attribute controls under the content category.
   - Files/areas: `LinkControls.tsx`, `AttributeControls.tsx`, new `src/shared/visual-attributes.ts`, preview mutation module.
   - Notes: Allow safe attributes such as `href`, `target`, `rel`, `src`, `alt`, `title`, `aria-label`, `placeholder`, `type` when safe. Block `on*`, `style` freeform if redundant with style controls, and dangerous URL schemes.
   - Parallelizable: yes

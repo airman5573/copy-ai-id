@@ -21,6 +21,7 @@ import {
   handleUpdateVisualRichText,
   handleUpdateVisualText,
 } from './visual-content';
+import { handleUpdateVisualAttribute } from './visual-attributes';
 import {
   handleDeleteVisualElement,
   handleDuplicateVisualElement,
@@ -149,6 +150,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.updateVisualRichText:
       handleUpdateVisualRichText(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.updateVisualAttribute:
+      handleUpdateVisualAttribute(message, post);
       return;
     case EDITOR_MESSAGE_TYPES.duplicateVisualElement:
       handleDuplicateVisualElement(message, post);

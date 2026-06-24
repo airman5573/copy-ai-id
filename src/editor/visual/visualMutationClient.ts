@@ -34,6 +34,7 @@ import {
   type VisualStyleCategory,
 } from '../../shared/visual-style';
 import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
+import { sanitizeVisualAttributeMutation } from '../../shared/visual-attributes';
 import {
   createVisualEditTargetDescriptor,
   createVisualEditTargetDescriptorFromSnapshot,
@@ -354,18 +355,27 @@ export function dispatchVisualAttributeMutation(
   options: DispatchVisualAttributeMutationOptions,
 ): VisualMutationDispatchResult<'attribute'> {
   const context = resolveVisualMutationContext({ ...options, category: options.category ?? 'content' });
+  const sanitizedAttribute = sanitizeVisualAttributeMutation(options.attribute);
+  if (!sanitizedAttribute.ok) {
+    throw new Error(sanitizedAttribute.error.detail ?? sanitizedAttribute.error.message);
+  }
+
   const mutationId = getNextVisualMutationId();
-  const before = options.attribute.previousValue
-    ?? context.snapshot?.attributes[options.attribute.name]
+  const before = sanitizedAttribute.attribute.previousValue
+    ?? context.snapshot?.attributes[sanitizedAttribute.attribute.name]
     ?? null;
-  const after = options.attribute.value;
+  const attribute = {
+    ...sanitizedAttribute.attribute,
+    previousValue: before,
+  };
+  const after = attribute.value;
   const control = createControlDescriptor(options, {
     category: 'content',
     kind: 'content',
-    id: `attribute:${options.attribute.name}`,
-    label: `Attribute: ${options.attribute.name}`,
+    id: `attribute:${attribute.name}`,
+    label: `Attribute: ${attribute.name}`,
   });
-  const humanSummary = `Set ${options.attribute.name} on ${context.targetLabel} to ${quotePreview(after ?? 'removed')}.`;
+  const humanSummary = `Set ${attribute.name} on ${context.targetLabel} to ${quotePreview(after ?? 'removed')}.`;
   const record = addOptimisticRecord<'attribute'>(context, mutationId, {
     category: 'content',
     controlKind: control.kind,
@@ -373,15 +383,15 @@ export function dispatchVisualAttributeMutation(
     kind: 'attribute',
     payload: {
       kind: 'attribute',
-      attributes: [{ name: options.attribute.name, before, after }],
+      attributes: [{ name: attribute.name, before, after }],
     },
     before: {
       kind: 'attribute',
-      attributes: [{ name: options.attribute.name, value: before }],
+      attributes: [{ name: attribute.name, value: before }],
     },
     after: {
       kind: 'attribute',
-      attributes: [{ name: options.attribute.name, value: after }],
+      attributes: [{ name: attribute.name, value: after }],
     },
     humanSummary,
   });
@@ -391,7 +401,7 @@ export function dispatchVisualAttributeMutation(
     target: context.reference.target,
     nodeId: context.reference.nodeId,
     breakpointId: context.breakpointId,
-    attribute: options.attribute,
+    attribute,
   };
 
   postVisualMutation(message, context.reference);

@@ -12,6 +12,8 @@ import {
 import { sanitizeVisualHtmlFragment } from '../../../shared/visual-html';
 import { useContentEdit } from '../../visual/useContentEdit';
 import { VisualControl } from '../visual/VisualControl';
+import { AttributeControls } from './AttributeControls';
+import { LinkControls } from './LinkControls';
 
 export type ContentControlsProps = {
   disabled?: boolean;
@@ -39,6 +41,9 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
           })}
         />
       </ContentControlGroup>
+
+      <LinkControls disabled={!canEdit} />
+      <AttributeControls disabled={!canEdit} />
 
       <ContentControlGroup
         title="Rich HTML"
