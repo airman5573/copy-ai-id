@@ -39,6 +39,7 @@ export interface OverlayPlacementOptions {
 
 export interface FloatingVisualPanelPlacementOptions extends OverlayPlacementOptions {
   mode?: 'target' | 'preview-side';
+  previewSide?: 'auto' | 'left' | 'right';
 }
 
 export interface OverlayPlacement {
@@ -205,7 +206,12 @@ export function calculateFloatingVisualPanelPlacement(
   const bounds = options.bounds ?? getPreviewOverlayBounds();
 
   if (mode === 'preview-side') {
-    return calculatePreviewSidePlacement(anchorRect, size, { gap, padding, bounds });
+    return calculatePreviewSidePlacement(anchorRect, size, {
+      gap,
+      padding,
+      bounds,
+      previewSide: options.previewSide ?? 'auto',
+    });
   }
 
   return calculateVerticalAnchorPlacement(anchorRect, size, { gap, padding, bounds });
@@ -281,9 +287,11 @@ function calculateVerticalAnchorPlacement(
 function calculatePreviewSidePlacement(
   anchorRect: EditorViewportRect,
   size: OverlaySize,
-  options: ResolvedOverlayPlacementOptions,
+  options: ResolvedOverlayPlacementOptions & {
+    previewSide: NonNullable<FloatingVisualPanelPlacementOptions['previewSide']>;
+  },
 ): OverlayPlacement {
-  const { bounds, gap, padding } = options;
+  const { bounds, gap, padding, previewSide } = options;
   const geometry = getPreviewWorkspaceGeometrySnapshot();
   const previewRect = geometry?.iframeRect ?? anchorRect;
   const safeWidth = Math.max(0, size.width);
@@ -292,7 +300,13 @@ function calculatePreviewSidePlacement(
   const preferredLeftLeft = previewRect.left - gap - safeWidth;
   const rightFits = preferredRightLeft + safeWidth <= bounds.right - padding;
   const leftFits = preferredLeftLeft >= bounds.left + padding;
-  const side: OverlayPlacementSide = rightFits || !leftFits ? 'right' : 'left';
+  const side: OverlayPlacementSide = previewSide === 'right'
+    ? 'right'
+    : previewSide === 'left'
+      ? 'left'
+      : rightFits || !leftFits
+        ? 'right'
+        : 'left';
   const unclampedLeft = side === 'right' ? preferredRightLeft : preferredLeftLeft;
   const anchorTop = anchorRect.top + Math.min(48, Math.max(0, anchorRect.height / 2));
 

@@ -1,12 +1,32 @@
-import { useMemo, type CSSProperties, type ReactElement } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type ReactElement,
+  type SetStateAction,
+} from 'react';
 
-import { breakpointById } from '../../../shared/breakpoints';
+import { breakpointById, type BreakpointId } from '../../../shared/breakpoints';
 import type {
   QuickActionCategory,
   VisualMutationError,
   VisualTargetSnapshot,
 } from '../../../shared/editor-messages';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
+import {
+  bridgeViewportRectToEditorViewportRect,
+  calculateFloatingVisualPanelPlacement,
+  createEditorViewportRect,
+  domRectToEditorViewportRect,
+  getPreviewWorkspaceGeometrySnapshot,
+  type EditorViewportRect,
+  type OverlayPlacement,
+  type OverlaySize,
+} from '../../bridge/geometry';
 import { useBreakpointStore } from '../../stores/useBreakpointStore';
 import {
   useFloatingVisualPanelStore,
@@ -19,11 +39,28 @@ import {
 } from '../../stores/useVisualSelectionStore';
 
 const DESKTOP_PANEL_WIDTH_PX = 380;
+const MOBILE_PANEL_WIDTH_PX = 320;
 const MIN_PANEL_WIDTH_PX = 280;
+const MAX_PANEL_HEIGHT_PX = 560;
+const MIN_PANEL_HEIGHT_PX = 180;
 const VIEWPORT_MARGIN_PX = 12;
-const RIGHT_SIDEBAR_WIDTH_PX = 360;
 const PANEL_GAP_PX = 8;
-const DEFAULT_PANEL_TOP_PX = 72;
+const DEFAULT_PANEL_SIZE: OverlaySize = { width: DESKTOP_PANEL_WIDTH_PX, height: 360 };
+
+type FloatingPanelPlacementMode = 'desktop-follow-anchor' | 'mobile-iframe-right';
+
+interface FloatingPanelPlacement {
+  left: number;
+  top: number;
+  width: number;
+  maxHeight: number;
+  mode: FloatingPanelPlacementMode;
+  side: OverlayPlacement['side'];
+  transformOrigin: string;
+  flipped: boolean;
+}
+
+const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
 
 const QUICK_CATEGORY_TABS: Array<{ category: QuickActionCategory; label: string }> = [
   { category: 'content', label: '콘텐츠' },
@@ -72,7 +109,91 @@ export function FloatingVisualPanel(): ReactElement | null {
   const activeCategory = useFloatingVisualPanelStore((state) => state.category);
   const target = useFloatingVisualPanelStore((state) => state.target);
   const closePanel = useFloatingVisualPanelStore((state) => state.closePanel);
-  const panelStyle = useMemo(() => createInitialPanelStyle(), []);
+  const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
+  const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
+  const panelRef = useRef<HTMLElement | null>(null);
+  const [panelSize, setPanelSize] = useState<OverlaySize>(DEFAULT_PANEL_SIZE);
+  const [layoutRevision, setLayoutRevision] = useState(0);
+  const placementMode: FloatingPanelPlacementMode = MOBILE_PANEL_BREAKPOINTS.has(activeBreakpointId)
+    ? 'mobile-iframe-right'
+    : 'desktop-follow-anchor';
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    measurePanel(panelRef.current, setPanelSize);
+  }, [activeCategory, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const node = panelRef.current;
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      measurePanel(node, setPanelSize);
+      setLayoutRevision((revision) => revision + 1);
+    });
+    resizeObserver.observe(node);
+
+    return () => resizeObserver.disconnect();
+  }, [activeCategory, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    let frameId: number | null = null;
+    const bumpLayoutRevision = (): void => {
+      if (frameId !== null) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        setLayoutRevision((revision) => revision + 1);
+      });
+    };
+    const root = panelRef.current?.getRootNode();
+    const previewStage = root && 'querySelector' in root
+      ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-preview-stage"]')
+      : null;
+
+    window.addEventListener('resize', bumpLayoutRevision, { passive: true });
+    window.addEventListener('scroll', bumpLayoutRevision, { capture: true, passive: true });
+    previewStage?.addEventListener('scroll', bumpLayoutRevision, { passive: true });
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener('resize', bumpLayoutRevision);
+      window.removeEventListener('scroll', bumpLayoutRevision, true);
+      previewStage?.removeEventListener('scroll', bumpLayoutRevision);
+    };
+  }, [isOpen]);
+
+  const placement = useMemo(() => computePanelPlacement({
+    mode: placementMode,
+    panelElement: panelRef.current,
+    panelSize,
+    target,
+  }), [
+    activeBreakpointId,
+    layoutRevision,
+    panelSize,
+    placementMode,
+    target,
+    zoom,
+  ]);
+  const panelStyle = createPanelStyle(placement);
 
   if (!isOpen || activeCategory === null) {
     return null;
@@ -86,6 +207,7 @@ export function FloatingVisualPanel(): ReactElement | null {
       data-ai-id="copy-ai-id-editor-floating-visual-panel-layer"
     >
       <section
+        ref={panelRef}
         className="pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
         style={panelStyle}
         role="dialog"
@@ -93,7 +215,8 @@ export function FloatingVisualPanel(): ReactElement | null {
         data-ai-id="copy-ai-id-editor-floating-visual-panel"
         data-ai-editor-floating-visual-panel="1"
         data-ai-editor-floating-panel-category={activeCategory}
-        data-ai-editor-floating-panel-placement="shell-static"
+        data-ai-editor-floating-panel-placement={placement.mode}
+        data-ai-editor-floating-panel-flipped={placement.flipped ? '1' : '0'}
         data-ai-editor-floating-panel-target-ai-id={target?.target.kind === 'ai-id' ? target.target.aiId : ''}
       >
         <header
@@ -386,21 +509,170 @@ function openCategory(category: QuickActionCategory, target: FloatingVisualPanel
   });
 }
 
-function createInitialPanelStyle(): CSSProperties {
-  const viewportWidth = typeof window === 'undefined' ? 1280 : Math.max(1, window.innerWidth || 1);
-  const width = Math.min(
-    DESKTOP_PANEL_WIDTH_PX,
-    Math.max(MIN_PANEL_WIDTH_PX, viewportWidth - VIEWPORT_MARGIN_PX * 2),
+function computePanelPlacement({
+  mode,
+  panelElement,
+  panelSize,
+  target,
+}: {
+  mode: FloatingPanelPlacementMode;
+  panelElement: HTMLElement | null;
+  panelSize: OverlaySize;
+  target: FloatingVisualPanelTarget | null;
+}): FloatingPanelPlacement {
+  const editorBounds = getEditorBounds();
+  const requestedWidth = mode === 'mobile-iframe-right'
+    ? MOBILE_PANEL_WIDTH_PX
+    : DESKTOP_PANEL_WIDTH_PX;
+  const width = clampNumber(
+    requestedWidth,
+    Math.min(MIN_PANEL_WIDTH_PX, Math.max(1, editorBounds.width - VIEWPORT_MARGIN_PX * 2)),
+    Math.max(1, editorBounds.width - VIEWPORT_MARGIN_PX * 2),
   );
-  const preferredLeft = viewportWidth - RIGHT_SIDEBAR_WIDTH_PX - PANEL_GAP_PX - width;
-  const left = clampNumber(preferredLeft, VIEWPORT_MARGIN_PX, viewportWidth - width - VIEWPORT_MARGIN_PX);
+  const maxHeight = Math.max(
+    MIN_PANEL_HEIGHT_PX,
+    Math.min(MAX_PANEL_HEIGHT_PX, editorBounds.height - VIEWPORT_MARGIN_PX * 2),
+  );
+  const height = clampNumber(
+    panelSize.height || DEFAULT_PANEL_SIZE.height,
+    MIN_PANEL_HEIGHT_PX,
+    maxHeight,
+  );
+  const anchorRect = resolvePanelAnchorRect({
+    mode,
+    panelElement,
+    target,
+  }) ?? fallbackAnchorRect();
+  const placement = calculateFloatingVisualPanelPlacement(anchorRect, {
+    width,
+    height,
+  }, {
+    bounds: editorBounds,
+    gap: PANEL_GAP_PX,
+    mode: mode === 'mobile-iframe-right' ? 'preview-side' : 'target',
+    padding: VIEWPORT_MARGIN_PX,
+    previewSide: mode === 'mobile-iframe-right' ? 'right' : 'auto',
+  });
 
   return {
-    left: `${left}px`,
-    top: `${DEFAULT_PANEL_TOP_PX}px`,
-    width: `${width}px`,
-    maxHeight: `min(560px, calc(100vh - ${VIEWPORT_MARGIN_PX * 2 + DEFAULT_PANEL_TOP_PX}px))`,
+    left: Math.round(placement.left),
+    top: Math.round(placement.top),
+    width: Math.round(placement.width),
+    maxHeight: Math.round(maxHeight),
+    mode,
+    side: placement.side,
+    transformOrigin: placement.transformOrigin,
+    flipped: mode === 'desktop-follow-anchor' ? placement.side === 'below' : false,
   };
+}
+
+function createPanelStyle(placement: FloatingPanelPlacement): CSSProperties {
+  return {
+    left: `${placement.left}px`,
+    top: `${placement.top}px`,
+    width: `${placement.width}px`,
+    maxHeight: `${placement.maxHeight}px`,
+    transformOrigin: placement.transformOrigin,
+  };
+}
+
+function resolvePanelAnchorRect({
+  mode,
+  panelElement,
+  target,
+}: {
+  mode: FloatingPanelPlacementMode;
+  panelElement: HTMLElement | null;
+  target: FloatingVisualPanelTarget | null;
+}): EditorViewportRect | null {
+  if (mode === 'desktop-follow-anchor') {
+    return quickActionToolbarRect(panelElement) ?? targetEditorRect(target);
+  }
+
+  return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
+}
+
+function quickActionToolbarRect(panelElement: HTMLElement | null): EditorViewportRect | null {
+  const root = panelElement?.getRootNode();
+  const toolbar = root && 'querySelector' in root
+    ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-quick-action-bar"]')
+    : null;
+
+  if (!toolbar) {
+    return null;
+  }
+
+  const rect = toolbar.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) {
+    return null;
+  }
+
+  return domRectToEditorViewportRect(rect);
+}
+
+function targetEditorRect(target: FloatingVisualPanelTarget | null): EditorViewportRect | null {
+  if (!target) {
+    return null;
+  }
+
+  return target.elementRect
+    ? bridgeViewportRectToEditorViewportRect(target.elementRect) ?? target.editorRect
+    : target.editorRect;
+}
+
+function fallbackAnchorRect(): EditorViewportRect {
+  const geometry = getPreviewWorkspaceGeometrySnapshot();
+  if (geometry?.iframeRect) {
+    return createEditorViewportRect({
+      left: geometry.iframeRect.left,
+      top: geometry.iframeRect.top,
+      width: geometry.iframeRect.width,
+      height: 0,
+    });
+  }
+
+  const bounds = getEditorBounds();
+  return createEditorViewportRect({
+    left: bounds.left + VIEWPORT_MARGIN_PX,
+    top: bounds.top + VIEWPORT_MARGIN_PX,
+    width: 0,
+    height: 0,
+  });
+}
+
+function getEditorBounds(): EditorViewportRect {
+  const geometry = getPreviewWorkspaceGeometrySnapshot();
+  if (geometry?.editorViewportRect) {
+    return geometry.editorViewportRect;
+  }
+
+  return createEditorViewportRect({
+    left: 0,
+    top: 0,
+    width: typeof window === 'undefined' ? 1 : Math.max(1, window.innerWidth || 1),
+    height: typeof window === 'undefined' ? 1 : Math.max(1, window.innerHeight || 1),
+  });
+}
+
+function measurePanel(
+  node: HTMLElement | null,
+  setPanelSize: Dispatch<SetStateAction<OverlaySize>>,
+): void {
+  if (!node) {
+    return;
+  }
+
+  const rect = node.getBoundingClientRect();
+  const width = Math.ceil(rect.width || node.offsetWidth || DEFAULT_PANEL_SIZE.width);
+  const height = Math.ceil(rect.height || node.offsetHeight || DEFAULT_PANEL_SIZE.height);
+
+  setPanelSize((currentSize) => {
+    if (currentSize.width === width && currentSize.height === height) {
+      return currentSize;
+    }
+
+    return { width, height };
+  });
 }
 
 function getTargetLabel(target: FloatingVisualPanelTarget | null): string {

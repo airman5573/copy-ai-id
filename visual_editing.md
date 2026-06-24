@@ -167,9 +167,9 @@
   - Notes: Added the store-backed dark floating panel shell with source-like header, category tabs, close button, breakpoint badge, and scrollable body for content/layout/spacing/size/style/border only. Body controls are placeholder shells until the dedicated control slices; placement is currently a static safe default and remains covered by the next checklist item.
   - Parallelizable: no
 
-- [ ] Implement desktop and mobile/tablet panel placement.
+- [x] Implement desktop and mobile/tablet panel placement.
   - Files/areas: `FloatingVisualPanel.tsx`, `geometry.ts`, `src/shared/breakpoints.ts`, `src/editor/stores/useBreakpointStore.ts`.
-  - Notes: Desktop follows toolbar/target and opens above it when possible. Mobile/tablet breakpoints place the panel to the right of the preview iframe as requested. Clamp to editor viewport.
+  - Notes: Desktop placement now anchors to the quick-action toolbar when present, then falls back to the selected target and opens above when space allows. Base/mobile/tablet breakpoints use the preview-side placement path, prefer the iframe's right side, and clamp panel width/top/height to the editor viewport. The panel remeasures on resize, scroll, breakpoint, zoom, target, and body-size changes.
   - Parallelizable: no
 
 - [ ] Port visual section primitives and section jump behavior.
