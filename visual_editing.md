@@ -52,7 +52,7 @@
   - Parallelizable: yes
 
 ### Phase 2 - Shared visual-edit contracts and target model
-- [ ] Extend the shared bridge message contract with visual editing messages and payloads.
+- [x] Extend the shared bridge message contract with visual editing messages and payloads.
   - Files/areas: `src/shared/editor-messages.ts`.
   - Notes: Add quick-action anchor/category messages, target snapshot request/response, style update/result, text/rich-text update/result, attribute update/result, structure duplicate/move/delete/restore messages, drag/move request messages, mutation errors, and optional box-region highlight messages. Keep existing highlight/layout/notebook messages compatible.
   - Parallelizable: no
