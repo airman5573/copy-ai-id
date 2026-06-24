@@ -35,22 +35,22 @@
   - Parallelizable: no
 
 ### Phase 2 - Build the iframe-owned quick toolbar module
-- [ ] Create a preview bridge quick toolbar renderer.
+- [x] Create a preview bridge quick toolbar renderer.
   - Files/areas: new `src/content/editor-bridge/quick-action-toolbar.ts`
   - Notes: Port the quick toolbar categories (`content`, `layout`, `spacing`, `size`, `style`, `border`), structure actions (`duplicate`, `move-up`, `move-down`, `delete`), labels from `getCurrentMessages()`, and styling from the old React/CSS implementation into a plain DOM module that runs inside the preview iframe. The toolbar root should use stable runtime attributes such as `data-copy-ai-id-quick-action-bar` and a stable `data-ai-id` for internal consistency, while still being excluded as runtime UI.
   - Parallelizable: no
 
-- [ ] Implement iframe viewport placement and refresh behavior.
+- [x] Implement iframe viewport placement and refresh behavior.
   - Files/areas: `src/content/editor-bridge/quick-action-toolbar.ts`, optionally `src/content/editor-bridge/overlay.ts`
   - Notes: Position the toolbar with `position: fixed` using the highlighted element's `getBoundingClientRect()` in iframe viewport coordinates. Preserve above/below placement, gap, padding, viewport clamping, max width, and resize/scroll refresh behavior. Use a live highlighted element reference so scroll/resize can recalculate placement without stale `elementRect` values.
   - Parallelizable: no
 
-- [ ] Implement toolbar pointer/focus lifetime inside the iframe.
+- [x] Implement toolbar pointer/focus lifetime inside the iframe.
   - Files/areas: `src/content/editor-bridge/quick-action-toolbar.ts`, `src/content/editor-bridge/highlight.ts`
   - Notes: Keep the toolbar visible while the pointer or focus is inside the toolbar. When iframe hover changes to a different page element, update the toolbar target. When the highlighted element is cleared for a real page/iframe exit, hide and destroy or detach the toolbar. Avoid relying on the old 180ms Shadow DOM transition delay as the primary protection.
   - Parallelizable: no
 
-- [ ] Add toolbar interaction dispatchers that post intent to the editor.
+- [x] Add toolbar interaction dispatchers that post intent to the editor.
   - Files/areas: `src/content/editor-bridge/quick-action-toolbar.ts`
   - Notes: Category buttons should post the new category request message. Structure buttons should post the new structure request message. Drag grip should keep pointer capture in the iframe toolbar, apply the same 8px threshold behavior, post drag-preview requests during drag, post drag-commit on successful release, and post drag-clear on cancel/lost capture.
   - Parallelizable: no
