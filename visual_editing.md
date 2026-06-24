@@ -125,7 +125,7 @@
   - Notes: Centralize `nextMutationId`, optimistic record creation, bridge post, response reconciliation, snapshot updates, and record human summary generation. Do not copy `ai-editor` source-map/chat blockers.
   - Parallelizable: no
 
-- [ ] Tie visual edit records into the notebook copy lifecycle.
+- [x] Tie visual edit records into the notebook copy lifecycle.
   - Files/areas: `src/editor/notebook/copy.ts`, `src/editor/notebook/format.ts`, new `src/editor/notebook/visual-edits-export.ts`, `src/editor/stores/useNotebookStore.ts`, `src/editor/stores/useVisualEditStore.ts`.
   - Notes: Allow copy when the note is empty but visual edits exist. Copy output should preserve existing `## Requests`, `## Targets`, and `## Rules`, and append hidden-on-screen `## Visual edits` with human-readable summaries plus fenced JSON. On copy success, clear note draft and visual edit records.
   - Parallelizable: no
