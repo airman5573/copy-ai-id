@@ -48,7 +48,7 @@
   - Notes: Add optional `elementRect?: BridgeViewportRect | null` and `viewport?: BridgeViewportSize` to `TargetReferenceRequestedMessage`. This lets iframe Space provide the element rect measured at the exact keydown moment.
   - Parallelizable: yes
 
-- [ ] Add a target-anchor resolver for editor-side Space flows.
+- [x] Add a target-anchor resolver for editor-side Space flows.
   - Files/areas: `src/editor/note-panel-anchor.ts` or local helpers in `src/editor/shortcut-actions.ts`, `src/editor/stores/useVisualSelectionStore.ts`, `src/editor/stores/useVisualBridgeStore.ts`, `src/editor/bridge/geometry.ts`, `src/shared/editor-targets.ts`
   - Notes: Resolve anchors in this order: explicit iframe message geometry, matching `activeToolbarTarget`, matching `hoverTarget`, matching `useVisualBridgeStore.quickActionAnchor`, preview iframe rect fallback, then safe editor viewport fallback. Use `hasSameEditorTarget` and prefer exact `nodeId` matches when available.
   - Parallelizable: no
