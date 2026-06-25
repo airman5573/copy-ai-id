@@ -1,6 +1,6 @@
 import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../../shared/editor-messages';
 import { handleNavigationShortcut } from './navigation';
-import { clearHighlightedElement, requestHighlightedTargetReference, type BridgePost } from './highlight';
+import { clearQuickActionSelection, requestHighlightedTargetReference, type BridgePost } from './highlight';
 
 const Z_CODE = 'KeyZ';
 const SPACE_CODE = 'Space';
@@ -84,7 +84,7 @@ export function handleBridgeKeyboardShortcut(
   post: BridgePost,
 ): boolean {
   if (shortcut === 'escape') {
-    clearHighlightedElement(post);
+    clearQuickActionSelection(post);
     return true;
   }
 

@@ -91,6 +91,7 @@ interface VisualSelectionStore extends VisualSelectionStateSnapshot {
   setHoverTarget(message: TargetHighlightedMessage, editorRect?: EditorViewportRect | null): void;
   setQuickActionAnchor(message: QuickActionAnchorChangedMessage, editorRect?: EditorViewportRect | null): void;
   clearQuickActionTargets(): void;
+  clearQuickActionSelection(): void;
   openPanelForTarget(input: VisualPanelTargetInput): void;
   closePanel(): void;
   setSnapshotLoading(reference: EditorTargetReference): void;
@@ -146,7 +147,7 @@ const initialVisualSelectionState: VisualSelectionStateSnapshot = {
 export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
   ...initialVisualSelectionState,
   setHoverTarget: (message, editorRect = null) => set({
-    hoverTarget: {
+    hoverTarget: message.target ? {
       target: message.target,
       nodeId: message.nodeId,
       origin: message.origin ?? 'preview',
@@ -154,7 +155,7 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
       editorRect,
       viewport: message.viewport ?? null,
       updatedAt: Date.now(),
-    },
+    } : null,
     quickActionDismissedAt: null,
   }),
   setQuickActionAnchor: (message, editorRect = null) => set((state) => {
@@ -182,6 +183,11 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
   }),
   clearQuickActionTargets: () => set({
     hoverTarget: null,
+    activeToolbarTarget: null,
+    quickActionDismissedAt: Date.now(),
+    staleReason: 'cleared',
+  }),
+  clearQuickActionSelection: () => set({
     activeToolbarTarget: null,
     quickActionDismissedAt: Date.now(),
     staleReason: 'cleared',

@@ -21,6 +21,7 @@ import {
 import { fallbackTargetForElement } from './fallback-target';
 import { hideOverlay, showOverlay } from './overlay';
 import {
+  hideQuickActionToolbar,
   isPointInQuickActionToolbarTransitionCorridor,
   isQuickActionToolbarElement,
   requestQuickActionToolbarHide,
@@ -66,7 +67,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
-    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
+    if (isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -78,7 +79,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
-    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
+    if (isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -101,7 +102,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
     lastMousePosition = position;
 
-    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
+    if (isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -114,10 +115,6 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
   const handleBlur = (): void => {
     if (isHoverHighlightSuppressed()) {
-      return;
-    }
-
-    if (getPinnedElement()) {
       return;
     }
 
@@ -165,6 +162,20 @@ export function getHighlightedElement(): Element | null {
 export function clearHighlightedElement(post: BridgePost): void {
   pinnedElement = null;
   setHighlightedElement(null, post, 'preview', { bypassPin: true });
+}
+
+export function clearQuickActionSelection(post: BridgePost): void {
+  pinnedElement = null;
+  hideQuickActionToolbar();
+  post({
+    type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
+    target: null,
+    nodeId: null,
+    elementRect: null,
+    viewport: viewportSize(),
+    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    reason: 'cleared',
+  });
 }
 
 export function setHoverHighlightSuppressed(suppressed: boolean): void {
@@ -235,9 +246,9 @@ export function setHighlightedElement(
 ): void {
   const nextElement = connectedHighlightElement(element);
   const activePinnedElement = getPinnedElement();
-  if (activePinnedElement && !options.bypassPin && nextElement !== activePinnedElement) {
-    return;
-  }
+  const shouldSyncQuickActionAnchor = !activePinnedElement
+    || options.bypassPin
+    || nextElement === activePinnedElement;
 
   const nextNodeId = nextElement ? resolveNodeIdForElement(nextElement) : null;
   const nextTarget = nextElement ? targetForElement(nextElement) : null;
@@ -267,6 +278,11 @@ export function setHighlightedElement(
     elementRect,
     viewport,
   });
+
+  if (!shouldSyncQuickActionAnchor) {
+    return;
+  }
+
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
     target: nextTarget,

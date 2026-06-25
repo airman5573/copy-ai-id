@@ -33,12 +33,11 @@ export function handleEditorEscapeAction(): EditorEscapeActionResult {
   }
 
   const visualSelection = useVisualSelectionStore.getState();
-  if (visualSelection.activeToolbarTarget || visualSelection.hoverTarget) {
-    visualSelection.clearQuickActionTargets();
+  if (visualSelection.activeToolbarTarget) {
+    visualSelection.clearQuickActionSelection();
     return 'visual-toolbar';
   }
 
-  useHighlightStore.getState().clearHighlightedTarget();
   return 'highlight';
 }
 
