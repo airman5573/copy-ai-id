@@ -106,22 +106,22 @@
   - Notes: Keep existing left/right panel behavior unchanged. Add only the minimal props needed for floating classes and accessible attributes.
   - Parallelizable: yes
 
-- [ ] Create the `FloatingNotePanel` overlay component.
+- [x] Create the `FloatingNotePanel` overlay component.
   - Files/areas: `src/editor/components/FloatingNotePanel.tsx`, `src/editor/bridge/geometry.ts`, `src/editor/stores/useFloatingNotePanelStore.ts`, `src/editor/stores/useEditorLayoutStore.ts`
   - Notes: Use the stored anchor and `notePanelWidth`. Measure panel size with `ResizeObserver`, compute a clamped placement using the shared floating overlay helper, and render `NotePanel variant="floating"` inside a fixed pointer-events layer. Use internal scrolling and max-height clamping.
   - Parallelizable: no
 
-- [ ] Keep the floating NotePanel mounted while floating mode is enabled but closed.
+- [x] Keep the floating NotePanel mounted while floating mode is enabled but closed.
   - Files/areas: `src/editor/components/FloatingNotePanel.tsx`, `src/editor/editor.css`
   - Notes: Avoid `display: none` for the mounted Lexical editor if it must be focusable after `openNearTarget`. Prefer a closed state that is non-interactive and invisible until opened, or set `isOpen` before issuing the focus request on Space.
   - Parallelizable: no
 
-- [ ] Mount the floating NotePanel layer in the app shell.
+- [x] Mount the floating NotePanel layer in the app shell.
   - Files/areas: `src/editor/App.tsx`
   - Notes: Render `<FloatingNotePanel />` near `<FloatingVisualPanel />`. Ensure it only owns the active NotePanel when floating mode is ON and the docked NotePanel is omitted by `MainArea`.
   - Parallelizable: no
 
-- [ ] Add floating NotePanel CSS.
+- [x] Add floating NotePanel CSS.
   - Files/areas: `src/editor/editor.css`
   - Notes: Add layer/shell classes such as `.copy-ai-id-editor-floating-note-panel-layer` and `.copy-ai-id-editor-floating-note-panel`. Match existing editor surfaces, z-index below or coordinated with `FloatingVisualPanel`, fixed positioning, max-height, overflow handling, and reduced-motion behavior consistent with `.copy-ai-id-editor-floating-visual-panel`.
   - Parallelizable: yes

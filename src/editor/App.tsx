@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { createPreviewUrl } from './bridge/bridgeClient';
+import { FloatingNotePanel } from './components/FloatingNotePanel';
 import { MainArea } from './components/MainArea';
 import { FloatingVisualPanel } from './components/visual-panel/FloatingVisualPanel';
 import { TopToolbar } from './components/TopToolbar';
@@ -120,6 +121,7 @@ export function App({ onRequestClose }: AppProps) {
         onFitZoom={handleFitZoom}
       />
       <MainArea previewStageRef={previewStageRef} onFitZoom={handleFitZoom} />
+      <FloatingNotePanel />
       <FloatingVisualPanel />
       {toastMessage ? (
         <div
