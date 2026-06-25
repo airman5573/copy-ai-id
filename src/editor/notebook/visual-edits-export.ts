@@ -3,14 +3,17 @@ import {
   describeVisualEditTarget,
   visualEditTargetSerializationKey,
 } from '../../shared/visual-targets';
-import type { EditorTarget } from '../../shared/editor-messages';
 import type {
+  EditorTarget,
+  VisualStructureMutationSnapshot,
+} from '../../shared/editor-messages';
+import type {
+  VisualEditPayload,
   VisualEditRecord,
+  VisualEditStatePayload,
   VisualEditTargetDescriptor,
   VisualEditWarning,
-  VisualEditsExportDocument,
 } from '../../shared/visual-edits';
-import { createVisualEditsExportDocument } from '../stores/useVisualEditStore';
 
 interface VisualEditTargetGroup {
   target: VisualEditTargetDescriptor;
@@ -21,19 +24,62 @@ interface ExistingNotebookTarget {
   target: EditorTarget;
 }
 
+interface CompactVisualEditsExportDocument {
+  version: 1;
+  generatedAt: string;
+  format: 'compact-visual-edits-v1';
+  edits: CompactVisualEditDiff[];
+}
+
+interface CompactVisualEditDiff {
+  id: string;
+  order: number;
+  kind: VisualEditRecord['kind'];
+  operation: string;
+  target: CompactVisualEditTarget;
+  breakpoint?: {
+    id: string;
+    label: string;
+    width: number;
+  };
+  change?: unknown;
+  insertPosition?: CompactStructurePosition;
+  html?: string;
+  warnings?: string[];
+}
+
+interface CompactVisualEditTarget {
+  strategy: VisualEditTargetDescriptor['strategy'];
+  aiId?: string;
+  instanceIndex?: number;
+  selector?: string;
+  selectorKind?: string;
+  path?: string;
+  tagName?: string;
+  label?: string;
+  context?: string;
+}
+
+interface CompactStructurePosition {
+  parentNodeId: string | null;
+  childElementIndex: number | null;
+  previousSiblingNodeId: string | null;
+  nextSiblingNodeId: string | null;
+}
+
 const VISUAL_ONLY_REQUEST_TEXT = [
   'Apply the preview-only visual edits listed in `## Visual edits` to the source implementation.',
-  'Use the human-readable summaries first, then the fenced JSON diff for exact target, before/after, and breakpoint details.',
+  'Use the compact JSON for exact operation, target, insertion, HTML, breakpoint, and warning details.',
 ].join(' ');
 
 const BREAKPOINT_INTENT_NOTE = [
-  'Breakpoint labels on style edits are implementation intent.',
-  'The preview applies style changes as inline DOM mutations for immediate feedback unless a future diff explicitly says scoped CSS was injected.',
+  'Breakpoint labels are implementation intent.',
+  'For non-base style edits, recreate the change as responsive/scoped source CSS.',
 ].join(' ');
 
 const FALLBACK_TARGET_SAFETY_NOTE = [
-  'Fallback visual-edit targets are selector/path/context references, not stable source IDs.',
-  'Before applying them, re-identify the element in the current DOM/source if nearby markup changed.',
+  'Fallback targets are selector/context hints, not stable source IDs.',
+  'Prefer adding a stable data-ai-id in source first; otherwise re-identify the element before editing.',
 ].join(' ');
 
 export function getVisualOnlyNotebookRequestText(): string {
@@ -60,7 +106,7 @@ export function appendVisualEditsSection(
 
 export function formatVisualEditsSection(
   records: readonly VisualEditRecord[],
-  document?: VisualEditsExportDocument,
+  document?: CompactVisualEditsExportDocument,
 ): string {
   const exportableRecords = getOrderedExportableRecords(records);
 
@@ -68,18 +114,20 @@ export function formatVisualEditsSection(
     return '';
   }
 
-  const exportDocument = document ?? createVisualEditsExportDocument(exportableRecords);
+  const exportDocument = document ?? createCompactVisualEditsExportDocument(exportableRecords);
   const targetGroups = groupVisualEditRecordsByTarget(exportableRecords);
-  const fallbackTargetNote = hasFallbackVisualEditTargets(exportableRecords)
-    ? ['', `Fallback target safety: ${FALLBACK_TARGET_SAFETY_NOTE}`]
+  const guidanceLines = [
+    'Preview-only: recreate these changes in source; do not copy extension runtime artifacts.',
+    hasFallbackVisualEditTargets(exportableRecords) ? `Fallback safety: ${FALLBACK_TARGET_SAFETY_NOTE}` : '',
+    hasNonBaseStyleVisualEdit(exportableRecords) ? `Breakpoint note: ${BREAKPOINT_INTENT_NOTE}` : '',
+  ].filter(Boolean);
+  const guidanceBlock = guidanceLines.length > 0
+    ? [...guidanceLines, '']
     : [];
   const lines = [
     '## Visual edits',
     '',
-    'These edits were made only in the live preview. Recreate them in the actual source/CSS/markup; do not copy extension runtime artifacts.',
-    BREAKPOINT_INTENT_NOTE,
-    ...fallbackTargetNote,
-    '',
+    ...guidanceBlock,
     ...targetGroups.flatMap((group, index) => formatVisualEditTargetGroup(group, index, targetGroups.length)),
     '',
     '```json',
@@ -116,9 +164,7 @@ export function formatVisualEditTargetsForNotebookTargets(
 function formatVisualEditRecordSummary(record: VisualEditRecord): string[] {
   const lines = [
     `${record.order}. ${record.humanSummary}`,
-    `   - Record id: ${record.id}`,
-    `   - Category/control: ${record.control.category} / ${record.control.label}`,
-    `   - Mutation: ${record.kind}; status: ${record.status}`,
+    `   - id: ${formatInlineCode(record.id)}; kind: ${formatInlineCode(record.kind)}; status: ${record.status}`,
   ];
 
   if (record.breakpointId) {
@@ -143,43 +189,19 @@ function formatVisualEditNotebookTargetDetail(group: VisualEditTargetGroup, inde
   const lines = [
     `### ${formatInlineCode(`visual-edit-target-${index + 1}`)}`,
     `- Source visual edits: ${group.records.map((record) => formatInlineCode(record.id)).join(', ')}`,
+    `- Target: ${formatTargetReferenceLine(target)}`,
   ];
 
   if (target.strategy === 'ai-id') {
-    lines.push('- Kind: stable data-ai-id target');
-    if (target.aiId) {
-      lines.push(`- data-ai-id: ${formatInlineCode(target.aiId)}`);
-    }
-    if (target.tagName) {
-      lines.push(`- Element: ${formatInlineCode(target.tagName)}`);
-    }
-    if (target.instanceIndex && target.instanceIndex > 0) {
-      lines.push(`- Instance: ${target.instanceIndex + 1} of the repeated data-ai-id`);
-    }
-    if (target.textPreview) {
-      lines.push(`- Context: ${formatPlainPreview(target.textPreview)}`);
+    const context = contextForTarget(target);
+    if (context) {
+      lines.push(`- Context: ${formatPlainPreview(context)}`);
     }
 
     return lines.join('\n');
   }
 
-  const selectorReliability = target.fallback?.selectorKind
-    ?? (target.target.kind === 'fallback' ? target.target.selectorKind : 'unknown');
-  lines.push(`- Kind: fallback visual edit target (selector reliability: ${formatInlineCode(selectorReliability)})`);
-  if (target.tagName || target.label) {
-    lines.push(`- Element: ${target.tagName ? formatInlineCode(target.tagName) : 'unknown'}${target.label ? ` — ${target.label}` : ''}`);
-  }
-  if (target.selector) {
-    lines.push(`- Selector: ${formatInlineCode(target.selector)}`);
-  }
-  if (target.path) {
-    lines.push(`- DOM path: ${formatInlineCode(target.path)}`);
-  }
-
-  const context = target.textPreview
-    ?? target.fallback?.nearbyText
-    ?? target.accessibility
-    ?? target.classTokens?.join(' ');
+  const context = contextForTarget(target);
   if (context) {
     lines.push(`- Context: ${formatPlainPreview(context)}`);
   }
@@ -197,8 +219,7 @@ function formatVisualEditTargetGroup(
   const lines = [
     `### ${groupLabel}: ${formatTargetDescriptor(group.target)}`,
     '',
-    `- Strategy: ${formatTargetStrategy(group.target)}`,
-    `- Visual edit records: ${group.records.length}`,
+    `- Target: ${formatTargetReferenceLine(group.target)}`,
   ];
 
   const targetSafetyLine = formatTargetSafetyLine(group.target);
@@ -206,14 +227,9 @@ function formatVisualEditTargetGroup(
     lines.push(`- Safety: ${targetSafetyLine}`);
   }
 
-  const targetLocatorLines = formatTargetLocatorLines(group.target);
-  if (targetLocatorLines.length > 0) {
-    lines.push(...targetLocatorLines);
-  }
-
-  const groupWarnings = formatWarningEntries(uniqueWarnings(group.records.flatMap((record) => record.warnings)));
+  const groupWarnings = formatWarningCodes(uniqueWarnings(group.records.flatMap((record) => record.warnings)));
   if (groupWarnings) {
-    lines.push(`- Target warnings: ${groupWarnings}`);
+    lines.push(`- Warnings: ${groupWarnings}`);
   }
 
   lines.push('', ...group.records.flatMap((record) => formatVisualEditRecordSummary(record)));
@@ -232,12 +248,26 @@ function formatTargetDescriptor(target: VisualEditTargetDescriptor): string {
   return describeVisualEditTarget(target);
 }
 
-function formatTargetStrategy(target: VisualEditTargetDescriptor): string {
+function formatTargetReferenceLine(target: VisualEditTargetDescriptor): string {
   if (target.strategy === 'ai-id') {
-    return 'stable data-ai-id target';
+    const parts = [
+      target.aiId ? `data-ai-id ${formatInlineCode(target.aiId)}` : 'data-ai-id target',
+      target.tagName ? `<${target.tagName}>` : '',
+      target.instanceIndex && target.instanceIndex > 0 ? `instance ${target.instanceIndex + 1}` : '',
+    ].filter(Boolean);
+    return parts.join(', ');
   }
 
-  return 'fallback target resolved from selector/path/context';
+  const selectorKind = target.fallback?.selectorKind
+    ?? (target.target.kind === 'fallback' ? target.target.selectorKind : 'unknown');
+  const parts = [
+    target.selector ? `fallback ${formatInlineCode(target.selector)}` : 'fallback target',
+    `selector kind ${formatInlineCode(selectorKind)}`,
+    target.tagName ? `<${target.tagName}>` : '',
+    target.label ? `— ${target.label}` : '',
+  ].filter(Boolean);
+
+  return parts.join(' ');
 }
 
 function formatTargetSafetyLine(target: VisualEditTargetDescriptor): string {
@@ -246,27 +276,6 @@ function formatTargetSafetyLine(target: VisualEditTargetDescriptor): string {
   }
 
   return FALLBACK_TARGET_SAFETY_NOTE;
-}
-
-function formatTargetLocatorLines(target: VisualEditTargetDescriptor): string[] {
-  if (target.strategy !== 'fallback') {
-    return target.nodeId ? [`- Node id at capture time: ${target.nodeId}`] : [];
-  }
-
-  const lines: string[] = [];
-  if (target.selector) {
-    lines.push(`- Fallback selector: \`${target.selector}\``);
-  }
-  if (target.fallback?.selectorKind) {
-    lines.push(`- Fallback selector kind: ${target.fallback.selectorKind}`);
-  }
-  if (target.path) {
-    lines.push(`- Fallback path: \`${target.path}\``);
-  }
-  if (target.nodeId) {
-    lines.push(`- Node id at capture time: ${target.nodeId}`);
-  }
-  return lines;
 }
 
 function formatBreakpointLine(record: VisualEditRecord): string {
@@ -303,7 +312,7 @@ function formatPayloadSummary(record: VisualEditRecord): string {
     case 'form-value':
       return `form value ${formatJsonInline(record.payload.formValue.before)} → ${formatJsonInline(record.payload.formValue.after)}`;
     case 'structure':
-      return `structure operation ${record.payload.structure.operation}`;
+      return formatStructurePayloadSummary(record);
     case 'html':
       return `HTML ${formatLengthChange(record.payload.html.beforeHtml, record.payload.html.afterHtml)}${record.payload.html.sanitized ? ' (sanitized)' : ''}`;
     default:
@@ -312,13 +321,13 @@ function formatPayloadSummary(record: VisualEditRecord): string {
 }
 
 function formatWarnings(warnings: readonly VisualEditWarning[]): string {
-  return formatWarningEntries(uniqueWarnings(warnings));
+  return formatWarningCodes(uniqueWarnings(warnings));
 }
 
-function formatWarningEntries(warnings: ReadonlyArray<[string, string]>): string {
+function formatWarningCodes(warnings: ReadonlyArray<[string, string]>): string {
   return warnings
-    .map(([code, message]) => `${code}: ${message}`)
-    .join('; ');
+    .map(([code]) => code)
+    .join(', ');
 }
 
 function uniqueWarnings(warnings: readonly VisualEditWarning[]): Array<[string, string]> {
@@ -390,6 +399,220 @@ function visualEditTargetMatchesEditorTarget(
   }
 
   return false;
+}
+
+function createCompactVisualEditsExportDocument(records: readonly VisualEditRecord[]): CompactVisualEditsExportDocument {
+  return {
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    format: 'compact-visual-edits-v1',
+    edits: records.map(compactVisualEditDiffForRecord),
+  };
+}
+
+function compactVisualEditDiffForRecord(record: VisualEditRecord): CompactVisualEditDiff {
+  const compactStructure = record.payload.kind === 'structure'
+    ? compactStructureFields(record)
+    : {};
+  const change = compactChangeForRecord(record);
+  const warnings = compactWarnings(record.warnings);
+
+  return removeUndefinedProperties({
+    id: record.id,
+    order: record.order,
+    kind: record.kind,
+    operation: operationForRecord(record),
+    target: compactTargetForDescriptor(record.target),
+    breakpoint: compactBreakpointForRecord(record),
+    change,
+    ...compactStructure,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  });
+}
+
+function compactTargetForDescriptor(target: VisualEditTargetDescriptor): CompactVisualEditTarget {
+  if (target.strategy === 'ai-id') {
+    return removeUndefinedProperties({
+      strategy: 'ai-id' as const,
+      aiId: target.aiId,
+      instanceIndex: target.instanceIndex && target.instanceIndex > 0 ? target.instanceIndex : undefined,
+      tagName: target.tagName,
+      label: target.label,
+      context: contextForTarget(target),
+    });
+  }
+
+  return removeUndefinedProperties({
+    strategy: 'fallback' as const,
+    selector: target.selector ?? target.fallback?.selector,
+    selectorKind: target.fallback?.selectorKind
+      ?? (target.target.kind === 'fallback' ? target.target.selectorKind : undefined),
+    path: target.path ?? target.fallback?.path,
+    tagName: target.tagName ?? target.fallback?.tagName,
+    label: target.label ?? target.fallback?.label,
+    context: contextForTarget(target),
+  });
+}
+
+function compactBreakpointForRecord(record: VisualEditRecord): CompactVisualEditDiff['breakpoint'] {
+  if (!record.breakpointId) {
+    return undefined;
+  }
+
+  const breakpoint = breakpointById(record.breakpointId);
+  return {
+    id: record.breakpointId,
+    label: breakpoint.label,
+    width: breakpoint.width,
+  };
+}
+
+function compactChangeForRecord(record: VisualEditRecord): unknown {
+  const payload = record.payload;
+
+  switch (payload.kind) {
+    case 'style':
+      return {
+        declarations: payload.declarations.map((declaration) => removeUndefinedProperties({
+          property: declaration.property,
+          before: declaration.before,
+          after: declaration.after,
+          priority: declaration.priority,
+          source: declaration.source,
+        })),
+      };
+    case 'attribute':
+      return { attributes: payload.attributes };
+    case 'text':
+      return { text: payload.text };
+    case 'rich-text':
+      return {
+        beforeHtml: payload.richText.beforeHtml,
+        afterHtml: payload.richText.afterHtml,
+        sanitized: payload.richText.sanitized,
+        strippedRuntimeArtifacts: payload.richText.strippedRuntimeArtifacts,
+      };
+    case 'form-value':
+      return { formValue: payload.formValue };
+    case 'structure':
+      return compactStructureChange(payload, record.before, record.after);
+    case 'html':
+      return {
+        beforeHtml: payload.html.beforeHtml,
+        afterHtml: payload.html.afterHtml,
+        sanitized: payload.html.sanitized,
+        strippedRuntimeArtifacts: payload.html.strippedRuntimeArtifacts,
+      };
+    default:
+      return exhaustivePayload(payload);
+  }
+}
+
+function compactStructureFields(record: VisualEditRecord): Partial<CompactVisualEditDiff> {
+  if (record.payload.kind !== 'structure') {
+    return {};
+  }
+
+  const { structure } = record.payload;
+  const referenceSnapshot = structure.after ?? structure.before;
+
+  return removeUndefinedProperties({
+    insertPosition: compactStructurePosition(structure.after),
+    html: referenceSnapshot?.targetHtml,
+  });
+}
+
+function compactStructureChange(
+  payload: Extract<VisualEditPayload, { kind: 'structure' }>,
+  beforeState: VisualEditStatePayload,
+  afterState: VisualEditStatePayload,
+): unknown {
+  const { structure } = payload;
+
+  return removeUndefinedProperties({
+    operation: structure.operation,
+    before: compactStructurePosition(structure.before ?? stateStructureSnapshot(beforeState)),
+    after: compactStructurePosition(structure.after ?? stateStructureSnapshot(afterState)),
+    movedDirection: structure.movedDirection,
+    dropPosition: structure.dropPosition,
+    dropTarget: structure.dropTarget ? compactTargetForDescriptor(structure.dropTarget) : undefined,
+    duplicatedTarget: structure.duplicatedTarget ? compactTargetForDescriptor(structure.duplicatedTarget) : undefined,
+  });
+}
+
+function compactStructurePosition(
+  snapshot: VisualStructureMutationSnapshot | null | undefined,
+): CompactStructurePosition | undefined {
+  if (!snapshot) {
+    return undefined;
+  }
+
+  return {
+    parentNodeId: snapshot.parentNodeId ?? null,
+    childElementIndex: snapshot.childElementIndex ?? null,
+    previousSiblingNodeId: snapshot.previousSiblingNodeId ?? null,
+    nextSiblingNodeId: snapshot.nextSiblingNodeId ?? null,
+  };
+}
+
+function stateStructureSnapshot(state: VisualEditStatePayload): VisualStructureMutationSnapshot | null {
+  if (state.kind !== 'structure') {
+    return null;
+  }
+
+  return state.structure.structure;
+}
+
+function operationForRecord(record: VisualEditRecord): string {
+  if (record.payload.kind === 'structure') {
+    return record.payload.structure.operation;
+  }
+
+  return record.control.id || record.control.label || record.kind;
+}
+
+function compactWarnings(warnings: readonly VisualEditWarning[]): string[] {
+  return uniqueWarnings(warnings).map(([code]) => code);
+}
+
+function hasNonBaseStyleVisualEdit(records: readonly VisualEditRecord[]): boolean {
+  return records.some((record) => record.kind === 'style' && record.breakpointId && record.breakpointId !== 'base');
+}
+
+function contextForTarget(target: VisualEditTargetDescriptor): string | undefined {
+  const context = target.textPreview
+    ?? target.fallback?.nearbyText
+    ?? target.fallback?.textPreview
+    ?? target.accessibility
+    ?? target.classTokens?.join(' ');
+
+  return context && context.trim().length > 0 ? formatPlainPreview(context) : undefined;
+}
+
+function formatStructurePayloadSummary(record: VisualEditRecord): string {
+  if (record.payload.kind !== 'structure') {
+    return '';
+  }
+
+  const { structure } = record.payload;
+  const afterIndex = structure.after?.childElementIndex;
+  const beforeIndex = structure.before?.childElementIndex;
+  const index = afterIndex ?? beforeIndex;
+  const position = index === null || index === undefined ? '' : ` at child index ${index}`;
+  const html = (structure.after ?? structure.before)?.targetHtml;
+  const htmlPreview = html ? `; HTML ${formatQuotedPreview(html)}` : '';
+
+  return `structure ${structure.operation}${position}${htmlPreview}`;
+}
+
+function removeUndefinedProperties<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined),
+  ) as T;
+}
+
+function exhaustivePayload(value: never): never {
+  throw new Error(`Unsupported visual edit payload: ${JSON.stringify(value)}`);
 }
 
 function formatNullableValue(value: string | null): string {

@@ -33,7 +33,11 @@ import {
   quickActionCategoryToSectionId,
   useSectionJumpStore,
 } from '../stores/useSectionJumpStore';
-import { appendTargetReferenceToNotebook, handleEditorShortcutAction } from '../shortcut-actions';
+import {
+  appendTargetReferenceToNotebook,
+  handleEditorEscapeAction,
+  handleEditorShortcutAction,
+} from '../shortcut-actions';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
 import {
   isNoteEditorHoverProtected,
@@ -382,6 +386,14 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       if (isArrowShortcut(message.shortcut)) {
         suppressHoverUntilMouseMove();
+      }
+
+      if (message.shortcut === 'escape') {
+        const result = handleEditorEscapeAction();
+        if (result !== 'visual-panel') {
+          postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
+        }
+        return;
       }
 
       handleEditorShortcutAction(message.shortcut);

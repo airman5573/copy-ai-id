@@ -88,7 +88,7 @@ export function installEditorKeyboard(): () => void {
 function clearVisualEditorEscapeState(): void {
   const result = handleEditorEscapeAction();
   if (result !== 'visual-panel') {
-    postToBridge({ type: EDITOR_MESSAGE_TYPES.hoverTreeNode, nodeId: null });
+    postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
   }
 }
 

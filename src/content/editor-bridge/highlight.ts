@@ -31,6 +31,7 @@ export type BridgePost = (message: BridgeToEditorMessage) => void;
 
 interface HighlightRefreshOptions {
   force?: boolean;
+  bypassPin?: boolean;
 }
 
 interface MousePosition {
@@ -44,6 +45,7 @@ let highlightedElement: Element | null = null;
 let highlightedNodeId: string | null = null;
 let highlightedTarget: EditorTarget | null = null;
 let highlightedOrigin: HighlightOrigin | null = null;
+let pinnedElement: Element | null = null;
 let hoverHighlightSuppressed = false;
 let keyboardNavigationHoverSuppressed = false;
 let lastMousePosition: MousePosition | null = null;
@@ -64,7 +66,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
-    if (isQuickActionToolbarEvent(event)) {
+    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -76,7 +78,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
-    if (isQuickActionToolbarEvent(event)) {
+    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -99,7 +101,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
     lastMousePosition = position;
 
-    if (isQuickActionToolbarEvent(event)) {
+    if (getPinnedElement() || isQuickActionToolbarEvent(event)) {
       return;
     }
 
@@ -115,19 +117,40 @@ export function installHoverHighlight(post: BridgePost): () => void {
       return;
     }
 
+    if (getPinnedElement()) {
+      return;
+    }
+
     setHighlightedElement(null, post, 'preview');
+  };
+
+  const handleClick = (event: MouseEvent): void => {
+    if (event.button !== 0 || isQuickActionToolbarElement(event.target)) {
+      return;
+    }
+
+    const element = resolvePreviewHighlightElement(event);
+    if (!element) {
+      return;
+    }
+
+    consumeMouseEvent(event);
+    pinQuickActionToolbar(element, post);
   };
 
   document.addEventListener('mouseover', handleMouseOver, { capture: true, passive: true });
   document.addEventListener('mouseout', handleMouseOut, { capture: true, passive: true });
   document.addEventListener('mousemove', handleMouseMove, { capture: true, passive: true });
+  document.addEventListener('click', handleClick, true);
   window.addEventListener('blur', handleBlur, { passive: true });
 
   return () => {
     document.removeEventListener('mouseover', handleMouseOver, true);
     document.removeEventListener('mouseout', handleMouseOut, true);
     document.removeEventListener('mousemove', handleMouseMove, true);
+    document.removeEventListener('click', handleClick, true);
     window.removeEventListener('blur', handleBlur);
+    pinnedElement = null;
     hoverHighlightSuppressed = false;
     keyboardNavigationHoverSuppressed = false;
     lastMousePosition = null;
@@ -140,7 +163,8 @@ export function getHighlightedElement(): Element | null {
 }
 
 export function clearHighlightedElement(post: BridgePost): void {
-  setHighlightedElement(null, post, 'preview');
+  pinnedElement = null;
+  setHighlightedElement(null, post, 'preview', { bypassPin: true });
 }
 
 export function setHoverHighlightSuppressed(suppressed: boolean): void {
@@ -210,6 +234,11 @@ export function setHighlightedElement(
   options: HighlightRefreshOptions = {},
 ): void {
   const nextElement = connectedHighlightElement(element);
+  const activePinnedElement = getPinnedElement();
+  if (activePinnedElement && !options.bypassPin && nextElement !== activePinnedElement) {
+    return;
+  }
+
   const nextNodeId = nextElement ? resolveNodeIdForElement(nextElement) : null;
   const nextTarget = nextElement ? targetForElement(nextElement) : null;
 
@@ -262,6 +291,19 @@ export function setHighlightedElement(
   requestQuickActionToolbarHide();
 }
 
+function pinQuickActionToolbar(element: Element, post: BridgePost): void {
+  const nextElement = connectedHighlightElement(element);
+  if (!nextElement || !targetForElement(nextElement)) {
+    return;
+  }
+
+  pinnedElement = nextElement;
+  setHighlightedElement(nextElement, post, 'preview', {
+    bypassPin: true,
+    force: true,
+  });
+}
+
 export function closestAiIdElement(start: Element): Element | null {
   const element = closestComposedElementMatching(start, hasUsableAiId);
   return connectedAiIdElement(element);
@@ -283,6 +325,15 @@ function connectedHighlightElement(element: Element | null): Element | null {
   }
 
   return element;
+}
+
+function getPinnedElement(): Element | null {
+  const connected = connectedHighlightElement(pinnedElement);
+  if (connected !== pinnedElement) {
+    pinnedElement = null;
+  }
+
+  return connected;
 }
 
 function targetForElement(element: Element): EditorTarget | null {
@@ -423,4 +474,10 @@ function mousePositionForEvent(event: MouseEvent): MousePosition {
     screenX: event.screenX,
     screenY: event.screenY,
   };
+}
+
+function consumeMouseEvent(event: MouseEvent): void {
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
 }

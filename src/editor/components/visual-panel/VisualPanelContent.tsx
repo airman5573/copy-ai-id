@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { useShallow } from 'zustand/shallow';
 
 import type {
   QuickActionCategory,
@@ -42,8 +43,10 @@ export interface VisualPanelContentProps {
 
 export function VisualPanelContent({ category, target }: VisualPanelContentProps): ReactElement {
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
-  const readiness = useVisualSelectionStore((state) => selectVisualPanelReadinessSummary(state, Boolean(target)));
-  const runtimeStatus = useVisualEditStore(selectVisualEditRuntimeStatus);
+  const readiness = useVisualSelectionStore(
+    useShallow((state) => selectVisualPanelReadinessSummary(state, Boolean(target))),
+  );
+  const runtimeStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
   const messages = getCurrentMessages();
   const meta = messages.visualEditor.categories[category];
   const sectionId = QUICK_ACTION_SECTION_IDS[category];

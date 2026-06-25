@@ -29,7 +29,6 @@ export function installBridgeKeyboard(post: BridgePost): () => void {
 
     if (event.key === 'Escape' && hasNoModifier(event)) {
       consumeKeyboardEvent(event);
-      clearHighlightedElement(post);
       post({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
       return;
     }
@@ -84,6 +83,11 @@ export function handleBridgeKeyboardShortcut(
   shortcut: EditorKeyboardShortcut,
   post: BridgePost,
 ): boolean {
+  if (shortcut === 'escape') {
+    clearHighlightedElement(post);
+    return true;
+  }
+
   return handleNavigationShortcut(shortcut, post);
 }
 

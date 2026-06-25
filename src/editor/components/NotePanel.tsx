@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Minus, Plus, RotateCcw, StickyNote } from 'lucide-react';
+import { useShallow } from 'zustand/shallow';
 
 import {
   getNotebookBreakpointScopeCascade,
@@ -42,7 +43,7 @@ export function NotePanel() {
   const stepNoteFontSize = useNotebookStore((state) => state.stepNoteFontSize);
   const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
   const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
-  const visualEditStatus = useVisualEditStore(selectVisualEditRuntimeStatus);
+  const visualEditStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
   const hasCopyableVisualEdits = useVisualEditStore(selectHasCopyableVisualEdits);
   const canCopyNotebook = hasNotebookDraftForCopy || hasCopyableVisualEdits;
   const hasVisualEditState = visualEditStatus.totalCount > 0
