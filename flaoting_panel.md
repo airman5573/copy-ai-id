@@ -59,17 +59,17 @@
   - Notes: Call `hydrateEnabled()` during app initialization. On cleanup, reset only runtime fields such as `isOpen` and `anchor`; do not clear the persisted ON/OFF preference.
   - Parallelizable: no
 
-- [ ] Add a persistent NotePanel floating-mode toggle to the top toolbar.
+- [x] Add a persistent NotePanel floating-mode toggle to the top toolbar.
   - Files/areas: `src/editor/components/TopToolbar.tsx`, `src/shared/i18n.ts`, `src/editor/editor.css`
   - Notes: Add a `ToolbarButton` in `TopToolbar` with a stable `data-ai-id` such as `copy-ai-id-editor-note-panel-floating-toggle-button`, `aria-pressed`, and localized labels/titles for enable/disable/toggle. Use the floating store's `enabled` and `toggleEnabled` actions.
   - Parallelizable: yes
 
-- [ ] Define localized labels for the new toggle.
+- [x] Define localized labels for the new toggle.
   - Files/areas: `src/shared/i18n.ts`
   - Notes: Extend `CopyAiIdMessages.editor` with fields such as `notePanelFloatingToggle`, `notePanelFloatingEnableTitle`, and `notePanelFloatingDisableTitle`, then add English and Korean strings.
   - Parallelizable: yes
 
-- [ ] Close or reset the floating panel when the user turns floating mode OFF.
+- [x] Close or reset the floating panel when the user turns floating mode OFF.
   - Files/areas: `src/editor/stores/useFloatingNotePanelStore.ts`, `src/editor/components/TopToolbar.tsx` or store action implementation
   - Notes: `setEnabled(false)` should close the floating runtime panel and clear its anchor while preserving notebook content in `useNotebookStore` and existing panel width in `useEditorLayoutStore`.
   - Parallelizable: no

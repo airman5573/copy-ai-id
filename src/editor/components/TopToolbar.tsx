@@ -1,6 +1,7 @@
-import { X } from 'lucide-react';
+import { NotebookText, X } from 'lucide-react';
 
 import { getCurrentMessages } from '../../shared/i18n';
+import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { CanvasControls } from './CanvasControls';
 import { ToolbarButton } from './ui/builderChrome';
 
@@ -14,6 +15,11 @@ export function TopToolbar({
   onFitZoom,
 }: TopToolbarProps) {
   const messages = getCurrentMessages();
+  const notePanelFloatingEnabled = useFloatingNotePanelStore((state) => state.enabled);
+  const toggleNotePanelFloating = useFloatingNotePanelStore((state) => state.toggleEnabled);
+  const notePanelFloatingTitle = notePanelFloatingEnabled
+    ? messages.editor.notePanelFloatingDisableTitle
+    : messages.editor.notePanelFloatingEnableTitle;
 
   return (
     <header className="copy-ai-id-editor-toolbar" data-ai-id="copy-ai-id-editor-toolbar">
@@ -31,16 +37,30 @@ export function TopToolbar({
 
       <CanvasControls onFitZoom={onFitZoom} />
 
-      <ToolbarButton
-        className="copy-ai-id-editor-close"
-        data-ai-id="copy-ai-id-editor-close-button"
-        onClick={onRequestClose}
-        title={messages.editor.close}
-        aria-label={messages.editor.close}
-      >
-        <X size={16} aria-hidden="true" />
-        <span>{messages.editor.close}</span>
-      </ToolbarButton>
+      <div className="copy-ai-id-editor-toolbar__right">
+        <ToolbarButton
+          className={`copy-ai-id-editor-note-panel-floating-toggle${notePanelFloatingEnabled ? ' is-active' : ''}`}
+          data-ai-id="copy-ai-id-editor-note-panel-floating-toggle-button"
+          onClick={toggleNotePanelFloating}
+          title={notePanelFloatingTitle}
+          aria-label={messages.editor.notePanelFloatingToggle}
+          aria-pressed={notePanelFloatingEnabled}
+        >
+          <NotebookText size={14} aria-hidden="true" />
+          <span>{messages.editor.notePanelFloatingToggle}</span>
+        </ToolbarButton>
+
+        <ToolbarButton
+          className="copy-ai-id-editor-close"
+          data-ai-id="copy-ai-id-editor-close-button"
+          onClick={onRequestClose}
+          title={messages.editor.close}
+          aria-label={messages.editor.close}
+        >
+          <X size={16} aria-hidden="true" />
+          <span>{messages.editor.close}</span>
+        </ToolbarButton>
+      </div>
     </header>
   );
 }

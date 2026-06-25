@@ -402,12 +402,17 @@ textarea,
 }
 
 .copy-ai-id-editor-toolbar__left,
+.copy-ai-id-editor-toolbar__right,
 .copy-ai-id-editor-canvas-controls,
 .copy-ai-id-editor-toolbar-segment {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+.copy-ai-id-editor-toolbar__right {
+  flex: 0 0 auto;
 }
 
 .copy-ai-id-editor-canvas-controls {

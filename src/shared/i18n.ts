@@ -34,6 +34,9 @@ export interface CopyAiIdMessages {
     layoutTreeCollapse: string;
     layoutTreePending: string;
     notePanel: string;
+    notePanelFloatingToggle: string;
+    notePanelFloatingEnableTitle: string;
+    notePanelFloatingDisableTitle: string;
     preview: string;
     close: string;
     duplicateWarning: string;
@@ -171,6 +174,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       layoutTreeCollapse: 'Collapse layout tree',
       layoutTreePending: 'The DOM tree will appear after the preview bridge connects.',
       notePanel: 'Note panel',
+      notePanelFloatingToggle: 'Floating note',
+      notePanelFloatingEnableTitle: 'Open the Note panel near hovered or selected elements.',
+      notePanelFloatingDisableTitle: 'Use the docked right Note panel instead.',
       preview: 'Preview',
       close: 'Close editor',
       duplicateWarning: 'Duplicate data-ai-id',
@@ -381,6 +387,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       layoutTreeCollapse: '레이아웃 트리 접기',
       layoutTreePending: '미리보기 브리지가 연결되면 DOM tree가 표시됩니다.',
       notePanel: '노트 패널',
+      notePanelFloatingToggle: '노트 플로팅',
+      notePanelFloatingEnableTitle: '노트 패널을 hover 또는 선택한 요소 근처에 띄웁니다.',
+      notePanelFloatingDisableTitle: '오른쪽 고정 노트 패널을 사용합니다.',
       preview: '미리보기',
       close: '에디터 닫기',
       duplicateWarning: '중복 data-ai-id',
