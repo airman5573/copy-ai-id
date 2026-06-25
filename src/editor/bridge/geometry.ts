@@ -37,10 +37,12 @@ export interface OverlayPlacementOptions {
   bounds?: EditorViewportRect | null;
 }
 
-export interface FloatingVisualPanelPlacementOptions extends OverlayPlacementOptions {
+export interface FloatingOverlayPlacementOptions extends OverlayPlacementOptions {
   mode?: 'target' | 'preview-side';
   previewSide?: 'auto' | 'left' | 'right';
 }
+
+export type FloatingVisualPanelPlacementOptions = FloatingOverlayPlacementOptions;
 
 export interface OverlayPlacement {
   left: number;
@@ -183,10 +185,10 @@ export function getPreviewOverlayBounds(): EditorViewportRect {
     ?? geometry.editorViewportRect;
 }
 
-export function calculateFloatingVisualPanelPlacement(
+export function calculateFloatingOverlayPlacement(
   anchorRect: EditorViewportRect,
   size: OverlaySize,
-  options: FloatingVisualPanelPlacementOptions = {},
+  options: FloatingOverlayPlacementOptions = {},
 ): OverlayPlacement {
   const mode = options.mode ?? 'target';
   const gap = options.gap ?? DEFAULT_OVERLAY_GAP;
@@ -203,6 +205,14 @@ export function calculateFloatingVisualPanelPlacement(
   }
 
   return calculateVerticalAnchorPlacement(anchorRect, size, { gap, padding, bounds });
+}
+
+export function calculateFloatingVisualPanelPlacement(
+  anchorRect: EditorViewportRect,
+  size: OverlaySize,
+  options: FloatingVisualPanelPlacementOptions = {},
+): OverlayPlacement {
+  return calculateFloatingOverlayPlacement(anchorRect, size, options);
 }
 
 export function domRectToEditorViewportRect(rect: DOMRect | DOMRectReadOnly): EditorViewportRect {
@@ -276,7 +286,7 @@ function calculatePreviewSidePlacement(
   anchorRect: EditorViewportRect,
   size: OverlaySize,
   options: ResolvedOverlayPlacementOptions & {
-    previewSide: NonNullable<FloatingVisualPanelPlacementOptions['previewSide']>;
+    previewSide: NonNullable<FloatingOverlayPlacementOptions['previewSide']>;
   },
 ): OverlayPlacement {
   const { bounds, gap, padding, previewSide } = options;

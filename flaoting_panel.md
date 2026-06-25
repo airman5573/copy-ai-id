@@ -38,7 +38,7 @@
   - Notes: Include `target`, `nodeId`, `elementRect`, `editorRect`, optional `viewport`, and `updatedAt`. Keep `elementRect` in preview iframe viewport coordinates and `editorRect` in editor viewport coordinates so placement can reuse `bridgeViewportRectToEditorViewportRect` and existing stores.
   - Parallelizable: no
 
-- [ ] Generalize the existing floating placement helper name without breaking the visual panel.
+- [x] Generalize the existing floating placement helper name without breaking the visual panel.
   - Files/areas: `src/editor/bridge/geometry.ts`, `src/editor/components/visual-panel/FloatingVisualPanel.tsx`
   - Notes: Add a generic export such as `calculateFloatingOverlayPlacement` that wraps the current `calculateFloatingVisualPanelPlacement` implementation, then keep `calculateFloatingVisualPanelPlacement` as an alias for backward compatibility or update visual panel imports to the generic name. Do not rewrite placement math.
   - Parallelizable: yes

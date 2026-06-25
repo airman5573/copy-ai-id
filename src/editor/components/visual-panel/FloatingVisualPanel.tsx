@@ -16,7 +16,7 @@ import { getCurrentMessages } from '../../../shared/i18n';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
 import {
   bridgeViewportRectToEditorViewportRect,
-  calculateFloatingVisualPanelPlacement,
+  calculateFloatingOverlayPlacement,
   createEditorViewportRect,
   getPreviewWorkspaceGeometrySnapshot,
   type EditorViewportRect,
@@ -342,7 +342,7 @@ function computePanelPlacement({
     mode,
     target,
   }) ?? fallbackAnchorRect();
-  const placement = calculateFloatingVisualPanelPlacement(anchorRect, {
+  const placement = calculateFloatingOverlayPlacement(anchorRect, {
     width,
     height,
   }, {
