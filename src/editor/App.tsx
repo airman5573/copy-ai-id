@@ -13,6 +13,7 @@ import { useBreakpointStore } from './stores/useBreakpointStore';
 import { useRuntimeStore } from './stores/useRuntimeStore';
 import { useNotebookStore } from './stores/useNotebookStore';
 import { useToastStore } from './stores/useToastStore';
+import { useFloatingNotePanelStore } from './stores/useFloatingNotePanelStore';
 
 export interface AppProps {
   onRequestClose?: () => void;
@@ -29,6 +30,8 @@ export function App({ onRequestClose }: AppProps) {
   const toastTone = useToastStore((state) => state.tone);
   const clearToast = useToastStore((state) => state.clearToast);
   const setSuffixSettings = useNotebookStore((state) => state.setSuffixSettings);
+  const hydrateFloatingNotePanelEnabled = useFloatingNotePanelStore((state) => state.hydrateEnabled);
+  const resetFloatingNotePanelRuntime = useFloatingNotePanelStore((state) => state.resetFloatingNotePanelRuntime);
 
   useEffect(() => {
     const url = window.location.href;
@@ -37,6 +40,7 @@ export function App({ onRequestClose }: AppProps) {
     setPreviewUrl(createPreviewUrl(url));
     let isActive = true;
     let hydrateFrameId: number | null = null;
+    void hydrateFloatingNotePanelEnabled();
     void hydratePreviewHeight().then(() => {
       if (!isActive) {
         return;
@@ -76,9 +80,20 @@ export function App({ onRequestClose }: AppProps) {
       cleanupVisualEditorFocusGuard();
       clearEditorToastReset();
       clearToast();
+      resetFloatingNotePanelRuntime();
       setMounted(false);
     };
-  }, [clearToast, fitZoom, hydratePreviewHeight, setCurrentUrl, setMounted, setPreviewUrl, setSuffixSettings]);
+  }, [
+    clearToast,
+    fitZoom,
+    hydrateFloatingNotePanelEnabled,
+    hydratePreviewHeight,
+    resetFloatingNotePanelRuntime,
+    setCurrentUrl,
+    setMounted,
+    setPreviewUrl,
+    setSuffixSettings,
+  ]);
 
   useLayoutEffect(() => {
     const fitToCurrentStage = (): void => {

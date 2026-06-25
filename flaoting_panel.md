@@ -54,7 +54,7 @@
   - Parallelizable: no
 
 ### Phase 2 - Toolbar toggle and mode hydration
-- [ ] Hydrate floating mode when the editor app mounts and reset runtime floating state on unmount.
+- [x] Hydrate floating mode when the editor app mounts and reset runtime floating state on unmount.
   - Files/areas: `src/editor/App.tsx`, `src/editor/stores/useFloatingNotePanelStore.ts`
   - Notes: Call `hydrateEnabled()` during app initialization. On cleanup, reset only runtime fields such as `isOpen` and `anchor`; do not clear the persisted ON/OFF preference.
   - Parallelizable: no
