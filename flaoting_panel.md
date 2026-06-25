@@ -142,7 +142,7 @@
   - Notes: Extract the current insertion body into something like `insertTargetReferenceIntoNotebook(reference)`. Keep fallback behavior that calls `notebook.appendTargetReference(reference)` when Lexical registration is unavailable.
   - Parallelizable: no
 
-- [ ] Extend note-panel focus events with same-window post-focus callbacks.
+- [x] Extend note-panel focus events with same-window post-focus callbacks.
   - Files/areas: `src/editor/note-panel-focus.ts`, `src/editor/notebook/lexical/NotebookEditorPlugins.tsx`
   - Notes: Add `requestNotePanelFocus(detail?: { afterFocus?: () => void })` and `onNotePanelFocusRequest(listener: (detail?: NotePanelFocusRequestDetail) => void)`. In `FocusRequestPlugin`, select root end and focus, then invoke `afterFocus` after focus using `onUpdate` plus a microtask or `requestAnimationFrame`.
   - Parallelizable: no

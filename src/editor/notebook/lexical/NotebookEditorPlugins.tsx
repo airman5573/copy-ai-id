@@ -16,7 +16,7 @@ import { EDITOR_MESSAGE_TYPES } from '../../../shared/editor-messages';
 import { targetIdentityKey } from '../../../shared/editor-targets';
 import { postToBridge } from '../../bridge/bridgeClient';
 import { isNoteEditorHoverProtected, protectNoteEditorFromHover } from '../../note-hover-guard';
-import { onNotePanelFocusRequest } from '../../note-panel-focus';
+import { onNotePanelFocusRequest, type NotePanelFocusRequestDetail } from '../../note-panel-focus';
 import { useHighlightStore } from '../../stores/useHighlightStore';
 import { useNotebookStore } from '../../stores/useNotebookStore';
 import { showStaleFallbackTargetToast } from '../../toast';
@@ -123,7 +123,7 @@ function FocusRequestPlugin() {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
-    return onNotePanelFocusRequest(() => {
+    return onNotePanelFocusRequest((detail) => {
       protectNoteEditorFromHover();
 
       editor.update(() => {
@@ -131,12 +131,23 @@ function FocusRequestPlugin() {
       }, {
         onUpdate: () => {
           editor.focus(undefined, { defaultSelection: 'rootEnd' });
+          runAfterNotePanelFocus(detail);
         },
       });
     });
   }, [editor]);
 
   return null;
+}
+
+function runAfterNotePanelFocus(detail?: NotePanelFocusRequestDetail): void {
+  if (!detail?.afterFocus) {
+    return;
+  }
+
+  window.requestAnimationFrame(() => {
+    detail.afterFocus?.();
+  });
 }
 
 function HighlightBlurPlugin() {
