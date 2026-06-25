@@ -174,9 +174,10 @@
   - Notes: Replace “Right note panel” wording with mode-aware language, document the toolbar toggle, and clarify that Space in floating mode opens/focuses the NotePanel near the element before inserting the chip. Do not add manual QA steps.
   - Parallelizable: yes
 
-- [ ] Review `data-ai-id` coverage for all new rendered controls and layers.
+- [x] Review `data-ai-id` coverage for all new rendered controls and layers.
   - Files/areas: `src/editor/components/TopToolbar.tsx`, `src/editor/components/FloatingNotePanel.tsx`, `src/editor/components/NotePanel.tsx`, `src/editor/components/ui/builderChrome.tsx`
   - Notes: Assign stable, semantic IDs such as `copy-ai-id-editor-note-panel-floating-toggle-button`, `copy-ai-id-editor-floating-note-panel-layer`, `copy-ai-id-editor-floating-note-panel`, and `copy-ai-id-editor-floating-note-panel-close-button`.
+  - Implementation note: Confirmed existing floating-mode UI has stable IDs: toolbar toggle `copy-ai-id-editor-note-panel-floating-toggle-button`, floating layer `copy-ai-id-editor-floating-note-panel-layer`, shell `copy-ai-id-editor-floating-note-panel-shell`, panel `copy-ai-id-editor-floating-note-panel`, and close button `copy-ai-id-editor-floating-note-panel-close-button`. No code changes were needed.
   - Parallelizable: yes
 
 - [ ] Run the required frontend build after code/content changes.
