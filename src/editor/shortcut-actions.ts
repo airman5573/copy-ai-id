@@ -1,6 +1,14 @@
-import type { EditorKeyboardShortcut, EditorTargetReference } from '../shared/editor-messages';
+import type {
+  BridgeViewportRect,
+  BridgeViewportSize,
+  EditorKeyboardShortcut,
+  EditorTargetReference,
+} from '../shared/editor-messages';
+import { bridgeViewportRectToEditorViewportRect, type EditorViewportRect } from './bridge/geometry';
+import { captureNotePanelAnchor } from './note-panel-anchor';
 import { requestNotePanelFocus } from './note-panel-focus';
 import { copyNotebookDraftFromStore } from './notebook/copy';
+import { useFloatingNotePanelStore } from './stores/useFloatingNotePanelStore';
 import { useFloatingVisualPanelStore } from './stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from './stores/useHighlightStore';
 import { useNotebookStore } from './stores/useNotebookStore';
@@ -8,6 +16,12 @@ import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 import { showStaleFallbackTargetToast } from './toast';
 
 export type EditorEscapeActionResult = 'visual-panel' | 'visual-toolbar' | 'highlight';
+
+export interface AppendTargetReferenceOptions {
+  elementRect?: BridgeViewportRect | null;
+  editorRect?: EditorViewportRect | null;
+  viewport?: BridgeViewportSize | null;
+}
 
 export function handleEditorShortcutAction(shortcut: EditorKeyboardShortcut): boolean {
   switch (shortcut) {
@@ -58,7 +72,16 @@ function appendHighlightedTargetToNotebook(): boolean {
   });
 }
 
-export function appendTargetReferenceToNotebook(reference: EditorTargetReference): boolean {
+export function appendTargetReferenceToNotebook(
+  reference: EditorTargetReference,
+  options: AppendTargetReferenceOptions = {},
+): boolean {
+  const explicitGeometry = resolveTargetReferenceGeometry(options);
+  const floatingNotePanel = useFloatingNotePanelStore.getState();
+  if (floatingNotePanel.enabled) {
+    floatingNotePanel.openNearTarget(captureNotePanelAnchor(reference, explicitGeometry));
+  }
+
   const notebook = useNotebookStore.getState();
   if (notebook.insertTargetReference) {
     notebook.insertTargetReference(reference);
@@ -67,4 +90,19 @@ export function appendTargetReferenceToNotebook(reference: EditorTargetReference
   }
   requestNotePanelFocus();
   return true;
+}
+
+function resolveTargetReferenceGeometry(
+  options: AppendTargetReferenceOptions,
+): Required<AppendTargetReferenceOptions> {
+  const elementRect = options.elementRect ?? null;
+  const editorRect = options.editorRect ?? (elementRect
+    ? bridgeViewportRectToEditorViewportRect(elementRect)
+    : null);
+
+  return {
+    elementRect,
+    editorRect,
+    viewport: options.viewport ?? null,
+  };
 }

@@ -269,6 +269,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       appendTargetReferenceToNotebook({
         target: message.target,
         nodeId: message.nodeId,
+      }, {
+        elementRect: message.elementRect ?? null,
+        viewport: message.viewport ?? null,
       });
       return;
     case EDITOR_MESSAGE_TYPES.targetReferenceRejected:

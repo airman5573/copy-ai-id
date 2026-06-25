@@ -132,7 +132,7 @@
   - Notes: In `requestHighlightedTargetReference(post)`, compute `elementRect = viewportRectForElement(element)` and `viewport = viewportSize()` before posting `targetReferenceRequested`. No change should be needed in `src/content/editor-bridge/keyboard.ts`.
   - Parallelizable: yes
 
-- [ ] Pass iframe Space geometry through the editor bridge before focus/insertion.
+- [x] Pass iframe Space geometry through the editor bridge before focus/insertion.
   - Files/areas: `src/editor/bridge/bridgeClient.ts`, `src/editor/shortcut-actions.ts`
   - Notes: In the `targetReferenceRequested` case, call `appendTargetReferenceToNotebook(reference, { elementRect: message.elementRect, viewport: message.viewport })` or equivalent. Convert explicit iframe rects to editor rects before opening the floating panel.
   - Parallelizable: no
