@@ -75,22 +75,22 @@
   - Parallelizable: no
 
 ### Phase 3 - MainArea docked/floating layout switch
-- [ ] Hide the docked NotePanel and right grid column when floating mode is ON.
+- [x] Hide the docked NotePanel and right grid column when floating mode is ON.
   - Files/areas: `src/editor/components/MainArea.tsx`, `src/editor/editor.css`
   - Notes: Read floating `enabled` from the new store. When enabled, set grid columns to `${leftColumnWidth}px minmax(0, 1fr)`, omit docked `<NotePanel />`, and set a diagnostic data attribute such as `data-ai-editor-note-panel-floating="true"`.
   - Parallelizable: no
 
-- [ ] Hide the note-panel resize handle while floating mode is ON.
+- [x] Hide the note-panel resize handle while floating mode is ON.
   - Files/areas: `src/editor/components/MainArea.tsx`, `src/editor/keyboard.ts`
   - Notes: Do not render the `PanelResizeHandle` with `side="note"` when the docked right panel is hidden. Keep `copy-ai-id-editor-note-panel-width-resize-handle` in the resize-handle ignore list for docked mode.
   - Parallelizable: no
 
-- [ ] Adjust panel-width calculations for floating mode.
+- [x] Adjust panel-width calculations for floating mode.
   - Files/areas: `src/editor/components/MainArea.tsx`, `src/editor/stores/useEditorLayoutStore.ts`
   - Notes: Update `getAvailablePanelMaxWidth` or its callers so layout-tree max width does not subtract `notePanelWidth` when the right NotePanel column is hidden. Keep `notePanelWidth` persisted for docked width and floating overlay width.
   - Parallelizable: no
 
-- [ ] Trigger preview fit/geometry recalculation when floating mode changes.
+- [x] Trigger preview fit/geometry recalculation when floating mode changes.
   - Files/areas: `src/editor/components/MainArea.tsx`, `src/editor/App.tsx`, `src/editor/bridge/bridgeClient.ts`
   - Notes: Mirror the existing `layoutTreeCollapsed` behavior by scheduling `onFitZoom` when floating mode toggles. Ensure `syncVisualBridgeGeometry()` still sees current iframe geometry after the layout changes.
   - Parallelizable: no
