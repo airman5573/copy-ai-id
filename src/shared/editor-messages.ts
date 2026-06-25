@@ -320,6 +320,8 @@ export interface TargetHighlightedMessage {
 
 export interface TargetReferenceRequestedMessage extends EditorTargetReference {
   type: typeof EDITOR_MESSAGE_TYPES.targetReferenceRequested;
+  elementRect?: BridgeViewportRect | null;
+  viewport?: BridgeViewportSize;
 }
 
 export interface TargetReferenceRejectedMessage {

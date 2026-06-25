@@ -43,7 +43,7 @@
   - Notes: Add a generic export such as `calculateFloatingOverlayPlacement` that wraps the current `calculateFloatingVisualPanelPlacement` implementation, then keep `calculateFloatingVisualPanelPlacement` as an alias for backward compatibility or update visual panel imports to the generic name. Do not rewrite placement math.
   - Parallelizable: yes
 
-- [ ] Extend the preview-to-editor target reference message to carry geometry.
+- [x] Extend the preview-to-editor target reference message to carry geometry.
   - Files/areas: `src/shared/editor-messages.ts`
   - Notes: Add optional `elementRect?: BridgeViewportRect | null` and `viewport?: BridgeViewportSize` to `TargetReferenceRequestedMessage`. This lets iframe Space provide the element rect measured at the exact keydown moment.
   - Parallelizable: yes
