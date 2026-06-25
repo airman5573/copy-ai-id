@@ -21,12 +21,18 @@ export interface AppendTargetReferenceOptions {
   elementRect?: BridgeViewportRect | null;
   editorRect?: EditorViewportRect | null;
   viewport?: BridgeViewportSize | null;
+  onFloatingNotePanelOpen?: () => void;
 }
 
-export function handleEditorShortcutAction(shortcut: EditorKeyboardShortcut): boolean {
+export type EditorShortcutActionOptions = Pick<AppendTargetReferenceOptions, 'onFloatingNotePanelOpen'>;
+
+export function handleEditorShortcutAction(
+  shortcut: EditorKeyboardShortcut,
+  options: EditorShortcutActionOptions = {},
+): boolean {
   switch (shortcut) {
     case 'space':
-      return appendHighlightedTargetToNotebook();
+      return appendHighlightedTargetToNotebook(options);
     case 'shift-enter':
       void copyNotebookDraftFromStore();
       return true;
@@ -61,7 +67,7 @@ export function handleEditorEscapeAction(): EditorEscapeActionResult {
   return 'highlight';
 }
 
-function appendHighlightedTargetToNotebook(): boolean {
+function appendHighlightedTargetToNotebook(options: EditorShortcutActionOptions = {}): boolean {
   const { highlightedTarget, highlightedNodeId } = useHighlightStore.getState();
   if (!highlightedTarget) {
     if (highlightedNodeId) {
@@ -75,7 +81,7 @@ function appendHighlightedTargetToNotebook(): boolean {
   return appendTargetReferenceToNotebook({
     target: highlightedTarget,
     nodeId: highlightedNodeId,
-  });
+  }, options);
 }
 
 export function appendTargetReferenceToNotebook(
@@ -87,6 +93,7 @@ export function appendTargetReferenceToNotebook(
   if (floatingNotePanel.enabled) {
     const anchor = captureNotePanelAnchor(reference, explicitGeometry);
     floatingNotePanel.openNearTarget(anchor);
+    options.onFloatingNotePanelOpen?.();
     window.requestAnimationFrame(() => {
       requestNotePanelFocus({
         afterFocus: () => insertTargetReferenceIntoNotebook(reference),
@@ -111,7 +118,7 @@ export function insertTargetReferenceIntoNotebook(reference: EditorTargetReferen
 
 function resolveTargetReferenceGeometry(
   options: AppendTargetReferenceOptions,
-): Required<AppendTargetReferenceOptions> {
+): Required<Pick<AppendTargetReferenceOptions, 'elementRect' | 'editorRect' | 'viewport'>> {
   const elementRect = options.elementRect ?? null;
   const editorRect = options.editorRect ?? (elementRect
     ? bridgeViewportRectToEditorViewportRect(elementRect)

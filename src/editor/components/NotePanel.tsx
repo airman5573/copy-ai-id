@@ -174,10 +174,12 @@ export function NotePanel({
       data-ai-editor-note-panel-variant={variant}
     >
       <div className="copy-ai-id-editor-panel__header copy-ai-id-editor-panel__header--with-action">
-        <div className="copy-ai-id-editor-panel__title">
-          <StickyNote size={16} aria-hidden="true" />
-          <h2>{messages.editor.notePanel}</h2>
-        </div>
+        {!isFloating ? (
+          <div className="copy-ai-id-editor-panel__title">
+            <StickyNote size={16} aria-hidden="true" />
+            <h2>{messages.editor.notePanel}</h2>
+          </div>
+        ) : null}
         <div className="copy-ai-id-editor-panel__actions">
           <div
             className="copy-ai-id-editor-note-font-size-controls"
@@ -259,7 +261,6 @@ export function NotePanel({
 
       <div className="copy-ai-id-editor-note-controls" data-ai-id="copy-ai-id-editor-note-suffix-controls">
         <div className="copy-ai-id-editor-note-control-group" role="group" aria-label={messages.notebook.breakpointScope.label}>
-          <span>{messages.notebook.breakpointScope.label}</span>
           <button
             type="button"
             className={suffixSettings.breakpointMode === 'all' ? 'is-active' : ''}

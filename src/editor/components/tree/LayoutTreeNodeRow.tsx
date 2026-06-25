@@ -4,7 +4,7 @@ import { ChevronRight, EyeOff, TriangleAlert } from 'lucide-react';
 import { EDITOR_MESSAGE_TYPES, type EditorTarget, type LayoutTreeNode } from '../../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../../shared/editor-targets';
 import { getCurrentMessages } from '../../../shared/i18n';
-import { postToBridge } from '../../bridge/bridgeClient';
+import { postToBridge, requestBridgeQuickActionSelectionClear } from '../../bridge/bridgeClient';
 import { isKeyboardNavigationHoverSuppressed, suppressHoverUntilMouseMove } from '../../keyboard-hover-guard';
 import { isNoteEditorHoverProtected } from '../../note-hover-guard';
 import { appendTargetReferenceToNotebook } from '../../shortcut-actions';
@@ -106,6 +106,8 @@ export function LayoutTreeNodeRow({ node, depth, visibleRowMap }: LayoutTreeNode
         appendTargetReferenceToNotebook({
           target,
           nodeId: node.nodeId,
+        }, {
+          onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
         });
       } else {
         showMissingDataAiIdToast();

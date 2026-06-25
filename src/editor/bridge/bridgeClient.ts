@@ -81,6 +81,10 @@ export function postToBridge(message: EditorToBridgeMessage): void {
   getBridgeIframeElement()?.contentWindow?.postMessage(message, '*');
 }
 
+export function requestBridgeQuickActionSelectionClear(): void {
+  postToBridge({ type: EDITOR_MESSAGE_TYPES.clearQuickActionSelection });
+}
+
 export function postCurrentCanvasZoomToBridge(): void {
   const breakpointState = useBreakpointStore.getState();
 
@@ -272,6 +276,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       }, {
         elementRect: message.elementRect ?? null,
         viewport: message.viewport ?? null,
+        onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
       });
       return;
     case EDITOR_MESSAGE_TYPES.targetReferenceRejected:
@@ -399,7 +404,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         return;
       }
 
-      handleEditorShortcutAction(message.shortcut);
+      handleEditorShortcutAction(message.shortcut, {
+        onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+      });
       return;
     default:
       return;

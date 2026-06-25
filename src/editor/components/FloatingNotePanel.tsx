@@ -19,6 +19,9 @@ import {
   type OverlayPlacement,
   type OverlaySize,
 } from '../bridge/geometry';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
+import { postToBridge } from '../bridge/bridgeClient';
+import { handleEditorEscapeAction } from '../shortcut-actions';
 import {
   MAX_NOTE_PANEL_WIDTH,
   MIN_NOTE_PANEL_WIDTH,
@@ -144,7 +147,10 @@ export function FloatingNotePanel() {
     event.preventDefault();
     event.stopPropagation();
     event.nativeEvent.stopImmediatePropagation?.();
-    closePanel();
+    const result = handleEditorEscapeAction();
+    if (result === 'floating-note-panel') {
+      postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
+    }
   };
 
   if (!enabled) {

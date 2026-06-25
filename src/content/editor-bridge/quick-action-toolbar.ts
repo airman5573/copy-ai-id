@@ -755,7 +755,6 @@ function toolbarCss(): string {
   gap: 4px;
   overflow-x: auto;
   overflow-y: hidden;
-  border: 1px solid rgba(75, 85, 99, 0.72);
   border-radius: 8px;
   background: rgba(17, 24, 39, 0.94);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
@@ -766,7 +765,6 @@ function toolbarCss(): string {
   user-select: none;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
-  backdrop-filter: blur(10px);
 }
 
 [${QUICK_ACTION_BAR_ATTR}],
@@ -791,7 +789,6 @@ function toolbarCss(): string {
 .${QUICK_ACTION_BAR_BUTTON_CLASS} {
   all: initial;
   display: inline-flex;
-  min-height: 24px;
   align-items: center;
   justify-content: center;
   gap: 4px;

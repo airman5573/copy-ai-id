@@ -10,6 +10,7 @@ import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overla
 import { handleHighlightVisualBoxRegion } from './visual-box-highlight';
 import {
   handleHoverTreeNode,
+  clearQuickActionSelection,
   installHoverHighlight,
   refreshHighlightedElement,
   revealTreeNode,
@@ -131,6 +132,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       handleBridgeKeyboardShortcut(message.shortcut, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.clearQuickActionSelection:
+      clearQuickActionSelection(post);
       return;
     case EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed:
       setHoverHighlightSuppressed(message.suppressed);

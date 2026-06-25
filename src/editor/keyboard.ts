@@ -1,5 +1,5 @@
 import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../shared/editor-messages';
-import { postToBridge } from './bridge/bridgeClient';
+import { postToBridge, requestBridgeQuickActionSelectionClear } from './bridge/bridgeClient';
 import { suppressHoverUntilMouseMove } from './keyboard-hover-guard';
 import { handleEditorEscapeAction, handleEditorShortcutAction } from './shortcut-actions';
 import { useHighlightStore } from './stores/useHighlightStore';
@@ -68,7 +68,9 @@ export function installEditorKeyboard(): () => void {
     }
 
     if (event.code === 'Space' && hasNoModifier(event) && !event.repeat) {
-      if (handleEditorShortcutAction('space')) {
+      if (handleEditorShortcutAction('space', {
+        onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+      })) {
         consumeKeyboardEvent(event);
       }
       return;

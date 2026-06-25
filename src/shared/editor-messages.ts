@@ -9,6 +9,7 @@ export const EDITOR_MESSAGE_TYPES = {
   hoverTreeNode: 'copy-ai-id:hover-tree-node',
   revealTreeNode: 'copy-ai-id:reveal-tree-node',
   keyboardShortcut: 'copy-ai-id:keyboard-shortcut',
+  clearQuickActionSelection: 'copy-ai-id:clear-quick-action-selection',
   setHoverHighlightSuppressed: 'copy-ai-id:set-hover-highlight-suppressed',
   setCanvasZoom: 'copy-ai-id:set-canvas-zoom',
   setBoxModelMode: 'copy-ai-id:set-box-model-mode',
@@ -344,6 +345,10 @@ export interface KeyboardShortcutMessage {
   shortcut: EditorKeyboardShortcut;
 }
 
+export interface ClearQuickActionSelectionMessage {
+  type: typeof EDITOR_MESSAGE_TYPES.clearQuickActionSelection;
+}
+
 export interface SetHoverHighlightSuppressedMessage {
   type: typeof EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed;
   suppressed: boolean;
@@ -579,6 +584,7 @@ export type EditorToBridgeMessage =
   | HoverTreeNodeMessage
   | RevealTreeNodeMessage
   | KeyboardShortcutMessage
+  | ClearQuickActionSelectionMessage
   | SetHoverHighlightSuppressedMessage
   | SetCanvasZoomMessage
   | SetBoxModelModeMessage
