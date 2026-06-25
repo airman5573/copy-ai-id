@@ -230,10 +230,15 @@ export function requestHighlightedTargetReference(post: BridgePost): boolean {
     return true;
   }
 
+  const elementRect = viewportRectForElement(element);
+  const viewport = viewportSize();
+
   post({
     type: EDITOR_MESSAGE_TYPES.targetReferenceRequested,
     target,
     nodeId: resolveNodeIdForElement(element),
+    elementRect,
+    viewport,
   });
   return true;
 }

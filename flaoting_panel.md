@@ -127,7 +127,7 @@
   - Parallelizable: yes
 
 ### Phase 5 - Space flow, focus-first insertion, and geometry capture
-- [ ] Include element geometry when preview iframe Space requests a target reference.
+- [x] Include element geometry when preview iframe Space requests a target reference.
   - Files/areas: `src/content/editor-bridge/highlight.ts`
   - Notes: In `requestHighlightedTargetReference(post)`, compute `elementRect = viewportRectForElement(element)` and `viewport = viewportSize()` before posting `targetReferenceRequested`. No change should be needed in `src/content/editor-bridge/keyboard.ts`.
   - Parallelizable: yes
