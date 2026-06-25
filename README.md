@@ -5,7 +5,7 @@
 
 [한국어](README.ko.md)
 
-Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a layout tree, responsive iframe preview, preview-only visual editing controls, and note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
+Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a layout tree, responsive iframe preview, preview-only visual editing controls, and a docked-or-floating note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
 
 ## Editor workflow
 
@@ -14,9 +14,9 @@ Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. T
 3. Copy AI ID opens a full-screen editor over the current tab:
    - **Left — Layout tree:** full DOM hierarchy for structure; every DOM row is keyboard-navigable/selectable. Rows with `data-ai-id` insert stable chip targets, and no-ID rows insert fallback chip targets when fallback metadata is available.
    - **Center — Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, hover quick-action bar, and floating visual control panel.
-   - **Right — Note panel:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
+   - **Note panel — Docked or floating:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
 4. Highlight DOM nodes from the preview, the layout tree, or the keyboard.
-5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
+5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. In floating NotePanel mode, **Space** first opens the note panel near the highlighted/hovered element, focuses it, then inserts the chip. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
 6. Optionally hover a preview element to show the quick-action bar. Category buttons open the floating visual panel for content, layout, spacing, size, style, and border edits; structure buttons duplicate, move, delete, or drag elements in the preview. These mutations are preview-only and are recorded as AI-readable visual edit instructions.
 7. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, `## Rules`, and, when applicable, `## Visual edits` sections. Inline chips are rendered as readable `@el-N` mentions, fallback targets include selector/path/context details, and visual edits include human summaries plus machine-readable JSON diffs.
 8. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
@@ -24,6 +24,13 @@ Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. T
 If the same `data-ai-id` appears multiple times, Copy AI ID shows each instance separately with an instance badge and duplicate warning so the selected DOM node stays unambiguous.
 
 Some sites block iframe embedding with `X-Frame-Options` or `frame-ancestors` CSP. Copy AI ID reports that state inside the editor, but it cannot bypass the site policy.
+
+## Note panel modes
+
+The top toolbar includes a persisted **Floating note** toggle:
+
+- **Floating OFF:** the note panel stays docked as the right editor column. This is the most predictable mode for mobile/touch workflows where hover is limited.
+- **Floating ON:** the right note column is hidden and a floating NotePanel overlay opens near the current selected/hovered target. This is useful on desktop when you hover an element and press **Space** to write a note right next to that element.
 
 ## Preview-only visual editing
 
@@ -47,7 +54,7 @@ Visual editing is an interface for creating precise implementation prompts. It d
 | **ArrowRight** | Move to the next/right sibling; if none, climb to an ancestor's next/right sibling and enter its first child |
 | **ArrowLeft** | Move to the previous/left sibling; if none, climb to an ancestor's previous/left sibling and enter its deepest last descendant |
 | **ArrowDown** | Move to the first child; if none, move to the next/right sibling or the nearest ancestor's next/right sibling |
-| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
+| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. In floating NotePanel mode, open/focus the panel near the highlighted/hovered element before inserting the chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
 | **Shift + Enter** | Copy the current notebook text with suffixes |
 | **Esc** | Clear selection or close/off the editor where applicable |
 

@@ -169,7 +169,7 @@
   - Implementation note: Confirmed no additional cleanup code is needed. Floating NotePanel markup is mounted in the editor UI/Shadow DOM, not preview DOM, and existing cleanup rules already strip `data-ai-editor-*` attributes plus `copy-ai-id-editor-*` runtime class/id prefixes if such markers ever appear in serialized fragments.
   - Parallelizable: yes
 
-- [ ] Update user-facing docs for the new mode.
+- [x] Update user-facing docs for the new mode.
   - Files/areas: `README.md`, `README.ko.md`, `docs/editor-usage.md`, optionally `docs/chrome-web-store-listing-copy.md`
   - Notes: Replace “Right note panel” wording with mode-aware language, document the toolbar toggle, and clarify that Space in floating mode opens/focuses the NotePanel near the element before inserting the chip. Do not add manual QA steps.
   - Parallelizable: yes

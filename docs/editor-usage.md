@@ -16,7 +16,16 @@ The enabled state is runtime-only. Reloading the page or extension context reset
 | --- | --- |
 | Left layout tree | Full DOM hierarchy for context. Every DOM row is keyboard-navigable/selectable for inspection. Rows with `data-ai-id` insert stable notebook chips; no-ID rows insert fallback chips when metadata is available. |
 | Center preview | Iframe preview of the current URL with the `copy-ai-id-preview=1` query marker. The preview bridge handles click selection, keyboard navigation, hover outlines, tree synchronization, hover quick-action anchoring, and preview-only DOM mutations for visual editing. |
-| Right note panel | Always-visible Lexical-backed notebook draft, selected target chips, viewport scope controls, Tailwind suffix toggle, hidden visual-edit status/counts, and Copy button. Visual edit prompt text is hidden until copied. |
+| Note panel (docked or floating) | Lexical-backed notebook draft, selected target chips, viewport scope controls, Tailwind suffix toggle, hidden visual-edit status/counts, and Copy button. The top-toolbar floating toggle switches between the docked right-column panel and a floating overlay near the current target. Visual edit prompt text is hidden until copied. |
+
+## Note panel modes
+
+The top toolbar includes a persisted **Floating note** toggle.
+
+- **Floating OFF:** the note panel remains docked as the right editor column. This keeps the current iframe/mobile-friendly workflow and is usually better on touch devices where hover is limited.
+- **Floating ON:** the docked right note column is hidden. When the user presses **Space** for the highlighted target, Copy AI ID opens the floating NotePanel near that target, focuses the panel, then inserts the compact chip.
+
+Notebook state is shared by both modes; switching modes changes only where the active NotePanel is rendered.
 
 ## Breakpoints and zoom
 
@@ -80,7 +89,7 @@ A successful copy clears both the visible notebook draft and accumulated visual 
 
 ## Notebook copy format
 
-Press **Space** with a highlighted node to insert a compact inline chip such as `el-1` in the Lexical note editor. The editor no longer exposes long raw selector blocks while you write notes.
+Press **Space** with a highlighted node to insert a compact inline chip such as `el-1` in the Lexical note editor. In floating NotePanel mode, **Space** opens the panel near the highlighted/hovered element, focuses it, then inserts the chip. The editor no longer exposes long raw selector blocks while you write notes.
 
 - If the highlighted node has `data-ai-id`, the chip stores that stable target.
 - If the highlighted node does not have a usable `data-ai-id`, the chip stores fallback metadata when the target is still connected.
@@ -129,7 +138,7 @@ After a successful copy, the visible notebook draft and accumulated visual edit 
 | **ArrowRight** | Next/right sibling; if none, climb to an ancestor's next/right sibling and enter its first child |
 | **ArrowLeft** | Previous/left sibling; if none, climb to an ancestor's previous/left sibling and enter its deepest last descendant |
 | **ArrowDown** | First child; if none, next/right sibling; if none, nearest ancestor's next/right sibling |
-| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
+| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. In floating NotePanel mode, open/focus the panel near the highlighted/hovered element before inserting the chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
 | **Shift + Enter** | Copy notebook with suffixes |
 | **Esc** | Clear selection or close/off the editor where applicable |
 
