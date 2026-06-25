@@ -35,6 +35,8 @@
   --editor-accent-hover: rgba(14, 165, 233, 0.34);
   --editor-accent-border: rgba(56, 189, 248, 0.52);
   --editor-accent-text: #e0f7ff;
+  --copy-ai-id-resize-track: rgba(226, 232, 240, 0.18);
+  --copy-ai-id-resize-track-active: var(--editor-accent);
   --ai-editor-chrome-bg: rgba(17, 24, 39, 0.96);
   --ai-editor-chrome-bg-translucent: rgba(17, 24, 39, 0.86);
   --ai-editor-chrome-text: #f9fafb;
@@ -162,6 +164,7 @@ textarea,
 }
 
 .copy-ai-id-editor-main {
+  position: relative;
   display: grid;
   flex: 1;
   min-height: 0;
@@ -461,6 +464,107 @@ textarea,
 
 .copy-ai-id-editor-main--tree-hidden {
   grid-template-columns: 42px minmax(0, 1fr) 360px;
+}
+
+.copy-ai-id-editor-main--panel-resizing,
+.copy-ai-id-editor-main--panel-resizing * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+.copy-ai-id-editor-panel-resize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  cursor: col-resize;
+  background: transparent;
+}
+
+.copy-ai-id-editor-panel-resize-boundary {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 0;
+  pointer-events: none;
+}
+
+.copy-ai-id-editor-panel-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -8px;
+  display: flex;
+  width: 16px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--editor-text-muted);
+  cursor: col-resize;
+  pointer-events: auto;
+  padding: 0;
+}
+
+.copy-ai-id-editor-panel-resize-handle:focus-visible {
+  outline: 2px solid var(--editor-accent);
+  outline-offset: -4px;
+}
+
+.copy-ai-id-editor-panel-resize-handle__track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.copy-ai-id-editor-panel-resize-handle__grip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 22px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid var(--editor-border);
+  border-radius: 999px;
+  background: rgba(18, 21, 27, 0.92);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  opacity: 0;
+  transition: border-color 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.copy-ai-id-editor-panel-resize-handle__grip span {
+  width: 2px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--copy-ai-id-resize-track);
+}
+
+.copy-ai-id-editor-panel-resize-handle:hover .copy-ai-id-editor-panel-resize-handle__track,
+.copy-ai-id-editor-panel-resize-handle:focus-visible .copy-ai-id-editor-panel-resize-handle__track,
+.copy-ai-id-editor-panel-resize-handle.is-active .copy-ai-id-editor-panel-resize-handle__track {
+  background: var(--copy-ai-id-resize-track-active);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2), 0 0 18px rgba(56, 189, 248, 0.38);
+}
+
+.copy-ai-id-editor-panel-resize-handle:hover .copy-ai-id-editor-panel-resize-handle__grip,
+.copy-ai-id-editor-panel-resize-handle:focus-visible .copy-ai-id-editor-panel-resize-handle__grip,
+.copy-ai-id-editor-panel-resize-handle.is-active .copy-ai-id-editor-panel-resize-handle__grip {
+  border-color: var(--editor-accent-border);
+  background: var(--editor-surface-strong);
+  opacity: 1;
+}
+
+.copy-ai-id-editor-panel-resize-handle:hover .copy-ai-id-editor-panel-resize-handle__grip span,
+.copy-ai-id-editor-panel-resize-handle:focus-visible .copy-ai-id-editor-panel-resize-handle__grip span,
+.copy-ai-id-editor-panel-resize-handle.is-active .copy-ai-id-editor-panel-resize-handle__grip span {
+  background: var(--copy-ai-id-resize-track-active);
 }
 
 .copy-ai-id-editor-layout-tree-rail {

@@ -15,9 +15,11 @@ const ARROW_SHORTCUTS: Record<string, EditorKeyboardShortcut> = {
   ArrowRight: 'arrow-right',
 };
 const NOTEBOOK_LEXICAL_EDITOR_AI_ID = 'copy-ai-id-editor-note-lexical-editor';
-const PREVIEW_RESIZE_HANDLE_AI_IDS = new Set([
+const RESIZE_HANDLE_AI_IDS = new Set([
   'copy-ai-id-editor-preview-height-resize-handle',
   'copy-ai-id-editor-preview-width-resize-handle',
+  'copy-ai-id-editor-layout-tree-panel-width-resize-handle',
+  'copy-ai-id-editor-note-panel-width-resize-handle',
 ]);
 
 export function installEditorKeyboard(): () => void {
@@ -41,7 +43,7 @@ export function installEditorKeyboard(): () => void {
       return;
     }
 
-    if (isEditableEventTarget(event) || isPreviewResizeHandleEventTarget(event)) {
+    if (isEditableEventTarget(event) || isResizeHandleEventTarget(event)) {
       return;
     }
 
@@ -145,10 +147,10 @@ function isLayoutTreeEventTarget(event: Event): boolean {
   });
 }
 
-function isPreviewResizeHandleEventTarget(event: Event): boolean {
+function isResizeHandleEventTarget(event: Event): boolean {
   return event.composedPath().some((target) => {
     return target instanceof HTMLElement
-      && PREVIEW_RESIZE_HANDLE_AI_IDS.has(target.dataset.aiId ?? '');
+      && RESIZE_HANDLE_AI_IDS.has(target.dataset.aiId ?? '');
   });
 }
 

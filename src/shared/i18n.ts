@@ -55,6 +55,8 @@ export interface CopyAiIdMessages {
     customViewport: string;
     resizePreviewHeight: string;
     resizePreviewWidth: string;
+    resizeLayoutTreePanel: string;
+    resizeNotePanel: string;
     boxModelToggle: string;
     boxModelEnableTitle: string;
     boxModelDisableTitle: string;
@@ -194,6 +196,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       customViewport: 'Custom',
       resizePreviewHeight: 'Resize preview height',
       resizePreviewWidth: 'Resize preview width',
+      resizeLayoutTreePanel: 'Resize layout tree panel',
+      resizeNotePanel: 'Resize note panel',
       boxModelToggle: 'Box model',
       boxModelEnableTitle: 'Show margin, padding, content, and gap regions for the highlighted element.',
       boxModelDisableTitle: 'Hide box-model regions.',
@@ -402,6 +406,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       customViewport: '사용자 지정',
       resizePreviewHeight: '미리보기 높이 조절',
       resizePreviewWidth: '미리보기 너비 조절',
+      resizeLayoutTreePanel: '레이아웃 트리 패널 너비 조절',
+      resizeNotePanel: '노트 패널 너비 조절',
       boxModelToggle: '박스모델',
       boxModelEnableTitle: '선택/호버한 요소의 margin·padding·content·gap 영역을 색상으로 표시합니다.',
       boxModelDisableTitle: '박스모델 표시를 끕니다.',
