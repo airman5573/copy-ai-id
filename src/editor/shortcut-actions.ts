@@ -82,14 +82,18 @@ export function appendTargetReferenceToNotebook(
     floatingNotePanel.openNearTarget(captureNotePanelAnchor(reference, explicitGeometry));
   }
 
+  insertTargetReferenceIntoNotebook(reference);
+  requestNotePanelFocus();
+  return true;
+}
+
+export function insertTargetReferenceIntoNotebook(reference: EditorTargetReference): void {
   const notebook = useNotebookStore.getState();
   if (notebook.insertTargetReference) {
     notebook.insertTargetReference(reference);
   } else {
     notebook.appendTargetReference(reference);
   }
-  requestNotePanelFocus();
-  return true;
 }
 
 function resolveTargetReferenceGeometry(

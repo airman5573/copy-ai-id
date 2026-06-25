@@ -137,7 +137,7 @@
   - Notes: In the `targetReferenceRequested` case, call `appendTargetReferenceToNotebook(reference, { elementRect: message.elementRect, viewport: message.viewport })` or equivalent. Convert explicit iframe rects to editor rects before opening the floating panel.
   - Parallelizable: no
 
-- [ ] Refactor notebook target insertion into an explicit helper.
+- [x] Refactor notebook target insertion into an explicit helper.
   - Files/areas: `src/editor/shortcut-actions.ts`, `src/editor/stores/useNotebookStore.ts`
   - Notes: Extract the current insertion body into something like `insertTargetReferenceIntoNotebook(reference)`. Keep fallback behavior that calls `notebook.appendTargetReference(reference)` when Lexical registration is unavailable.
   - Parallelizable: no
