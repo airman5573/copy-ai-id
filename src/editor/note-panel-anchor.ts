@@ -11,6 +11,7 @@ import {
   getPreviewWorkspaceGeometrySnapshot,
   type EditorViewportRect,
 } from './bridge/geometry';
+import { useHighlightStore } from './stores/useHighlightStore';
 import type { FloatingNotePanelAnchorInput } from './stores/useFloatingNotePanelStore';
 import { useVisualBridgeStore } from './stores/useVisualBridgeStore';
 import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
@@ -58,9 +59,21 @@ export function captureNotePanelAnchor(
     return quickActionAnchor;
   }
 
+  const highlighted = useHighlightStore.getState();
+  if (matchesReference(reference, highlighted.highlightedTarget, highlighted.highlightedNodeId)) {
+    return fallbackAnchor(reference, highlighted.highlightedNodeId);
+  }
+
+  return fallbackAnchor(reference, reference.nodeId);
+}
+
+function fallbackAnchor(
+  reference: EditorTargetReference,
+  nodeId: string | null | undefined,
+): FloatingNotePanelAnchorInput {
   return {
     target: reference.target,
-    nodeId: reference.nodeId,
+    nodeId: reference.nodeId ?? nodeId ?? null,
     elementRect: null,
     editorRect: fallbackEditorRect(),
     viewport: null,

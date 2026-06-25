@@ -152,7 +152,7 @@
   - Notes: If floating mode is enabled, capture anchor immediately, call `openNearTarget(anchor)`, then request NotePanel focus with `afterFocus` inserting the chip. This satisfies the requested ordering: open near element, focus, then insert chip. If floating mode is OFF, preserve existing docked behavior unless a shared focus-first path is simpler and safe.
   - Parallelizable: no
 
-- [ ] Ensure editor-window Space can anchor without fresh iframe message geometry.
+- [x] Ensure editor-window Space can anchor without fresh iframe message geometry.
   - Files/areas: `src/editor/shortcut-actions.ts`, `src/editor/note-panel-anchor.ts`, `src/editor/stores/useVisualSelectionStore.ts`, `src/editor/stores/useVisualBridgeStore.ts`
   - Notes: For Space handled by `src/editor/keyboard.ts`, use the target/nodeId from `useHighlightStore` and the resolver fallback order from Phase 1. This covers layout-tree and editor-shell Space where no new iframe geometry payload exists.
   - Parallelizable: no
