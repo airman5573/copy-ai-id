@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, PropsWithChildren } from 'react';
+import type { ButtonHTMLAttributes, HTMLAttributes, PropsWithChildren } from 'react';
 
 export function ToolbarButton({
   children,
@@ -16,15 +16,26 @@ export function ToolbarSegment({ children }: PropsWithChildren) {
   return <div className="copy-ai-id-editor-toolbar-segment">{children}</div>;
 }
 
+interface PanelChromeProps extends HTMLAttributes<HTMLElement> {
+  side: 'left' | 'right';
+  dataAiId: string;
+  'data-ai-editor-note-panel-variant'?: string;
+}
+
 export function PanelChrome({
   children,
+  className = '',
   side,
   dataAiId,
-}: PropsWithChildren<{ side: 'left' | 'right'; dataAiId: string }>) {
+  ...props
+}: PropsWithChildren<PanelChromeProps>) {
+  const panelClassName = `copy-ai-id-editor-panel copy-ai-id-editor-panel--${side} ${className}`.trim();
+
   return (
     <aside
-      className={`copy-ai-id-editor-panel copy-ai-id-editor-panel--${side}`}
+      className={panelClassName}
       data-ai-id={dataAiId}
+      {...props}
     >
       {children}
     </aside>

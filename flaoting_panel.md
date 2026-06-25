@@ -96,12 +96,12 @@
   - Parallelizable: no
 
 ### Phase 4 - Floating NotePanel UI and reusable panel rendering
-- [ ] Refactor `NotePanel` so it can render as docked or floating without duplicating notebook logic.
+- [x] Refactor `NotePanel` so it can render as docked or floating without duplicating notebook logic.
   - Files/areas: `src/editor/components/NotePanel.tsx`, `src/editor/components/ui/builderChrome.tsx`
   - Notes: Add props like `variant?: 'docked' | 'floating'`, `dataAiId?: string`, and `onRequestClose?: () => void`. Keep the existing notebook controls, Lexical editor, visual edit status, and copy/reset behavior in one component. Add a close button only for floating variant if needed.
   - Parallelizable: no
 
-- [ ] Add optional class/style/data passthrough to `PanelChrome` if needed by floating rendering.
+- [x] Add optional class/style/data passthrough to `PanelChrome` if needed by floating rendering.
   - Files/areas: `src/editor/components/ui/builderChrome.tsx`, `src/editor/components/NotePanel.tsx`
   - Notes: Keep existing left/right panel behavior unchanged. Add only the minimal props needed for floating classes and accessible attributes.
   - Parallelizable: yes

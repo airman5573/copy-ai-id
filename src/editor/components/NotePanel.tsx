@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Minus, Plus, RotateCcw, StickyNote } from 'lucide-react';
+import { Minus, Plus, RotateCcw, StickyNote, X } from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
 
 import {
@@ -26,8 +26,31 @@ import {
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
-export function NotePanel() {
+export type NotePanelVariant = 'docked' | 'floating';
+
+export interface NotePanelProps {
+  variant?: NotePanelVariant;
+  dataAiId?: string;
+  className?: string;
+  onRequestClose?: () => void;
+}
+
+export function NotePanel({
+  variant = 'docked',
+  dataAiId,
+  className = '',
+  onRequestClose,
+}: NotePanelProps = {}) {
   const messages = getCurrentMessages();
+  const isFloating = variant === 'floating';
+  const resolvedDataAiId = dataAiId ?? (isFloating
+    ? 'copy-ai-id-editor-floating-note-panel'
+    : 'copy-ai-id-editor-note-panel');
+  const panelClassName = [
+    'copy-ai-id-editor-note-panel',
+    `copy-ai-id-editor-note-panel--${variant}`,
+    className,
+  ].filter(Boolean).join(' ');
   const [isNoticeEditorOpen, setNoticeEditorOpen] = useState(false);
   const [noticeDraft, setNoticeDraft] = useState('');
   const noticeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -144,7 +167,12 @@ export function NotePanel() {
     : 'copy-ai-id-editor-copy-shortcut-hint';
 
   return (
-    <PanelChrome side="right" dataAiId="copy-ai-id-editor-note-panel">
+    <PanelChrome
+      side="right"
+      dataAiId={resolvedDataAiId}
+      className={panelClassName}
+      data-ai-editor-note-panel-variant={variant}
+    >
       <div className="copy-ai-id-editor-panel__header copy-ai-id-editor-panel__header--with-action">
         <div className="copy-ai-id-editor-panel__title">
           <StickyNote size={16} aria-hidden="true" />
@@ -207,6 +235,16 @@ export function NotePanel() {
           >
             {messages.notebook.reset}
           </ToolbarButton>
+          {isFloating && onRequestClose ? (
+            <ToolbarButton
+              data-ai-id="copy-ai-id-editor-floating-note-panel-close-button"
+              title={messages.visualEditor.panel.close}
+              aria-label={messages.visualEditor.panel.close}
+              onClick={onRequestClose}
+            >
+              <X size={14} aria-hidden="true" />
+            </ToolbarButton>
+          ) : null}
         </div>
       </div>
 
