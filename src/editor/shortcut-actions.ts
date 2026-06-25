@@ -15,7 +15,7 @@ import { useNotebookStore } from './stores/useNotebookStore';
 import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 import { showStaleFallbackTargetToast } from './toast';
 
-export type EditorEscapeActionResult = 'visual-panel' | 'visual-toolbar' | 'highlight';
+export type EditorEscapeActionResult = 'visual-panel' | 'floating-note-panel' | 'visual-toolbar' | 'highlight';
 
 export interface AppendTargetReferenceOptions {
   elementRect?: BridgeViewportRect | null;
@@ -44,6 +44,12 @@ export function handleEditorEscapeAction(): EditorEscapeActionResult {
     floatingPanel.closePanel();
     useVisualSelectionStore.getState().closePanel();
     return 'visual-panel';
+  }
+
+  const floatingNotePanel = useFloatingNotePanelStore.getState();
+  if (floatingNotePanel.enabled && floatingNotePanel.isOpen) {
+    floatingNotePanel.closePanel();
+    return 'floating-note-panel';
   }
 
   const visualSelection = useVisualSelectionStore.getState();

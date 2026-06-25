@@ -6,6 +6,7 @@ import {
   useState,
   type CSSProperties,
   type Dispatch,
+  type KeyboardEvent as ReactKeyboardEvent,
   type SetStateAction,
 } from 'react';
 
@@ -135,6 +136,17 @@ export function FloatingNotePanel() {
   ]);
   const shellStyle = createFloatingNotePanelStyle(placement);
 
+  const handleShellKeyDownCapture = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
+    if (!isOpen || event.key !== 'Escape' || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.nativeEvent.stopImmediatePropagation?.();
+    closePanel();
+  };
+
   if (!enabled) {
     return null;
   }
@@ -153,6 +165,7 @@ export function FloatingNotePanel() {
         style={shellStyle}
         aria-hidden={isOpen ? undefined : true}
         inert={isOpen ? undefined : true}
+        onKeyDownCapture={handleShellKeyDownCapture}
       >
         <NotePanel
           variant="floating"

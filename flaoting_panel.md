@@ -157,7 +157,7 @@
   - Notes: For Space handled by `src/editor/keyboard.ts`, use the target/nodeId from `useHighlightStore` and the resolver fallback order from Phase 1. This covers layout-tree and editor-shell Space where no new iframe geometry payload exists.
   - Parallelizable: no
 
-- [ ] Add Escape/close behavior for the floating NotePanel without breaking visual panel Escape behavior.
+- [x] Add Escape/close behavior for the floating NotePanel without breaking visual panel Escape behavior.
   - Files/areas: `src/editor/shortcut-actions.ts`, `src/editor/components/FloatingNotePanel.tsx`, `src/editor/keyboard.ts`
   - Notes: Provide an explicit close button in the floating panel. Optionally update `handleEditorEscapeAction` to close floating NotePanel after visual panel handling and before clearing highlight. If supporting Escape inside the note editor, handle it at the floating wrapper because global keyboard currently skips editable targets.
   - Parallelizable: no
