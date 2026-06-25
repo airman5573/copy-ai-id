@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { useEditorLayoutStore } from '../stores/useEditorLayoutStore';
 import { NotePanel } from './NotePanel';
 import { PreviewWorkspace } from './PreviewWorkspace';
 import { LayoutTreePanel, LayoutTreePanelRail } from './tree/LayoutTreePanel';
@@ -9,8 +10,14 @@ export interface MainAreaProps {
 }
 
 export function MainArea({ previewStageRef, onFitZoom }: MainAreaProps) {
-  const [layoutTreeCollapsed, setLayoutTreeCollapsed] = useState(false);
+  const layoutTreeCollapsed = useEditorLayoutStore((state) => state.layoutTreeCollapsed);
+  const hydrateLayoutTreeCollapsed = useEditorLayoutStore((state) => state.hydrateLayoutTreeCollapsed);
+  const setLayoutTreeCollapsed = useEditorLayoutStore((state) => state.setLayoutTreeCollapsed);
   const previousLayoutTreeCollapsedRef = useRef(layoutTreeCollapsed);
+
+  useEffect(() => {
+    void hydrateLayoutTreeCollapsed();
+  }, [hydrateLayoutTreeCollapsed]);
 
   useLayoutEffect(() => {
     if (previousLayoutTreeCollapsedRef.current === layoutTreeCollapsed) {
