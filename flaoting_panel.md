@@ -28,12 +28,12 @@
 
 ## Checklist
 ### Phase 1 - State, message contracts, and shared positioning primitives
-- [ ] Add a dedicated floating NotePanel store.
+- [x] Add a dedicated floating NotePanel store.
   - Files/areas: `src/editor/stores/useFloatingNotePanelStore.ts`
   - Notes: Create a Zustand store with persisted `enabled: boolean` using a key such as `copy-ai-id:note-panel-floating-enabled:v1`, runtime `isOpen: boolean`, runtime `anchor`, and actions like `hydrateEnabled`, `setEnabled`, `toggleEnabled`, `openNearTarget`, `updateAnchorRects`, `closePanel`, and `resetFloatingNotePanelRuntime`. Use the same best-effort `chrome.storage.local` pattern already used in `useEditorLayoutStore.ts` and `useNotebookStore.ts`.
   - Parallelizable: no
 
-- [ ] Define the floating NotePanel anchor type and exact anchor data shape.
+- [x] Define the floating NotePanel anchor type and exact anchor data shape.
   - Files/areas: `src/editor/stores/useFloatingNotePanelStore.ts`, optionally `src/editor/note-panel-anchor.ts`
   - Notes: Include `target`, `nodeId`, `elementRect`, `editorRect`, optional `viewport`, and `updatedAt`. Keep `elementRect` in preview iframe viewport coordinates and `editorRect` in editor viewport coordinates so placement can reuse `bridgeViewportRectToEditorViewportRect` and existing stores.
   - Parallelizable: no
