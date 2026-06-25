@@ -79,7 +79,14 @@ export function appendTargetReferenceToNotebook(
   const explicitGeometry = resolveTargetReferenceGeometry(options);
   const floatingNotePanel = useFloatingNotePanelStore.getState();
   if (floatingNotePanel.enabled) {
-    floatingNotePanel.openNearTarget(captureNotePanelAnchor(reference, explicitGeometry));
+    const anchor = captureNotePanelAnchor(reference, explicitGeometry);
+    floatingNotePanel.openNearTarget(anchor);
+    window.requestAnimationFrame(() => {
+      requestNotePanelFocus({
+        afterFocus: () => insertTargetReferenceIntoNotebook(reference),
+      });
+    });
+    return true;
   }
 
   insertTargetReferenceIntoNotebook(reference);

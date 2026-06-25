@@ -147,7 +147,7 @@
   - Notes: Add `requestNotePanelFocus(detail?: { afterFocus?: () => void })` and `onNotePanelFocusRequest(listener: (detail?: NotePanelFocusRequestDetail) => void)`. In `FocusRequestPlugin`, select root end and focus, then invoke `afterFocus` after focus using `onUpdate` plus a microtask or `requestAnimationFrame`.
   - Parallelizable: no
 
-- [ ] Implement floating Space sequence in `appendTargetReferenceToNotebook`.
+- [x] Implement floating Space sequence in `appendTargetReferenceToNotebook`.
   - Files/areas: `src/editor/shortcut-actions.ts`, `src/editor/note-panel-anchor.ts`, `src/editor/stores/useFloatingNotePanelStore.ts`, `src/editor/note-panel-focus.ts`
   - Notes: If floating mode is enabled, capture anchor immediately, call `openNearTarget(anchor)`, then request NotePanel focus with `afterFocus` inserting the chip. This satisfies the requested ordering: open near element, focus, then insert chip. If floating mode is OFF, preserve existing docked behavior unless a shared focus-first path is simpler and safe.
   - Parallelizable: no
