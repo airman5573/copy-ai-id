@@ -163,9 +163,10 @@
   - Parallelizable: no
 
 ### Phase 6 - Runtime artifact cleanup, docs, and final build
-- [ ] Add floating NotePanel runtime markers to artifact stripping if needed.
+- [x] Add floating NotePanel runtime markers to artifact stripping if needed.
   - Files/areas: `src/content/editor-bridge/runtime-artifacts.ts`, `src/shared/visual-html.ts`
   - Notes: If the floating NotePanel introduces new `data-ai-editor-*`, `data-copy-ai-id-*`, or class/id prefixes that can appear in serialized preview HTML, add them to the runtime artifact cleanup lists. Since the NotePanel is in the editor Shadow DOM, this may only require confirming no preview DOM artifacts are introduced.
+  - Implementation note: Confirmed no additional cleanup code is needed. Floating NotePanel markup is mounted in the editor UI/Shadow DOM, not preview DOM, and existing cleanup rules already strip `data-ai-editor-*` attributes plus `copy-ai-id-editor-*` runtime class/id prefixes if such markers ever appear in serialized fragments.
   - Parallelizable: yes
 
 - [ ] Update user-facing docs for the new mode.
