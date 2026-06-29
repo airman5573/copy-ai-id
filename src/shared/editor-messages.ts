@@ -115,6 +115,7 @@ export type EditorKeyboardShortcut =
   | 'arrow-right'
   | 'space'
   | 'shift-enter'
+  | 'undo'
   | 'escape';
 
 export type QuickActionCategory = 'content' | 'layout' | 'spacing' | 'size' | 'style' | 'border';

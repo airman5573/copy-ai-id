@@ -3,6 +3,7 @@ import type {
   BridgeViewportSize,
   EditorKeyboardShortcut,
   EditorTargetReference,
+  EditorToBridgeMessage,
 } from '../shared/editor-messages';
 import { bridgeViewportRectToEditorViewportRect, type EditorViewportRect } from './bridge/geometry';
 import { captureNotePanelAnchor } from './note-panel-anchor';
@@ -14,6 +15,7 @@ import { useHighlightStore } from './stores/useHighlightStore';
 import { useNotebookStore } from './stores/useNotebookStore';
 import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 import { showStaleFallbackTargetToast } from './toast';
+import { undoLastVisualEdit } from './visual/visualUndo';
 
 export type EditorEscapeActionResult = 'visual-panel' | 'floating-note-panel' | 'visual-toolbar' | 'highlight';
 
@@ -24,7 +26,9 @@ export interface AppendTargetReferenceOptions {
   onFloatingNotePanelOpen?: () => void;
 }
 
-export type EditorShortcutActionOptions = Pick<AppendTargetReferenceOptions, 'onFloatingNotePanelOpen'>;
+export type EditorShortcutActionOptions = Pick<AppendTargetReferenceOptions, 'onFloatingNotePanelOpen'> & {
+  postToBridge?: (message: EditorToBridgeMessage) => void;
+};
 
 export function handleEditorShortcutAction(
   shortcut: EditorKeyboardShortcut,
@@ -36,6 +40,8 @@ export function handleEditorShortcutAction(
     case 'shift-enter':
       void copyNotebookDraftFromStore();
       return true;
+    case 'undo':
+      return options.postToBridge ? undoLastVisualEdit(options.postToBridge) : false;
     case 'escape':
       handleEditorEscapeAction();
       return true;

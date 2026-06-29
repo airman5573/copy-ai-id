@@ -8,11 +8,13 @@ import { ToolbarButton } from './ui/builderChrome';
 export interface TopToolbarProps {
   onRequestClose?: () => void;
   onFitZoom?: () => void;
+  onToggleNotePanelFloating?: () => void;
 }
 
 export function TopToolbar({
   onRequestClose,
   onFitZoom,
+  onToggleNotePanelFloating,
 }: TopToolbarProps) {
   const messages = getCurrentMessages();
   const notePanelFloatingEnabled = useFloatingNotePanelStore((state) => state.enabled);
@@ -41,7 +43,7 @@ export function TopToolbar({
         <ToolbarButton
           className={`copy-ai-id-editor-note-panel-floating-toggle${notePanelFloatingEnabled ? ' is-active' : ''}`}
           data-ai-id="copy-ai-id-editor-note-panel-floating-toggle-button"
-          onClick={toggleNotePanelFloating}
+          onClick={onToggleNotePanelFloating ?? toggleNotePanelFloating}
           title={notePanelFloatingTitle}
           aria-label={messages.editor.notePanelFloatingToggle}
           aria-pressed={notePanelFloatingEnabled}

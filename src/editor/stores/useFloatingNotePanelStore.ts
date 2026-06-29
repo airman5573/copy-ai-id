@@ -147,7 +147,9 @@ export const useFloatingNotePanelStore = create<FloatingNotePanelStore>((set, ge
   }),
   closePanel: () => set({
     isOpen: false,
-    anchor: null,
+    // Keep the last anchor while the closed shell fades out. Clearing it here
+    // makes FloatingNotePanel recompute from its fallback anchor mid-transition,
+    // which can visibly jump the note panel toward the viewport center.
     openedAt: null,
     updatedAt: Date.now(),
   }),

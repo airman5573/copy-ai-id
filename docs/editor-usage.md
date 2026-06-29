@@ -140,6 +140,7 @@ After a successful copy, the visible notebook draft and accumulated visual edit 
 | **ArrowDown** | First child; if none, next/right sibling; if none, nearest ancestor's next/right sibling |
 | **Space** | Insert/focus the highlighted node as a compact `el-N` chip. In floating NotePanel mode, open/focus the panel near the highlighted/hovered element before inserting the chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
 | **Shift + Enter** | Copy notebook with suffixes |
+| **Control + Z / Command + Z** | Undo the latest applied visual edit when focus is outside editable text fields |
 | **Esc** | Clear selection or close/off the editor where applicable |
 
 Keyboard traversal follows layout-tree DOM order, not visual screen position. It visits nodes with and without `data-ai-id`; `data-ai-id` nodes become stable chip targets and no-ID nodes can become generated fallback chip targets. See [`keyboard-traversal.md`](keyboard-traversal.md) for step-by-step examples.

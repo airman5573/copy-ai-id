@@ -19,9 +19,11 @@ import {
   type OverlayPlacement,
   type OverlaySize,
 } from '../bridge/geometry';
+import type { BreakpointId } from '../../shared/breakpoints';
 import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 import { handleEditorEscapeAction } from '../shortcut-actions';
+import { useBreakpointStore } from '../stores/useBreakpointStore';
 import {
   MAX_NOTE_PANEL_WIDTH,
   MIN_NOTE_PANEL_WIDTH,
@@ -33,16 +35,21 @@ import {
 } from '../stores/useFloatingNotePanelStore';
 import { NotePanel } from './NotePanel';
 
-const DEFAULT_FLOATING_NOTE_PANEL_HEIGHT_PX = 520;
-const MIN_FLOATING_NOTE_PANEL_HEIGHT_PX = 260;
-const MAX_FLOATING_NOTE_PANEL_HEIGHT_PX = 680;
+const DEFAULT_FLOATING_NOTE_PANEL_HEIGHT_PX = 174;
+const MIN_FLOATING_NOTE_PANEL_HEIGHT_PX = 150;
+const MAX_FLOATING_NOTE_PANEL_HEIGHT_PX = 240;
 const FLOATING_NOTE_PANEL_GAP_PX = 10;
 const FLOATING_NOTE_PANEL_MARGIN_PX = 12;
+const RIGHT_EDGE_SHIFT_THRESHOLD_PX = 1;
 
 const DEFAULT_PANEL_SIZE: OverlaySize = {
   width: MIN_NOTE_PANEL_WIDTH,
   height: DEFAULT_FLOATING_NOTE_PANEL_HEIGHT_PX,
 };
+
+type FloatingNotePanelPlacementMode = 'desktop-target' | 'mobile-preview-right';
+
+const MOBILE_NOTE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
 
 interface FloatingNotePanelPlacement {
   left: number;
@@ -50,6 +57,7 @@ interface FloatingNotePanelPlacement {
   width: number;
   height: number;
   maxHeight: number;
+  mode: FloatingNotePanelPlacementMode;
   side: OverlayPlacement['side'];
   transformOrigin: string;
 }
@@ -58,11 +66,15 @@ export function FloatingNotePanel() {
   const enabled = useFloatingNotePanelStore((state) => state.enabled);
   const isOpen = useFloatingNotePanelStore((state) => state.isOpen);
   const anchor = useFloatingNotePanelStore((state) => state.anchor);
-  const closePanel = useFloatingNotePanelStore((state) => state.closePanel);
   const notePanelWidth = useEditorLayoutStore((state) => state.notePanelWidth);
+  const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
+  const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [panelSize, setPanelSize] = useState<OverlaySize>(DEFAULT_PANEL_SIZE);
   const [layoutRevision, setLayoutRevision] = useState(0);
+  const placementMode: FloatingNotePanelPlacementMode = MOBILE_NOTE_PANEL_BREAKPOINTS.has(activeBreakpointId)
+    ? 'mobile-preview-right'
+    : 'desktop-target';
 
   useLayoutEffect(() => {
     if (!enabled) {
@@ -128,14 +140,18 @@ export function FloatingNotePanel() {
 
   const placement = useMemo(() => computeFloatingNotePanelPlacement({
     anchor,
+    mode: placementMode,
     notePanelWidth,
     panelSize,
   }), [
     anchor,
+    activeBreakpointId,
     isOpen,
     layoutRevision,
     notePanelWidth,
     panelSize,
+    placementMode,
+    zoom,
   ]);
   const shellStyle = createFloatingNotePanelStyle(placement);
 
@@ -167,6 +183,7 @@ export function FloatingNotePanel() {
         ref={panelRef}
         className={`copy-ai-id-editor-floating-note-panel-shell${isOpen ? ' is-open' : ' is-closed'}`}
         data-ai-id="copy-ai-id-editor-floating-note-panel-shell"
+        data-ai-editor-floating-note-panel-placement={placement.mode}
         data-ai-editor-floating-note-panel-side={placement.side}
         style={shellStyle}
         aria-hidden={isOpen ? undefined : true}
@@ -177,7 +194,6 @@ export function FloatingNotePanel() {
           variant="floating"
           dataAiId="copy-ai-id-editor-floating-note-panel"
           className="copy-ai-id-editor-floating-note-panel"
-          onRequestClose={closePanel}
         />
       </div>
     </div>
@@ -186,10 +202,12 @@ export function FloatingNotePanel() {
 
 function computeFloatingNotePanelPlacement({
   anchor,
+  mode,
   notePanelWidth,
   panelSize,
 }: {
   anchor: FloatingNotePanelAnchor | null;
+  mode: FloatingNotePanelPlacementMode;
   notePanelWidth: number;
   panelSize: OverlaySize;
 }): FloatingNotePanelPlacement {
@@ -210,15 +228,21 @@ function computeFloatingNotePanelPlacement({
     maxHeight,
   );
   const anchorRect = resolveAnchorRect(anchor) ?? fallbackAnchorRect(bounds);
-  const placement = calculateFloatingOverlayPlacement(anchorRect, {
-    width,
-    height,
-  }, {
-    bounds,
-    gap: FLOATING_NOTE_PANEL_GAP_PX,
-    mode: 'target',
-    padding: FLOATING_NOTE_PANEL_MARGIN_PX,
-  });
+  const placement = mode === 'mobile-preview-right'
+    ? alignFloatingNotePanelTopToAnchor(calculateFloatingOverlayPlacement(anchorRect, {
+      width,
+      height,
+    }, {
+      bounds,
+      gap: FLOATING_NOTE_PANEL_GAP_PX,
+      mode: 'preview-side',
+      padding: FLOATING_NOTE_PANEL_MARGIN_PX,
+      previewSide: 'right',
+    }), anchorRect, bounds)
+    : calculateFloatingNotePanelPreferredPlacement(anchorRect, {
+      width,
+      height,
+    }, bounds);
 
   return {
     left: Math.round(placement.left),
@@ -226,9 +250,100 @@ function computeFloatingNotePanelPlacement({
     width: Math.round(placement.width),
     height: Math.round(placement.height),
     maxHeight: Math.round(maxHeight),
+    mode,
     side: placement.side,
     transformOrigin: placement.transformOrigin,
   };
+}
+
+function alignFloatingNotePanelTopToAnchor(
+  placement: OverlayPlacement,
+  anchorRect: EditorViewportRect,
+  bounds: EditorViewportRect,
+): OverlayPlacement {
+  const minTop = bounds.top + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxTop = bounds.bottom - FLOATING_NOTE_PANEL_MARGIN_PX - placement.height;
+
+  return {
+    ...placement,
+    top: clampNumber(anchorRect.top, minTop, maxTop),
+  };
+}
+
+function calculateFloatingNotePanelPreferredPlacement(
+  anchorRect: EditorViewportRect,
+  size: OverlaySize,
+  bounds: EditorViewportRect,
+): OverlayPlacement {
+  const safeWidth = Math.max(0, size.width);
+  const safeHeight = Math.max(0, size.height);
+  const minLeft = bounds.left + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxLeft = bounds.right - FLOATING_NOTE_PANEL_MARGIN_PX - safeWidth;
+  const minTop = bounds.top + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxTop = bounds.bottom - FLOATING_NOTE_PANEL_MARGIN_PX - safeHeight;
+  const preferredLeft = anchorRect.right + FLOATING_NOTE_PANEL_GAP_PX;
+  const preferredTop = clampNumber(anchorRect.top, minTop, maxTop);
+
+  if (fitsWithinBounds(preferredLeft, preferredTop, safeWidth, safeHeight, bounds)) {
+    return shiftRightEdgePlacementLeft({
+      left: preferredLeft,
+      top: preferredTop,
+      width: safeWidth,
+      height: safeHeight,
+      side: 'right',
+      transformOrigin: 'top left',
+    }, bounds);
+  }
+
+  const anchorCenter = anchorRect.left + (anchorRect.width / 2);
+  const aboveLeft = anchorCenter - (safeWidth / 2);
+  const aboveTop = anchorRect.top - FLOATING_NOTE_PANEL_GAP_PX - safeHeight;
+
+  return shiftRightEdgePlacementLeft({
+    left: clampNumber(aboveLeft, minLeft, maxLeft),
+    top: clampNumber(aboveTop, minTop, maxTop),
+    width: safeWidth,
+    height: safeHeight,
+    side: 'above',
+    transformOrigin: 'bottom center',
+  }, bounds);
+}
+
+function shiftRightEdgePlacementLeft(
+  placement: OverlayPlacement,
+  bounds: EditorViewportRect,
+): OverlayPlacement {
+  const maxRight = bounds.right - FLOATING_NOTE_PANEL_MARGIN_PX;
+  const minLeft = bounds.left + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxLeft = bounds.right - FLOATING_NOTE_PANEL_MARGIN_PX - placement.width;
+  const isAtRightEdge = placement.left + placement.width >= maxRight - RIGHT_EDGE_SHIFT_THRESHOLD_PX;
+
+  if (!isAtRightEdge) {
+    return placement;
+  }
+
+  return {
+    ...placement,
+    left: clampNumber(placement.left - placement.width, minLeft, maxLeft),
+  };
+}
+
+function fitsWithinBounds(
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  bounds: EditorViewportRect,
+): boolean {
+  const minLeft = bounds.left + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxRight = bounds.right - FLOATING_NOTE_PANEL_MARGIN_PX;
+  const minTop = bounds.top + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxBottom = bounds.bottom - FLOATING_NOTE_PANEL_MARGIN_PX;
+
+  return left >= minLeft
+    && top >= minTop
+    && left + width <= maxRight
+    && top + height <= maxBottom;
 }
 
 function createFloatingNotePanelStyle(placement: FloatingNotePanelPlacement): CSSProperties {

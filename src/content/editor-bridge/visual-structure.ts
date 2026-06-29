@@ -498,6 +498,29 @@ function resolveDropTarget(
   }
 
   if (!message.dropTarget) {
+    if (message.dropNodeId) {
+      const dropElement = resolveTreeNode(message.dropNodeId);
+      if (!dropElement) {
+        return {
+          ok: false,
+          error: invalidStructureError('The original drop target could not be found.'),
+        };
+      }
+
+      if (isInvalidDropElement(dropElement, draggedElement)) {
+        return {
+          ok: false,
+          error: invalidStructureError('Cannot drop an element onto itself or one of its descendants.'),
+        };
+      }
+
+      return {
+        ok: true,
+        element: dropElement,
+        position: message.position ?? 'after',
+      };
+    }
+
     return {
       ok: false,
       error: invalidStructureError('No drop target or drop point was provided.'),

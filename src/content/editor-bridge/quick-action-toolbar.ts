@@ -1,4 +1,5 @@
 import {
+  isExtensionOwnedElement,
   QUICK_ACTION_BAR_ATTR,
   QUICK_ACTION_STYLE_ATTR,
 } from '../../shared/config';
@@ -335,6 +336,7 @@ function renderToolbarContents(): void {
 
   for (const { action, destructive } of STRUCTURE_ACTIONS) {
     const actionCopy = visualEditorMessages.quickActions.structure[action];
+    const disabled = isStructureActionDisabled(action, renderState.element);
     const button = createButton({
       className: [
         QUICK_ACTION_BAR_BUTTON_CLASS,
@@ -346,9 +348,48 @@ function renderToolbarContents(): void {
       title: actionCopy.title,
     });
     button.setAttribute('data-ai-editor-structure-action', action);
-    button.addEventListener('click', () => postStructureRequest(action));
+    button.disabled = disabled;
+    if (disabled) {
+      button.setAttribute('aria-disabled', 'true');
+    } else {
+      button.addEventListener('click', () => postStructureRequest(action));
+    }
     toolbarRoot.appendChild(button);
   }
+}
+
+function isStructureActionDisabled(action: QuickActionStructureOperation, element: Element): boolean {
+  switch (action) {
+    case 'move-up':
+      return previousEditableSibling(element) === null;
+    case 'move-down':
+      return nextEditableSibling(element) === null;
+    case 'duplicate':
+    case 'delete':
+      return false;
+    default:
+      return exhaustiveStructureAction(action);
+  }
+}
+
+function previousEditableSibling(element: Element): Element | null {
+  let sibling = element.previousElementSibling;
+  while (sibling && isExtensionOwnedElement(sibling)) {
+    sibling = sibling.previousElementSibling;
+  }
+  return sibling;
+}
+
+function nextEditableSibling(element: Element): Element | null {
+  let sibling = element.nextElementSibling;
+  while (sibling && isExtensionOwnedElement(sibling)) {
+    sibling = sibling.nextElementSibling;
+  }
+  return sibling;
+}
+
+function exhaustiveStructureAction(action: never): never {
+  throw new Error(`Unsupported quick-action structure operation: ${JSON.stringify(action)}`);
 }
 
 function createButton({

@@ -27,6 +27,12 @@ export function installBridgeKeyboard(post: BridgePost): () => void {
       return;
     }
 
+    if (isUndoShortcut(event)) {
+      consumeKeyboardEvent(event);
+      post({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'undo' });
+      return;
+    }
+
     if (event.key === 'Escape' && hasNoModifier(event)) {
       consumeKeyboardEvent(event);
       post({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
@@ -113,6 +119,14 @@ function isShiftZSpace(event: KeyboardEvent, zKeyPressed: boolean): boolean {
     && zKeyPressed
     && !event.metaKey
     && !event.ctrlKey
+    && !event.altKey
+    && !event.repeat;
+}
+
+function isUndoShortcut(event: KeyboardEvent): boolean {
+  return event.key.toLowerCase() === 'z'
+    && (event.ctrlKey || event.metaKey)
+    && !event.shiftKey
     && !event.altKey
     && !event.repeat;
 }

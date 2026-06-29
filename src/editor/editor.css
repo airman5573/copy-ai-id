@@ -747,6 +747,26 @@ textarea,
   min-width: 0;
   min-height: 0;
   pointer-events: auto;
+  color-scheme: light;
+  --editor-surface: #ffffff;
+  --editor-surface-raised: #ffffff;
+  --editor-surface-strong: #f8fafc;
+  --editor-surface-hover: #f1f5f9;
+  --editor-border-subtle: rgba(148, 163, 184, 0.28);
+  --editor-border: rgba(148, 163, 184, 0.42);
+  --editor-border-strong: rgba(100, 116, 139, 0.5);
+  --editor-text: #1e293b;
+  --editor-text-strong: #0f172a;
+  --editor-text-muted: #475569;
+  --editor-text-faint: #64748b;
+  --editor-accent: #0284c7;
+  --editor-accent-strong: #0369a1;
+  --editor-accent-soft: rgba(14, 165, 233, 0.12);
+  --editor-accent-hover: rgba(14, 165, 233, 0.18);
+  --editor-accent-border: rgba(2, 132, 199, 0.42);
+  --editor-accent-text: #075985;
+  border-radius: 18px;
+  background: #f8fafc;
   transition: opacity 120ms ease, transform 120ms ease;
 }
 
@@ -769,13 +789,39 @@ textarea,
   overflow: hidden;
   border: 1px solid var(--editor-border);
   border-radius: 18px;
-  background: var(--editor-surface-raised);
-  box-shadow: 0 22px 62px rgba(0, 0, 0, 0.56), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  background: #ffffff;
+  box-shadow: 0 22px 62px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.04);
   animation: copy-ai-id-editor-floating-panel-enter 120ms ease-out;
 }
 
 .copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-panel__header {
-  background: rgba(18, 21, 27, 0.92);
+  background: rgba(248, 250, 252, 0.96);
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-note-contenteditable {
+  background: #ffffff;
+  color: var(--editor-text);
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-note-contenteditable:focus {
+  background: #f8fafc;
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-note-controls {
+  background: #f8fafc;
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-copy-button--copied {
+  border-color: rgba(22, 163, 74, 0.38);
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-copy-button--empty,
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-copy-button--failed {
+  border-color: rgba(220, 38, 38, 0.38);
+  background: rgba(248, 113, 113, 0.14);
+  color: #991b1b;
 }
 
 .copy-ai-id-editor-floating-visual-panel__header {
@@ -836,6 +882,7 @@ textarea,
 .copy-ai-id-editor-note-controls {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
   gap: 6px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -902,6 +949,16 @@ textarea,
   height: 12px;
   margin: 0;
   accent-color: var(--editor-accent-strong);
+}
+
+.copy-ai-id-editor-note-controls .copy-ai-id-editor-copy-button {
+  flex: 1 1 72px;
+  min-width: 72px;
+  min-height: 24px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1;
+  padding: 4px 10px;
 }
 
 .copy-ai-id-editor-copy-button--copied {

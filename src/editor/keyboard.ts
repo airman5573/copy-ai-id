@@ -47,6 +47,12 @@ export function installEditorKeyboard(): () => void {
       return;
     }
 
+    if (isUndoShortcut(event)) {
+      consumeKeyboardEvent(event);
+      handleEditorShortcutAction('undo', { postToBridge });
+      return;
+    }
+
     if (shouldLetLayoutTreeHandleEvent(event)) {
       return;
     }
@@ -101,6 +107,14 @@ function isShiftEnter(event: KeyboardEvent): boolean {
     && event.shiftKey
     && !event.metaKey
     && !event.ctrlKey
+    && !event.altKey
+    && !event.repeat;
+}
+
+function isUndoShortcut(event: KeyboardEvent): boolean {
+  return event.key.toLowerCase() === 'z'
+    && (event.ctrlKey || event.metaKey)
+    && !event.shiftKey
     && !event.altKey
     && !event.repeat;
 }

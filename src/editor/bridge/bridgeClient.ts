@@ -22,6 +22,7 @@ import {
 } from './geometry';
 import { useBridgeStore } from '../stores/useBridgeStore';
 import { useBoxModelStore } from '../stores/useBoxModelStore';
+import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { useFloatingVisualPanelStore } from '../stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
@@ -56,6 +57,10 @@ import {
   dispatchQuickActionStructureOperation,
   previewQuickActionDragMoveFromBridgePoint,
 } from '../visual/structureActions';
+import {
+  handleVisualUndoMutationResult,
+  isVisualUndoMutationResult,
+} from '../visual/visualUndo';
 
 const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
 
@@ -181,6 +186,12 @@ export function selectQuickActionCategory(
     elementRect,
     editorRect,
   });
+
+  const floatingNotePanel = useFloatingNotePanelStore.getState();
+  if (floatingNotePanel.enabled && floatingNotePanel.isOpen) {
+    floatingNotePanel.closePanel();
+  }
+
   useFloatingVisualPanelStore.getState().openForTarget({
     target: reference.target,
     nodeId: reference.nodeId,
@@ -365,16 +376,23 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
       );
       if (message.error) {
-        useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+        if (!isVisualUndoMutationResult(message.mutationId)) {
+          useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+        } else {
+          handleVisualUndoMutationResult(message as VisualMutationResultMessage);
+        }
         if (isVisualTargetResolutionError(message.error)) {
           showStaleVisualTargetToast(message.error);
         }
       } else if (message.applied) {
-        useVisualEditStore.getState().markMutationApplied(
-          message.mutationId,
-          createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
-        );
-        if (message.kind === 'structure' && message.operation === 'delete') {
+        const handledVisualUndo = handleVisualUndoMutationResult(message as VisualMutationResultMessage);
+        if (!handledVisualUndo) {
+          useVisualEditStore.getState().markMutationApplied(
+            message.mutationId,
+            createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
+          );
+        }
+        if (!handledVisualUndo && message.kind === 'structure' && message.operation === 'delete') {
           useFloatingVisualPanelStore.getState().closePanel();
           showDeletedVisualTargetToast();
         }
@@ -406,6 +424,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
 
       handleEditorShortcutAction(message.shortcut, {
         onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+        postToBridge,
       });
       return;
     default:

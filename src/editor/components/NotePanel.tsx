@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Minus, Plus, RotateCcw, StickyNote, X } from 'lucide-react';
+import { Minus, Plus, RotateCcw, StickyNote } from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
 
 import {
@@ -32,14 +32,12 @@ export interface NotePanelProps {
   variant?: NotePanelVariant;
   dataAiId?: string;
   className?: string;
-  onRequestClose?: () => void;
 }
 
 export function NotePanel({
   variant = 'docked',
   dataAiId,
   className = '',
-  onRequestClose,
 }: NotePanelProps = {}) {
   const messages = getCurrentMessages();
   const isFloating = variant === 'floating';
@@ -162,9 +160,25 @@ export function NotePanel({
       : copyStatus === 'empty'
       ? messages.notebook.empty
       : messages.notebook.save;
-  const copyButtonDescriptionId = visualEditStatus.hasHiddenPromptText
-    ? 'copy-ai-id-editor-copy-shortcut-hint copy-ai-id-editor-hidden-visual-prompt-status'
-    : 'copy-ai-id-editor-copy-shortcut-hint';
+  const copyButtonDescriptionId = [
+    !isFloating ? 'copy-ai-id-editor-copy-shortcut-hint' : null,
+    !isFloating && visualEditStatus.hasHiddenPromptText ? 'copy-ai-id-editor-hidden-visual-prompt-status' : null,
+  ].filter(Boolean).join(' ');
+  const copyButton = (
+    <button
+      className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
+      data-ai-id="copy-ai-id-editor-copy-button"
+      data-ai-editor-copy-eligible={canCopyNotebook ? 'true' : 'false'}
+      data-ai-editor-copy-has-visual-edits={hasCopyableVisualEdits ? 'true' : 'false'}
+      type="button"
+      aria-describedby={copyButtonDescriptionId || undefined}
+      onClick={() => {
+        void handleCopy();
+      }}
+    >
+      {copyButtonLabel}
+    </button>
+  );
 
   return (
     <PanelChrome
@@ -173,82 +187,72 @@ export function NotePanel({
       className={panelClassName}
       data-ai-editor-note-panel-variant={variant}
     >
-      <div className="copy-ai-id-editor-panel__header copy-ai-id-editor-panel__header--with-action">
-        {!isFloating ? (
+      {!isFloating ? (
+        <div className="copy-ai-id-editor-panel__header copy-ai-id-editor-panel__header--with-action">
           <div className="copy-ai-id-editor-panel__title">
             <StickyNote size={16} aria-hidden="true" />
             <h2>{messages.editor.notePanel}</h2>
           </div>
-        ) : null}
-        <div className="copy-ai-id-editor-panel__actions">
-          <div
-            className="copy-ai-id-editor-note-font-size-controls"
-            data-ai-id="copy-ai-id-editor-note-font-size-controls"
-            role="group"
-            aria-label={messages.notebook.fontSize}
-          >
-            <ToolbarButton
-              className="copy-ai-id-editor-note-font-size-button"
-              data-ai-id="copy-ai-id-editor-note-font-size-decrease-button"
-              disabled={noteFontSize <= MIN_NOTE_FONT_SIZE}
-              title={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
-              aria-label={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
-              onClick={() => stepNoteFontSize(-1)}
+          <div className="copy-ai-id-editor-panel__actions">
+            <div
+              className="copy-ai-id-editor-note-font-size-controls"
+              data-ai-id="copy-ai-id-editor-note-font-size-controls"
+              role="group"
+              aria-label={messages.notebook.fontSize}
             >
-              <Minus size={14} aria-hidden="true" />
+              <ToolbarButton
+                className="copy-ai-id-editor-note-font-size-button"
+                data-ai-id="copy-ai-id-editor-note-font-size-decrease-button"
+                disabled={noteFontSize <= MIN_NOTE_FONT_SIZE}
+                title={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
+                aria-label={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
+                onClick={() => stepNoteFontSize(-1)}
+              >
+                <Minus size={14} aria-hidden="true" />
+              </ToolbarButton>
+              <ToolbarButton
+                className="copy-ai-id-editor-note-font-size-button"
+                data-ai-id="copy-ai-id-editor-note-font-size-reset-button"
+                disabled={noteFontSize === DEFAULT_NOTE_FONT_SIZE}
+                title={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
+                aria-label={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
+                onClick={resetNoteFontSize}
+              >
+                <RotateCcw size={14} aria-hidden="true" />
+              </ToolbarButton>
+              <ToolbarButton
+                className="copy-ai-id-editor-note-font-size-button"
+                data-ai-id="copy-ai-id-editor-note-font-size-increase-button"
+                disabled={noteFontSize >= MAX_NOTE_FONT_SIZE}
+                title={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
+                aria-label={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
+                onClick={() => stepNoteFontSize(1)}
+              >
+                <Plus size={14} aria-hidden="true" />
+              </ToolbarButton>
+            </div>
+            <ToolbarButton
+              data-ai-id="copy-ai-id-editor-note-notice-button"
+              title={messages.notebook.noticeDialogTitle}
+              aria-label={messages.notebook.noticeDialogTitle}
+              aria-haspopup="dialog"
+              aria-expanded={isNoticeEditorOpen}
+              onClick={openNoticeEditor}
+            >
+              {messages.notebook.noticeButton}
             </ToolbarButton>
             <ToolbarButton
-              className="copy-ai-id-editor-note-font-size-button"
-              data-ai-id="copy-ai-id-editor-note-font-size-reset-button"
-              disabled={noteFontSize === DEFAULT_NOTE_FONT_SIZE}
-              title={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
-              aria-label={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
-              onClick={resetNoteFontSize}
+              data-ai-id="copy-ai-id-editor-note-reset-button"
+              disabled={isNotebookEmpty && !hasVisualEditState}
+              title={messages.notebook.reset}
+              aria-label={messages.notebook.reset}
+              onClick={handleReset}
             >
-              <RotateCcw size={14} aria-hidden="true" />
-            </ToolbarButton>
-            <ToolbarButton
-              className="copy-ai-id-editor-note-font-size-button"
-              data-ai-id="copy-ai-id-editor-note-font-size-increase-button"
-              disabled={noteFontSize >= MAX_NOTE_FONT_SIZE}
-              title={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
-              aria-label={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
-              onClick={() => stepNoteFontSize(1)}
-            >
-              <Plus size={14} aria-hidden="true" />
+              {messages.notebook.reset}
             </ToolbarButton>
           </div>
-          <ToolbarButton
-            data-ai-id="copy-ai-id-editor-note-notice-button"
-            title={messages.notebook.noticeDialogTitle}
-            aria-label={messages.notebook.noticeDialogTitle}
-            aria-haspopup="dialog"
-            aria-expanded={isNoticeEditorOpen}
-            onClick={openNoticeEditor}
-          >
-            {messages.notebook.noticeButton}
-          </ToolbarButton>
-          <ToolbarButton
-            data-ai-id="copy-ai-id-editor-note-reset-button"
-            disabled={isNotebookEmpty && !hasVisualEditState}
-            title={messages.notebook.reset}
-            aria-label={messages.notebook.reset}
-            onClick={handleReset}
-          >
-            {messages.notebook.reset}
-          </ToolbarButton>
-          {isFloating && onRequestClose ? (
-            <ToolbarButton
-              data-ai-id="copy-ai-id-editor-floating-note-panel-close-button"
-              title={messages.visualEditor.panel.close}
-              aria-label={messages.visualEditor.panel.close}
-              onClick={onRequestClose}
-            >
-              <X size={14} aria-hidden="true" />
-            </ToolbarButton>
-          ) : null}
         </div>
-      </div>
+      ) : null}
 
       <NoteEditor
         draft={draft}
@@ -257,7 +261,7 @@ export function NotePanel({
         placeholder={messages.notebook.placeholder}
       />
 
-      <HiddenVisualPromptStatus status={visualEditStatus} />
+      {!isFloating ? <HiddenVisualPromptStatus status={visualEditStatus} /> : null}
 
       <div className="copy-ai-id-editor-note-controls" data-ai-id="copy-ai-id-editor-note-suffix-controls">
         <div className="copy-ai-id-editor-note-control-group" role="group" aria-label={messages.notebook.breakpointScope.label}>
@@ -295,31 +299,23 @@ export function NotePanel({
           />
           <span>{messages.notebook.tailwind}</span>
         </label>
+
+        {isFloating ? copyButton : null}
       </div>
 
-      <div className="copy-ai-id-editor-copy-actions" data-ai-id="copy-ai-id-editor-copy-actions">
-        <button
-          className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
-          data-ai-id="copy-ai-id-editor-copy-button"
-          data-ai-editor-copy-eligible={canCopyNotebook ? 'true' : 'false'}
-          data-ai-editor-copy-has-visual-edits={hasCopyableVisualEdits ? 'true' : 'false'}
-          type="button"
-          aria-describedby={copyButtonDescriptionId}
-          onClick={() => {
-            void handleCopy();
-          }}
-        >
-          {copyButtonLabel}
-        </button>
-        <span
-          id="copy-ai-id-editor-copy-shortcut-hint"
-          className="copy-ai-id-editor-copy-shortcut"
-          data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
-        >
-          <span data-ai-id="copy-ai-id-editor-copy-shortcut-label">{messages.notebook.copyShortcutLabel}</span>
-          <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
-        </span>
-      </div>
+      {!isFloating ? (
+        <div className="copy-ai-id-editor-copy-actions" data-ai-id="copy-ai-id-editor-copy-actions">
+          {copyButton}
+          <span
+            id="copy-ai-id-editor-copy-shortcut-hint"
+            className="copy-ai-id-editor-copy-shortcut"
+            data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
+          >
+            <span data-ai-id="copy-ai-id-editor-copy-shortcut-label">{messages.notebook.copyShortcutLabel}</span>
+            <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
+          </span>
+        </div>
+      ) : null}
 
       {isNoticeEditorOpen ? (
         <div
