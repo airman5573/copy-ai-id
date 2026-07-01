@@ -62,22 +62,44 @@ export function getDeepElementFromPoint(
   y: number,
   root: Document | ShadowRoot = document,
 ): Element | null {
-  let current = root.elementFromPoint(x, y);
+  return getComposedElementsFromPoint(x, y, root)[0] ?? null;
+}
+
+export function getComposedElementsFromPoint(
+  x: number,
+  y: number,
+  root: Document | ShadowRoot = document,
+): Element[] {
+  const result: Element[] = [];
   const visited = new Set<Element>();
 
-  while (current && !visited.has(current)) {
-    visited.add(current);
+  collectComposedElementsFromPoint(root, x, y, visited, result);
+  return result;
+}
 
-    const shadowRoot = getOpenShadowRoot(current);
-    const deeper = shadowRoot?.elementFromPoint(x, y) ?? null;
-    if (!deeper || deeper === current) {
-      break;
+function collectComposedElementsFromPoint(
+  root: Document | ShadowRoot,
+  x: number,
+  y: number,
+  visited: Set<Element>,
+  result: Element[],
+): void {
+  const elements = root.elementsFromPoint(x, y);
+
+  for (const element of elements) {
+    if (visited.has(element)) {
+      continue;
     }
 
-    current = deeper;
-  }
+    visited.add(element);
 
-  return current;
+    const shadowRoot = getOpenShadowRoot(element);
+    if (shadowRoot) {
+      collectComposedElementsFromPoint(shadowRoot, x, y, visited, result);
+    }
+
+    result.push(element);
+  }
 }
 
 export function hasComposedAncestorMatching(

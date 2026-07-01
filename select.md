@@ -40,75 +40,75 @@
 
 ## Checklist
 ### Phase 1 - Establish the local picker boundary
-- [ ] Record the pre-implementation Git baseline without modifying it.
+- [x] Record the pre-implementation Git baseline without modifying it.
   - Files/areas: `git status --short --untracked-files=all`, root `dist/`, `src/editor/stores/useFloatingNotePanelStore.ts`.
   - Notes: Treat the existing dirty `dist/` hash rotation and floating note panel store change as unrelated. Do not clean, stash, reset, or stage them as part of the selection logic implementation unless the user separately authorizes it.
   - Parallelizable: no
 
-- [ ] Create a content-side local picker module for strict point selection and target conversion.
+- [x] Create a content-side local picker module for strict point selection and target conversion.
   - Files/areas: add `src/content/editor-bridge/local-picker.ts`.
   - Notes: Keep `highlight.ts` as the UI/state orchestrator. The new module should provide typed helpers for local hit-testing, exact-element target creation, viewport geometry, and optional local highlight/box-model data. Do not import editor React code or introduce shared message schema changes.
   - Parallelizable: no
 
-- [ ] Define CDP-inspired but local-only picker/geometry types.
+- [x] Define CDP-inspired but local-only picker/geometry types.
   - Files/areas: `src/content/editor-bridge/local-picker.ts`, optionally `src/content/editor-bridge/box-model.ts` if geometry types are better colocated there.
   - Notes: Include small local data shapes such as `LocalQuad`, `LocalBoxModel`, `LocalHighlightConfig`, `LocalHitTestResult`, and `LocalTargetReference`. These should model current-frame DOM data only and must not include backend node IDs, frame IDs, object IDs, or any new serialized `EditorTarget` fields.
   - Parallelizable: yes
 
 ### Phase 2 - Implement composed point hit-testing
-- [ ] Add a composed `elementsFromPoint` stack helper while preserving the existing API.
+- [x] Add a composed `elementsFromPoint` stack helper while preserving the existing API.
   - Files/areas: `src/content/target/composed-dom.ts`.
   - Notes: Add a helper such as `getComposedElementsFromPoint(x, y, root = document)` that starts from `root.elementsFromPoint(x, y)`, descends into accessible open shadow roots with `shadowRoot.elementsFromPoint(x, y)`, avoids duplicates/cycles, and returns candidates in point-hit order. Keep `getDeepElementFromPoint(...)` exported for existing callers, either unchanged or implemented as the first/deepest candidate from the new stack helper.
   - Parallelizable: yes
 
-- [ ] Keep the hit-test scope explicitly limited.
+- [x] Keep the hit-test scope explicitly limited.
   - Files/areas: `src/content/target/composed-dom.ts`, `src/content/editor-bridge/local-picker.ts`.
   - Notes: Do not traverse nested iframe documents, closed shadow roots, or user-agent shadow DOM. Do not emulate `ignorePointerEventsNone`; rely on normal browser hit testing. If the point is over a child `<iframe>` from the current frame, the current-frame element exposed by browser hit testing is the only candidate in scope.
   - Parallelizable: yes
 
-- [ ] Implement strict point candidate selection in the local picker.
+- [x] Implement strict point candidate selection in the local picker.
   - Files/areas: `src/content/editor-bridge/local-picker.ts`, `src/shared/config.ts` for `isExtensionOwnedElement` import only.
   - Notes: Select the first connected, non-extension-owned element from the composed point stack. Use `event.composedPath()` and `event.target` only as fallback sources when point hit-testing returns no connected page element. Never replace a valid child hit with a `data-ai-id` ancestor.
   - Parallelizable: no
 
 ### Phase 3 - Preserve exact-element target semantics
-- [ ] Move or mirror exact-element target creation into the local picker.
+- [x] Move or mirror exact-element target creation into the local picker.
   - Files/areas: `src/content/editor-bridge/local-picker.ts`, existing logic in `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/layout-tree.ts`, `src/content/editor-bridge/fallback-target.ts`.
   - Notes: The helper should return an `ai-id` target only when the exact selected element itself has non-empty `data-ai-id`, using `instancesOf(aiId).indexOf(element)` for `instanceIndex`. For no-ID elements, use `fallbackTargetForElement(element, resolveNodeIdForElement(element))`. Do not call `closestAiIdElement(...)` or any equivalent ancestor promotion.
   - Parallelizable: no
 
-- [ ] Keep fallback-target eligibility unchanged.
+- [x] Keep fallback-target eligibility unchanged.
   - Files/areas: `src/content/editor-bridge/fallback-target.ts`.
   - Notes: Do not allow fallback to override an element's own `data-ai-id`; `fallbackMetadataForElement(...)` should remain limited to connected, non-extension-owned no-ID elements. Reuse existing labels, selectors, paths, open-shadow `::shadow` selector support, class tokens, and accessibility/context metadata.
   - Parallelizable: yes
 
-- [ ] Add a typed local reference builder for bridge payloads.
+- [x] Add a typed local reference builder for bridge payloads.
   - Files/areas: `src/content/editor-bridge/local-picker.ts`, `src/shared/editor-messages.ts` types imported only.
   - Notes: Build `{ target, nodeId, elementRect, viewport }` for an exact picked element using the existing `BridgeViewportRect` and `BridgeViewportSize` shapes. Preserve null-target behavior when no fallback can be created because `nodeId` is missing. Do not add fields to `TargetHighlightedMessage`, `TargetReferenceRequestedMessage`, or `QuickActionAnchorChangedMessage`.
   - Parallelizable: no
 
-- [ ] Make missing-nodeId behavior explicit without refreshing the layout tree on every hover.
+- [x] Make missing-nodeId behavior explicit without refreshing the layout tree on every hover.
   - Files/areas: `src/content/editor-bridge/local-picker.ts`, `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/layout-tree.ts`.
   - Notes: For the first implementation, keep hover/pointer movement cheap. If a connected no-ID element lacks a `nodeId`, allow the element to be highlighted but return `target: null` so quick actions/chip insertion can use existing rejection or hide behavior. Add an on-demand layout-tree refresh only if implementation review shows an existing local bridge hook can do it surgically without broad state churn.
   - Parallelizable: no
 
 ### Phase 4 - Integrate strict selection into preview hover, click, and Space flows
-- [ ] Replace `resolvePreviewHighlightElement(event)` with strict local picker resolution.
+- [x] Replace `resolvePreviewHighlightElement(event)` with strict local picker resolution.
   - Files/areas: `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/local-picker.ts`.
   - Notes: Preserve the quick-action toolbar/corridor special case: events over extension toolbar UI should keep the current highlighted element instead of retargeting. Otherwise, return the strict deepest connected page element from the local picker. This resolver is shared by hover preview, click pinning, and downstream Space/reference insertion via current highlighted state.
   - Parallelizable: no
 
-- [ ] Update `highlight.ts` to use local picker target/reference helpers.
+- [x] Update `highlight.ts` to use local picker target/reference helpers.
   - Files/areas: `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/local-picker.ts`.
   - Notes: `setHighlightedElement(...)`, `pinQuickActionToolbar(...)`, and `requestHighlightedTargetReference(...)` should all derive `target`, `nodeId`, `elementRect`, and `viewport` from the exact selected element. Keep bridge messages unchanged and keep `hasSameEditorTarget(...)` comparisons intact.
   - Parallelizable: no
 
-- [ ] Remove obsolete ancestor-promotion helpers and imports after integration.
+- [x] Remove obsolete ancestor-promotion helpers and imports after integration.
   - Files/areas: `src/content/editor-bridge/highlight.ts`.
   - Notes: Delete `closestAiIdElement(...)`, `connectedAiIdElement(...)`, and the `closestComposedElementMatching` import if they are no longer referenced. Keep `hasUsableAiId(...)` only if it still drives an existing rejection reason; otherwise remove it as dead code. Do not refactor unrelated hover suppression, pinned state, overlay, or toolbar code.
   - Parallelizable: no
 
-- [ ] Keep all preview selection entry points consistent.
+- [x] Keep all preview selection entry points consistent.
   - Files/areas: `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/keyboard.ts`, `src/content/editor-bridge/quick-action-toolbar.ts`.
   - Notes: Verify by code inspection that `mouseover`, `mousemove`, click pinning, `requestHighlightedTargetReference(post)` used by Space, quick-action anchor changes, and hover overlay updates all use the same exact selected element and target reference. Do not split hover behavior from click behavior.
   - Parallelizable: yes
@@ -130,38 +130,38 @@
   - Parallelizable: yes
 
 ### Phase 6 - Preserve editor and visual-target compatibility
-- [ ] Leave shared target/message types unchanged.
+- [x] Leave shared target/message types unchanged.
   - Files/areas: `src/shared/editor-messages.ts`, `src/shared/editor-targets.ts`.
   - Notes: Do not add a new `EditorTarget.kind`, do not add hit metadata fields, and do not change `targetIdentityKey(...)` or `hasSameEditorTarget(...)`. Existing chips/session payloads must continue to use only `ai-id` and `fallback` targets.
   - Parallelizable: yes
 
-- [ ] Keep visual target resolution exact-element compatible.
+- [x] Keep visual target resolution exact-element compatible.
   - Files/areas: `src/content/editor-bridge/visual-targets.ts`.
   - Notes: Preserve `elementMatchesEditorTarget(...)` and `targetForResolvedElement(...)` semantics: own `data-ai-id` resolves as `ai-id`; no-ID elements resolve through fallback metadata. Do not introduce ancestor lookup in visual mutation resolution to compensate for strict pointer selection.
   - Parallelizable: yes
 
-- [ ] Keep layout-tree row semantics unchanged.
+- [x] Keep layout-tree row semantics unchanged.
   - Files/areas: `src/content/editor-bridge/layout-tree.ts`, `src/editor/components/tree/LayoutTreeNodeRow.tsx`.
   - Notes: The layout tree already targets the exact row node: rows with `aiId` create `ai-id` targets and rows with fallback metadata create fallback targets. Do not apply pointer-only logic changes to tree navigation or tree row target creation beyond shared helper imports if needed.
   - Parallelizable: yes
 
-- [ ] Preserve extension-owned UI exclusion.
+- [x] Preserve extension-owned UI exclusion.
   - Files/areas: `src/shared/config.ts`, `src/content/editor-bridge/highlight.ts`, `src/content/editor-bridge/local-picker.ts`, `src/content/editor-bridge/overlay.ts`, `src/content/editor-bridge/quick-action-toolbar.ts`.
   - Notes: Ensure overlays, editor shell nodes, and quick-action toolbar nodes remain unselectable. Overlay layers should retain `pointer-events: none`, and local picker filtering should still reject extension-owned elements.
   - Parallelizable: yes
 
 ### Phase 7 - Static checks and build under current project rules
-- [ ] Run TypeScript type checking if the implementation introduces exported picker/geometry types or moves target helpers across modules.
+- [x] Run TypeScript type checking if the implementation introduces exported picker/geometry types or moves target helpers across modules.
   - Files/areas: `package.json`, `tsconfig.json`, changed TypeScript files.
   - Notes: Command: `npm run typecheck`. This is allowed and useful for type-heavy refactors, but if it fails, record the issue and continue to the required build step when possible. Do not run tests, lint, browser flows, smoke checks, or visual checks unless the user explicitly requests them.
   - Parallelizable: no
 
-- [ ] Run the required project build after source changes.
+- [x] Run the required project build after source changes.
   - Files/areas: `package.json`, `dist/`, changed source files.
   - Notes: Command: `npm run build`. If dependencies are missing, run `npm ci` from the repo root because `package-lock.json` exists, then retry the original build once. Expect root `dist/` to change because it is tracked; stage only intentional build outputs and never use `git add .`.
   - Parallelizable: no
 
-- [ ] Review generated/dirty file impact before any implementation commit.
+- [x] Review generated/dirty file impact before any implementation commit.
   - Files/areas: `git status --short --untracked-files=all`, `dist/`, `src/content/**`, `src/shared/**`, `src/editor/**`.
   - Notes: Confirm the unrelated pre-existing dirty files remain separated from implementation changes. Stage only the implementation files and intentional build outputs. Do not stage `src/editor/stores/useFloatingNotePanelStore.ts` unless the user explicitly assigns that file to this task.
   - Parallelizable: no

@@ -1,24 +1,19 @@
-import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/config';
 import {
   EDITOR_MESSAGE_TYPES,
   type BridgeToEditorMessage,
-  type BridgeViewportRect,
-  type BridgeViewportSize,
   type EditorTarget,
   type HighlightOrigin,
   type QuickActionCategory,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
+import { resolveTreeNode } from './layout-tree';
 import {
-  instancesOf,
-  resolveNodeIdForElement,
-  resolveTreeNode,
-} from './layout-tree';
-import {
-  closestComposedElementMatching,
-  getDeepElementFromPoint,
-} from '../target/composed-dom';
-import { fallbackTargetForElement } from './fallback-target';
+  connectedPickableElement,
+  hasUsableAiId,
+  resolveStrictPointHitFromMouseEvent,
+  targetReferenceForElement,
+  viewportSize,
+} from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
 import {
   hideQuickActionToolbar,
@@ -156,7 +151,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
 }
 
 export function getHighlightedElement(): Element | null {
-  return connectedHighlightElement(highlightedElement);
+  return connectedPickableElement(highlightedElement);
 }
 
 export function clearHighlightedElement(post: BridgePost): void {
@@ -221,8 +216,8 @@ export function requestHighlightedTargetReference(post: BridgePost): boolean {
     return false;
   }
 
-  const target = targetForElement(element);
-  if (!target) {
+  const reference = targetReferenceForElement(element);
+  if (!reference?.target) {
     post({
       type: EDITOR_MESSAGE_TYPES.targetReferenceRejected,
       reason: hasUsableAiId(element) ? 'missing-data-ai-id' : 'stale-fallback-target',
@@ -230,15 +225,12 @@ export function requestHighlightedTargetReference(post: BridgePost): boolean {
     return true;
   }
 
-  const elementRect = viewportRectForElement(element);
-  const viewport = viewportSize();
-
   post({
     type: EDITOR_MESSAGE_TYPES.targetReferenceRequested,
-    target,
-    nodeId: resolveNodeIdForElement(element),
-    elementRect,
-    viewport,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    elementRect: reference.elementRect,
+    viewport: reference.viewport,
   });
   return true;
 }
@@ -249,14 +241,15 @@ export function setHighlightedElement(
   origin: HighlightOrigin = 'preview',
   options: HighlightRefreshOptions = {},
 ): void {
-  const nextElement = connectedHighlightElement(element);
+  const nextElement = connectedPickableElement(element);
   const activePinnedElement = getPinnedElement();
   const shouldSyncQuickActionAnchor = !activePinnedElement
     || options.bypassPin
     || nextElement === activePinnedElement;
 
-  const nextNodeId = nextElement ? resolveNodeIdForElement(nextElement) : null;
-  const nextTarget = nextElement ? targetForElement(nextElement) : null;
+  const nextReference = nextElement ? targetReferenceForElement(nextElement) : null;
+  const nextNodeId = nextReference?.nodeId ?? null;
+  const nextTarget = nextReference?.target ?? null;
 
   if (!options.force
     && highlightedElement === nextElement
@@ -272,8 +265,8 @@ export function setHighlightedElement(
   highlightedTarget = nextTarget;
   highlightedOrigin = origin;
   updateHoverOverlay();
-  const elementRect = nextElement ? viewportRectForElement(nextElement) : null;
-  const viewport = viewportSize();
+  const elementRect = nextReference?.elementRect ?? null;
+  const viewport = nextReference?.viewport ?? viewportSize();
 
   post({
     type: EDITOR_MESSAGE_TYPES.targetHighlighted,
@@ -313,8 +306,9 @@ export function setHighlightedElement(
 }
 
 function pinQuickActionToolbar(element: Element, post: BridgePost): void {
-  const nextElement = connectedHighlightElement(element);
-  if (!nextElement || !targetForElement(nextElement)) {
+  const nextElement = connectedPickableElement(element);
+  const nextReference = nextElement ? targetReferenceForElement(nextElement) : null;
+  if (!nextElement || !nextReference?.target) {
     return;
   }
 
@@ -325,31 +319,8 @@ function pinQuickActionToolbar(element: Element, post: BridgePost): void {
   });
 }
 
-export function closestAiIdElement(start: Element): Element | null {
-  const element = closestComposedElementMatching(start, hasUsableAiId);
-  return connectedAiIdElement(element);
-}
-
-function connectedAiIdElement(element: Element | null): Element | null {
-  const connected = connectedHighlightElement(element);
-  if (!connected) {
-    return null;
-  }
-
-  const aiId = connected.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '';
-  return aiId ? connected : null;
-}
-
-function connectedHighlightElement(element: Element | null): Element | null {
-  if (!element || !element.isConnected || isExtensionOwnedElement(element)) {
-    return null;
-  }
-
-  return element;
-}
-
 function getPinnedElement(): Element | null {
-  const connected = connectedHighlightElement(pinnedElement);
+  const connected = connectedPickableElement(pinnedElement);
   if (connected !== pinnedElement) {
     pinnedElement = null;
   }
@@ -357,99 +328,18 @@ function getPinnedElement(): Element | null {
   return connected;
 }
 
-function targetForElement(element: Element): EditorTarget | null {
-  const connected = connectedHighlightElement(element);
-  if (!connected) {
-    return null;
-  }
-
-  const aiId = connected.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '';
-  if (!aiId) {
-    return fallbackTargetForElement(connected, resolveNodeIdForElement(connected));
-  }
-
-  return {
-    kind: 'ai-id',
-    aiId,
-    instanceIndex: Math.max(0, instancesOf(aiId).indexOf(connected)),
-  };
-}
-
 function resolvePreviewHighlightElement(event: MouseEvent): Element | null {
   if (isQuickActionToolbarEvent(event)) {
     return getHighlightedElement();
   }
 
-  const deepestElement = deepestElementForMouseEvent(event);
-  const aiIdElement = deepestElement ? closestAiIdElement(deepestElement) : null;
-  return aiIdElement ?? connectedHighlightElement(deepestElement);
+  return resolveStrictPointHitFromMouseEvent(event)?.element ?? null;
 }
 
 function isQuickActionToolbarEvent(event: MouseEvent): boolean {
   return isQuickActionToolbarElement(event.target)
     || isQuickActionToolbarElement(event.relatedTarget)
     || isPointInQuickActionToolbarTransitionCorridor(event.clientX, event.clientY);
-}
-
-function deepestElementForMouseEvent(event: MouseEvent): Element | null {
-  const deepElement = connectedHighlightElement(getDeepElementFromPoint(event.clientX, event.clientY));
-  if (deepElement) {
-    return deepElement;
-  }
-
-  const pathElement = firstElementFromComposedPath(event);
-  if (pathElement) {
-    return pathElement;
-  }
-
-  return event.target instanceof Element ? connectedHighlightElement(event.target) : null;
-}
-
-function firstElementFromComposedPath(event: MouseEvent): Element | null {
-  if (typeof event.composedPath !== 'function') {
-    return null;
-  }
-
-  for (const target of event.composedPath()) {
-    if (target instanceof Document || target instanceof Window) {
-      return null;
-    }
-
-    if (target instanceof Element) {
-      const connected = connectedHighlightElement(target);
-      if (connected) {
-        return connected;
-      }
-    }
-  }
-
-  return null;
-}
-
-function hasUsableAiId(element: Element): boolean {
-  return (element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '').length > 0;
-}
-
-function viewportRectForElement(element: Element): BridgeViewportRect {
-  const rect = element.getBoundingClientRect();
-
-  return {
-    x: rect.left,
-    y: rect.top,
-    left: rect.left,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-function viewportSize(): BridgeViewportSize {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
 }
 
 function updateHoverOverlay(): void {
