@@ -8,6 +8,7 @@ import type {
 import type { EditorViewportRect } from '../bridge/geometry';
 
 const NOTE_PANEL_FLOATING_ENABLED_STORAGE_KEY = 'copy-ai-id:note-panel-floating-enabled:v1';
+const DEFAULT_NOTE_PANEL_FLOATING_ENABLED = true;
 
 export interface FloatingNotePanelAnchor extends EditorTargetReference {
   elementRect: BridgeViewportRect | null;
@@ -43,7 +44,7 @@ interface FloatingNotePanelStore extends FloatingNotePanelStateSnapshot {
 }
 
 const initialFloatingNotePanelState: FloatingNotePanelStateSnapshot = {
-  enabled: false,
+  enabled: DEFAULT_NOTE_PANEL_FLOATING_ENABLED,
   isOpen: false,
   anchor: null,
   openedAt: null,
@@ -58,17 +59,18 @@ function getChromeLocalStorage(): chrome.storage.LocalStorageArea | null {
   return chrome.storage.local;
 }
 
-async function readStoredFloatingEnabled(): Promise<boolean> {
+async function readStoredFloatingEnabled(): Promise<boolean | null> {
   const storage = getChromeLocalStorage();
   if (!storage) {
-    return false;
+    return null;
   }
 
   try {
     const result = await storage.get(NOTE_PANEL_FLOATING_ENABLED_STORAGE_KEY);
-    return result[NOTE_PANEL_FLOATING_ENABLED_STORAGE_KEY] === true;
+    const storedEnabled = result[NOTE_PANEL_FLOATING_ENABLED_STORAGE_KEY];
+    return typeof storedEnabled === 'boolean' ? storedEnabled : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -89,7 +91,8 @@ async function writeStoredFloatingEnabled(enabled: boolean): Promise<void> {
 export const useFloatingNotePanelStore = create<FloatingNotePanelStore>((set, get) => ({
   ...initialFloatingNotePanelState,
   hydrateEnabled: async () => {
-    const enabled = await readStoredFloatingEnabled();
+    const storedEnabled = await readStoredFloatingEnabled();
+    const enabled = storedEnabled ?? DEFAULT_NOTE_PANEL_FLOATING_ENABLED;
     set((state) => ({
       enabled,
       isOpen: enabled ? state.isOpen : false,
