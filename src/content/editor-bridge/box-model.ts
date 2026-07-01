@@ -3,7 +3,7 @@ import type { VisualBoxEdge, VisualBoxRegion } from '../../shared/editor-message
 
 type OverlayKind = 'hover' | 'control';
 type Edge = 'top' | 'right' | 'bottom' | 'left';
-type Region = 'margin' | 'padding' | 'content' | 'gap';
+type Region = 'margin' | 'border' | 'padding' | 'content' | 'gap';
 
 interface Rect {
   left: number;
@@ -32,6 +32,7 @@ const OVERLAY_Z_INDEX: Record<OverlayKind, string> = {
 // Chrome DevTools-style box-model colors.
 const REGION_COLORS: Record<Region, [number, number, number]> = {
   margin: [246, 178, 107],
+  border: [255, 229, 153],
   padding: [147, 196, 125],
   content: [111, 168, 220],
   gap: [171, 124, 232],
@@ -39,6 +40,7 @@ const REGION_COLORS: Record<Region, [number, number, number]> = {
 
 const REGION_ALPHA: Record<Region, number> = {
   margin: 0.55,
+  border: 0.5,
   padding: 0.5,
   content: 0.45,
   gap: 0.5,
@@ -124,10 +126,6 @@ function ensureLayer(kind: OverlayKind): HTMLElement {
 
 function isHighlightedRegion(region: RegionRect, filter: BoxModelRegionFilter | undefined): boolean {
   if (!filter) {
-    return false;
-  }
-
-  if (filter.region === 'border') {
     return false;
   }
 
@@ -269,6 +267,19 @@ function computeRegionRects(element: Element): RegionRect[] {
   const innerTop = top + border.top;
   const innerWidth = Math.max(0, width - border.left - border.right);
   const innerHeight = Math.max(0, height - border.top - border.bottom);
+  push({ region: 'border', edge: 'top', rect: { left, top, width, height: Math.min(border.top, height) } });
+  push({
+    region: 'border',
+    edge: 'bottom',
+    rect: { left, top: top + height - Math.min(border.bottom, height), width, height: Math.min(border.bottom, height) },
+  });
+  push({ region: 'border', edge: 'left', rect: { left, top: innerTop, width: Math.min(border.left, width), height: innerHeight } });
+  push({
+    region: 'border',
+    edge: 'right',
+    rect: { left: left + width - Math.min(border.right, width), top: innerTop, width: Math.min(border.right, width), height: innerHeight },
+  });
+
   const topPaddingHeight = Math.min(padding.top, innerHeight);
   const bottomPaddingHeight = Math.min(padding.bottom, innerHeight);
   const sideHeight = Math.max(0, innerHeight - padding.top - padding.bottom);
