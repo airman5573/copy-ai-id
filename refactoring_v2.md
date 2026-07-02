@@ -98,11 +98,11 @@
   - Files/areas: src/content/editor-bridge/highlight.ts (~26), new src/content/editor-bridge/types.ts, importers (keyboard, navigation, visual-* modules)
   - Notes: Pure type move; breaks the coupling hub on a stateful module.
   - Parallelizable: yes
-- [ ] Resolve the duplicated breakpoint labels
+- [x] Resolve the duplicated breakpoint labels
   - Files/areas: src/shared/i18n.ts (breakpoints map ~150-159), src/shared/breakpoints.ts (`BREAKPOINTS[].label` ~18-27)
-  - Notes: Grep which label source each consumer reads; make one canonical (i18n map, since it is localized) and delete or redirect the other. Do not change any displayed string.
+  - Notes: Not actually duplicates — i18n map is localized UI (CanvasControls), `BREAKPOINTS[].label` is the stable technical label used in copied export text (visualMutationClient, visual-edits-export) and panel headers. Merging would change ko UI strings or export output, so the intentional split is now documented on both declarations instead.
   - Parallelizable: yes
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no

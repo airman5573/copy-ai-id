@@ -10,6 +10,11 @@ export type BreakpointId =
 
 export interface Breakpoint {
   id: BreakpointId;
+  /**
+   * Stable technical label used in copied/exported text (visual-edit
+   * summaries, breakpoint intent notes). Localized UI labels live in the
+   * i18n `breakpoints` map — the two are intentionally separate sources.
+   */
   label: string;
   width: number;
   prefix: string;

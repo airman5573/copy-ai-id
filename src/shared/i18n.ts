@@ -18,6 +18,10 @@ interface VisualPanelStateMessage {
 
 export interface CopyAiIdMessages {
   htmlLang: string;
+  /**
+   * Localized breakpoint labels for UI display. The stable technical labels
+   * used in copied/exported text live in shared/breakpoints.ts `label`.
+   */
   breakpoints: Record<BreakpointId, string>;
   popup: {
     shortcutHintHtml: string;
