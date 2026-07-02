@@ -59,15 +59,15 @@
   - Files/areas: src/editor/notebook/lexical/chip-import.ts (`$initializeNotebookFromLegacyText`, `isLegacyNotebookDraftValue`), src/editor/notebook/session-draft.ts (legacy plaintext fallback branch; keep v2 JSON as the only accepted format), src/shared/editor-targets.ts (`formatEditorTargetReference`, ~44-63)
   - Notes: `$initializeNotebookFromLegacyText` turned out to be the LIVE draft-sync mechanism (DraftSyncPlugin resets the editor from the store draft after copy/clear) — renamed to `$setNotebookPlainText` in new `plain-text.ts`; chip-import.ts deleted. session-draft now restores only v2 payloads with a valid serialized Lexical state (invalid chip state → no draft, not raw text). `formatEditorTargetReference` deleted.
   - Parallelizable: no
-- [ ] Remove the backwards-compatible alias in `runtime-messages.ts` if unreferenced
+- [x] Remove the backwards-compatible alias in `runtime-messages.ts` if unreferenced
   - Files/areas: src/shared/runtime-messages.ts (~24-25)
-  - Notes: Grep for the alias name across `src/`; delete only if the canonical name covers all usages.
+  - Notes: Inverted finding: the alias `CopyAiIdRuntimeMessage` was the only used name; `CopyAiIdContentRuntimeMessage` had zero users, so the union now carries the used name directly.
   - Parallelizable: yes
-- [ ] Delete the unreferenced `tsconfig.base.json`
+- [x] Delete the unreferenced `tsconfig.base.json`
   - Files/areas: tsconfig.base.json
   - Notes: `tsconfig.json` does not `extends` it and nothing else references it; the stricter flags were never enforced and the user declined enforcing them.
   - Parallelizable: yes
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: Fix fallout from deletions before moving on.
   - Parallelizable: no

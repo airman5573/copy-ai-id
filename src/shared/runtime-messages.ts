@@ -17,12 +17,9 @@ export interface SetEnabledRuntimeMessage {
   enabled: boolean;
 }
 
-export type CopyAiIdContentRuntimeMessage =
+export type CopyAiIdRuntimeMessage =
   | GetRuntimeStateMessage
   | SetEnabledRuntimeMessage;
-
-// Backwards-compatible alias used by the current popup/content tab messaging path.
-export type CopyAiIdRuntimeMessage = CopyAiIdContentRuntimeMessage;
 
 export function isCopyAiIdRuntimeMessage(value: unknown): value is CopyAiIdRuntimeMessage {
   if (!value || typeof value !== 'object') {
