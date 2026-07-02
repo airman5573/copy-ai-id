@@ -46,6 +46,16 @@ import {
   nextEditableSibling,
   previousEditableSibling,
 } from './lib/dom';
+import {
+  cloneStructureElement,
+  elementFromHtml,
+} from './structure-clone';
+import {
+  createStructureResult,
+  operationForRequest,
+  structureResultForOperation,
+  type StructureMutationSuccess,
+} from './visual-structure-results';
 import { stripRuntimeArtifacts } from './runtime-artifacts';
 import {
   createVisualMutationResultBase,
@@ -58,17 +68,6 @@ import {
 } from './visual-target-resolver';
 
 const PROTECTED_STRUCTURE_TAGS = new Set(['html', 'head', 'body']);
-
-interface StructureMutationSuccess {
-  resolved: VisualTargetResolveSuccess;
-  structure: VisualStructureMutationSnapshot;
-  afterStructure?: VisualStructureMutationSnapshot;
-  duplicateTarget?: EditorTarget;
-  duplicateNodeId?: string | null;
-  dropTarget?: EditorTarget;
-  dropNodeId?: string | null;
-  position?: VisualDropPosition;
-}
 
 export function handleDuplicateVisualElement(
   message: DuplicateVisualElementMessage,
@@ -306,118 +305,6 @@ function postStructureFailure(
   const base = createVisualMutationResultBase({ request, resolved, error, applied: false });
   const result = structureResultForOperation(request, base, operation, undefined, undefined);
   postVisualMutationResult(post, result, { layoutTree: false, overlays: false, highlight: false });
-}
-
-function createStructureResult(
-  request: DuplicateVisualElementMessage | MoveVisualElementMessage | DeleteVisualElementMessage | RestoreVisualElementMessage | RequestVisualDragMoveMessage,
-  success: StructureMutationSuccess,
-): VisualMutationResultMessage {
-  const base = createVisualMutationResultBase({
-    request,
-    resolved: success.resolved,
-    applied: true,
-  });
-  const result = structureResultForOperation(
-    request,
-    base,
-    operationForRequest(request),
-    success.structure,
-    success.afterStructure,
-  );
-
-  switch (result.type) {
-    case EDITOR_MESSAGE_TYPES.visualElementDuplicated:
-      return {
-        ...result,
-        duplicateTarget: success.duplicateTarget,
-        duplicateNodeId: success.duplicateNodeId,
-      };
-    case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
-      return {
-        ...result,
-        dropTarget: success.dropTarget,
-        dropNodeId: success.dropNodeId,
-        position: success.position,
-      };
-    default:
-      return result;
-  }
-}
-
-function structureResultForOperation(
-  request: VisualMutationRequestBase,
-  base: ReturnType<typeof createVisualMutationResultBase>,
-  operation: VisualStructureOperation,
-  structure: VisualStructureMutationSnapshot | undefined,
-  afterStructure: VisualStructureMutationSnapshot | undefined,
-): VisualMutationResultMessage {
-  switch (operation) {
-    case 'duplicate':
-      return {
-        ...base,
-        type: EDITOR_MESSAGE_TYPES.visualElementDuplicated,
-        kind: 'structure',
-        operation,
-        structure,
-        afterStructure,
-      } satisfies VisualElementDuplicatedMessage;
-    case 'move-up':
-    case 'move-down':
-      return {
-        ...base,
-        type: EDITOR_MESSAGE_TYPES.visualElementMoved,
-        kind: 'structure',
-        operation,
-        structure,
-        afterStructure,
-      } satisfies VisualElementMovedMessage;
-    case 'delete':
-      return {
-        ...base,
-        type: EDITOR_MESSAGE_TYPES.visualElementDeleted,
-        kind: 'structure',
-        operation,
-        structure,
-      } satisfies VisualElementDeletedMessage;
-    case 'restore':
-      return {
-        ...base,
-        type: EDITOR_MESSAGE_TYPES.visualElementRestored,
-        kind: 'structure',
-        operation,
-        structure,
-      } satisfies VisualElementRestoredMessage;
-    case 'drag-move':
-      return {
-        ...base,
-        type: EDITOR_MESSAGE_TYPES.visualDragMoveCompleted,
-        kind: 'structure',
-        operation,
-        structure,
-        afterStructure,
-      } satisfies VisualDragMoveCompletedMessage;
-    default:
-      return exhaustiveStructureOperation(operation);
-  }
-}
-
-function operationForRequest(
-  request: DuplicateVisualElementMessage | MoveVisualElementMessage | DeleteVisualElementMessage | RestoreVisualElementMessage | RequestVisualDragMoveMessage,
-): VisualStructureOperation {
-  switch (request.type) {
-    case EDITOR_MESSAGE_TYPES.duplicateVisualElement:
-      return 'duplicate';
-    case EDITOR_MESSAGE_TYPES.moveVisualElement:
-      return request.direction === 'up' ? 'move-up' : 'move-down';
-    case EDITOR_MESSAGE_TYPES.deleteVisualElement:
-      return 'delete';
-    case EDITOR_MESSAGE_TYPES.restoreVisualElement:
-      return 'restore';
-    case EDITOR_MESSAGE_TYPES.requestVisualDragMove:
-      return 'drag-move';
-    default:
-      return exhaustiveRequest(request);
-  }
 }
 
 function validateStructureTarget(element: Element, operation: VisualStructureOperation): VisualMutationError | null {
@@ -718,47 +605,6 @@ function liveAiIdInstances(aiId: string): Element[] {
     ));
 }
 
-function elementFromHtml(html: string): Element | null {
-  const template = document.createElement('template');
-  template.innerHTML = html.trim();
-  return template.content.firstElementChild;
-}
-
-function cloneStructureElement(element: Element): Element {
-  const cleanedHtml = stripRuntimeArtifacts(element.outerHTML);
-  const parsedClone = elementFromHtml(cleanedHtml);
-
-  if (parsedClone && parsedClone.tagName.toLowerCase() === element.tagName.toLowerCase()) {
-    return parsedClone;
-  }
-
-  const clone = element.cloneNode(true) as Element;
-  removeRuntimeArtifactsFromClone(clone);
-  return clone;
-}
-
-function removeRuntimeArtifactsFromClone(root: Element): void {
-  const candidates = [root, ...Array.from(root.querySelectorAll('*'))];
-
-  for (const candidate of candidates) {
-    if (candidate !== root && isExtensionOwnedElement(candidate)) {
-      candidate.remove();
-      continue;
-    }
-
-    for (const attribute of Array.from(candidate.attributes)) {
-      const name = attribute.name.toLowerCase();
-      if (
-        name === 'data-ai-temp-id'
-        || name.startsWith('data-ai-editor-')
-        || name.startsWith('data-copy-ai-id-')
-      ) {
-        candidate.removeAttribute(attribute.name);
-      }
-    }
-  }
-}
-
 function resolveParentByNodeId(nodeId: string): Element | null {
   return resolveTreeNode(nodeId);
 }
@@ -777,12 +623,4 @@ function invalidStructureError(detail: string): VisualMutationError {
     message: 'The requested structure operation cannot be applied at this location.',
     detail,
   };
-}
-
-function exhaustiveStructureOperation(operation: never): never {
-  throw new Error(`Unsupported visual structure operation: ${operation}`);
-}
-
-function exhaustiveRequest(request: never): never {
-  throw new Error(`Unsupported visual structure request: ${JSON.stringify(request)}`);
 }
