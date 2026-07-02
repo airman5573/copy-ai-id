@@ -72,6 +72,13 @@ interface VisualPanelTargetInput extends EditorTargetReference {
   editorRect?: EditorViewportRect | null;
 }
 
+/**
+ * Single owner of visual-selection data: hover/toolbar/panel targets with
+ * their geometry, and the target-snapshot lifecycle. The floating visual
+ * panel reads its target/category from `panelTarget` here and only keeps
+ * open/close state in useFloatingVisualPanelStore; highlight identity for
+ * tree/keyboard/notebook lives in useHighlightStore.
+ */
 export interface VisualSelectionStateSnapshot {
   hoverTarget: VisualHoverTargetState | null;
   activeToolbarTarget: VisualToolbarTargetState | null;

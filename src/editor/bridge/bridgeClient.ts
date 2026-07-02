@@ -1,19 +1,23 @@
 import {
   EDITOR_MESSAGE_TYPES,
+  type BridgeReadyMessage,
   type BridgeToEditorMessage,
   type BridgeViewportRect,
   type EditorToBridgeMessage,
   type EditorKeyboardShortcut,
   type EditorTargetReference,
+  type KeyboardShortcutMessage,
+  type QuickActionAnchorChangedMessage,
   type QuickActionCategory,
   type RequestVisualTargetSnapshotMessage,
+  type TargetHighlightedMessage,
+  type TargetReferenceRejectedMessage,
+  type TargetReferenceRequestedMessage,
+  type VisualMutationErrorMessage,
+  type VisualTargetSnapshotMessage,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
-import {
-  createVisualEditTargetDescriptor,
-  isVisualTargetResolutionError,
-} from '../../shared/visual-targets';
-import type { VisualEditRecord } from '../../shared/visual-edits';
+import { isVisualTargetResolutionError } from '../../shared/visual-targets';
 import {
   bridgeViewportRectToEditorViewportRect,
   getBridgeIframeElement,
@@ -56,6 +60,7 @@ import {
   dispatchQuickActionStructureOperation,
   previewQuickActionDragMoveFromBridgePoint,
 } from '../visual/structureActions';
+import { createVisualEditRecordPatchForMutationResult } from '../visual/mutationResultPatch';
 import {
   handleVisualUndoMutationResult,
   isVisualUndoMutationResult,
@@ -216,67 +221,32 @@ export function installBridgeClient(): () => void {
   };
 }
 
+// Thin routing table: every multi-statement branch delegates to a named
+// per-domain handler below. Ordering caveat: bridgeReady resets stores and
+// must complete before the following layoutTree message populates the tree.
 function routeBridgeMessage(message: BridgeToEditorMessage): void {
   switch (message.type) {
     case EDITOR_MESSAGE_TYPES.bridgeReady:
-      useVisualEditStore.getState().resetVisualEditStore();
-      useVisualSelectionStore.getState().resetVisualSelectionState();
-      useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
-      useSectionJumpStore.getState().resetSectionJumpStore();
-      useBridgeStore.getState().markReady(message.url, message.aiIdCount);
-      useRuntimeStore.getState().setPreviewUrl(message.url);
-      postCurrentCanvasZoomToBridge();
-      if (useBoxModelStore.getState().enabled) {
-        postToBridge({ type: EDITOR_MESSAGE_TYPES.setBoxModelMode, enabled: true });
-      }
-      if (isNoteEditorHoverProtected()) {
-        postToBridge({ type: EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed, suppressed: true });
-      }
+      handleBridgeReady(message);
       return;
     case EDITOR_MESSAGE_TYPES.layoutTree:
       useLayoutTreeStore.getState().setTree(message.root, message.url);
       flushPendingPostMutationSnapshotRefresh();
       return;
     case EDITOR_MESSAGE_TYPES.targetHighlighted:
-      if (isNoteEditorHoverProtected()) {
-        return;
-      }
-
-      useHighlightStore.getState().setHighlightedTarget(message.target, message.nodeId, message.origin ?? 'preview');
-      useVisualSelectionStore.getState().setHoverTarget(
-        message,
-        message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
-      );
+      handleTargetHighlighted(message);
       return;
     case EDITOR_MESSAGE_TYPES.targetReferenceRequested:
-      appendTargetReferenceToNotebook({
-        target: message.target,
-        nodeId: message.nodeId,
-      }, {
-        elementRect: message.elementRect ?? null,
-        viewport: message.viewport ?? null,
-        onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
-      });
+      handleTargetReferenceRequested(message);
       return;
     case EDITOR_MESSAGE_TYPES.targetReferenceRejected:
-      if (message.reason === 'missing-data-ai-id') {
-        showMissingDataAiIdToast();
-      } else if (message.reason === 'stale-fallback-target') {
-        showStaleFallbackTargetToast();
-      }
+      handleTargetReferenceRejected(message);
       return;
     case EDITOR_MESSAGE_TYPES.iframeStatus:
       useBridgeStore.getState().setIframeStatus(message.status, message.message);
       return;
     case EDITOR_MESSAGE_TYPES.quickActionAnchorChanged:
-      if (isNoteEditorHoverProtected()) {
-        return;
-      }
-
-      useVisualSelectionStore.getState().setQuickActionAnchor(
-        message,
-        message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
-      );
+      handleQuickActionAnchorChanged(message);
       return;
     case EDITOR_MESSAGE_TYPES.quickActionCategoryRequested:
       selectQuickActionCategory({
@@ -309,13 +279,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       clearQuickActionDragMovePreview();
       return;
     case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
-      useVisualSelectionStore.getState().setSnapshotResult(
-        message,
-        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
-      );
-      if (isVisualTargetResolutionError(message.error)) {
-        showStaleVisualTargetToast(message.error);
-      }
+      handleVisualTargetSnapshot(message);
       return;
     case EDITOR_MESSAGE_TYPES.visualStyleUpdated:
     case EDITOR_MESSAGE_TYPES.visualTextUpdated:
@@ -327,64 +291,144 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.visualElementDeleted:
     case EDITOR_MESSAGE_TYPES.visualElementRestored:
     case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
-      useVisualSelectionStore.getState().applyMutationResult(
-        message as VisualMutationResultMessage,
-        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
-      );
-      if (message.error) {
-        if (!isVisualUndoMutationResult(message.mutationId)) {
-          useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
-        } else {
-          handleVisualUndoMutationResult(message as VisualMutationResultMessage);
-        }
-        if (isVisualTargetResolutionError(message.error)) {
-          showStaleVisualTargetToast(message.error);
-        }
-      } else if (message.applied) {
-        const handledVisualUndo = handleVisualUndoMutationResult(message as VisualMutationResultMessage);
-        if (!handledVisualUndo) {
-          useVisualEditStore.getState().markMutationApplied(
-            message.mutationId,
-            createVisualEditRecordPatchForMutationResult(message as VisualMutationResultMessage),
-          );
-        }
-        if (!handledVisualUndo && message.kind === 'structure' && message.operation === 'delete') {
-          useFloatingVisualPanelStore.getState().closePanel();
-          showDeletedVisualTargetToast();
-        }
-        queuePostMutationSnapshotRefresh(message as VisualMutationResultMessage);
-      }
+      handleVisualMutationResultMessage(message as VisualMutationResultMessage);
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
-      useVisualSelectionStore.getState().setMutationError(message);
-      if (message.mutationId !== undefined) {
-        useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
-      }
-      if (isVisualTargetResolutionError(message.error)) {
-        showStaleVisualTargetToast(message.error);
-      }
+      handleVisualMutationErrorMessage(message);
       return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
-      if (isArrowShortcut(message.shortcut)) {
-        suppressHoverUntilMouseMove();
-      }
-
-      if (message.shortcut === 'escape') {
-        const result = handleEditorEscapeAction();
-        if (result !== 'visual-panel') {
-          postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
-        }
-        return;
-      }
-
-      handleEditorShortcutAction(message.shortcut, {
-        onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
-        postToBridge,
-      });
+      handleKeyboardShortcut(message);
       return;
     default:
       return;
   }
+}
+
+function handleBridgeReady(message: BridgeReadyMessage): void {
+  useVisualEditStore.getState().resetVisualEditStore();
+  useVisualSelectionStore.getState().resetVisualSelectionState();
+  useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
+  useSectionJumpStore.getState().resetSectionJumpStore();
+  useBridgeStore.getState().markReady(message.url, message.aiIdCount);
+  useRuntimeStore.getState().setPreviewUrl(message.url);
+  postCurrentCanvasZoomToBridge();
+  if (useBoxModelStore.getState().enabled) {
+    postToBridge({ type: EDITOR_MESSAGE_TYPES.setBoxModelMode, enabled: true });
+  }
+  if (isNoteEditorHoverProtected()) {
+    postToBridge({ type: EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed, suppressed: true });
+  }
+}
+
+function handleTargetHighlighted(message: TargetHighlightedMessage): void {
+  if (isNoteEditorHoverProtected()) {
+    return;
+  }
+
+  useHighlightStore.getState().setHighlightedTarget(message.target, message.nodeId, message.origin ?? 'preview');
+  useVisualSelectionStore.getState().setHoverTarget(
+    message,
+    message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
+  );
+}
+
+function handleTargetReferenceRequested(message: TargetReferenceRequestedMessage): void {
+  appendTargetReferenceToNotebook({
+    target: message.target,
+    nodeId: message.nodeId,
+  }, {
+    elementRect: message.elementRect ?? null,
+    viewport: message.viewport ?? null,
+    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+  });
+}
+
+function handleTargetReferenceRejected(message: TargetReferenceRejectedMessage): void {
+  if (message.reason === 'missing-data-ai-id') {
+    showMissingDataAiIdToast();
+  } else if (message.reason === 'stale-fallback-target') {
+    showStaleFallbackTargetToast();
+  }
+}
+
+function handleQuickActionAnchorChanged(message: QuickActionAnchorChangedMessage): void {
+  if (isNoteEditorHoverProtected()) {
+    return;
+  }
+
+  useVisualSelectionStore.getState().setQuickActionAnchor(
+    message,
+    message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
+  );
+}
+
+function handleVisualTargetSnapshot(message: VisualTargetSnapshotMessage): void {
+  useVisualSelectionStore.getState().setSnapshotResult(
+    message,
+    message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
+  );
+  if (isVisualTargetResolutionError(message.error)) {
+    showStaleVisualTargetToast(message.error);
+  }
+}
+
+function handleVisualMutationResultMessage(message: VisualMutationResultMessage): void {
+  useVisualSelectionStore.getState().applyMutationResult(
+    message,
+    message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
+  );
+  if (message.error) {
+    if (!isVisualUndoMutationResult(message.mutationId)) {
+      useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+    } else {
+      handleVisualUndoMutationResult(message);
+    }
+    if (isVisualTargetResolutionError(message.error)) {
+      showStaleVisualTargetToast(message.error);
+    }
+  } else if (message.applied) {
+    const handledVisualUndo = handleVisualUndoMutationResult(message);
+    if (!handledVisualUndo) {
+      useVisualEditStore.getState().markMutationApplied(
+        message.mutationId,
+        createVisualEditRecordPatchForMutationResult(message),
+      );
+    }
+    if (!handledVisualUndo && message.kind === 'structure' && message.operation === 'delete') {
+      useFloatingVisualPanelStore.getState().closePanel();
+      showDeletedVisualTargetToast();
+    }
+    queuePostMutationSnapshotRefresh(message);
+  }
+}
+
+function handleVisualMutationErrorMessage(message: VisualMutationErrorMessage): void {
+  useVisualSelectionStore.getState().setMutationError(message);
+  if (message.mutationId !== undefined) {
+    useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);
+  }
+  if (isVisualTargetResolutionError(message.error)) {
+    showStaleVisualTargetToast(message.error);
+  }
+}
+
+function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {
+  if (isArrowShortcut(message.shortcut)) {
+    suppressHoverUntilMouseMove();
+  }
+
+  if (message.shortcut === 'escape') {
+    const result = handleEditorEscapeAction();
+    if (result !== 'visual-panel') {
+      postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
+    }
+    return;
+  }
+
+  handleEditorShortcutAction(message.shortcut, {
+    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+    postToBridge,
+  });
 }
 
 function isArrowShortcut(shortcut: EditorKeyboardShortcut): boolean {
@@ -418,116 +462,4 @@ function flushPendingPostMutationSnapshotRefresh(): void {
 
   pendingPostMutationSnapshotRefresh = null;
   requestVisualTargetSnapshot(pending);
-}
-
-function createVisualEditRecordPatchForMutationResult(
-  message: VisualMutationResultMessage,
-): Partial<VisualEditRecord> | undefined {
-  if (message.kind !== 'structure' || !message.structure) {
-    return undefined;
-  }
-
-  if (
-    message.operation !== 'delete'
-    && message.operation !== 'restore'
-    && message.operation !== 'duplicate'
-    && message.operation !== 'move-up'
-    && message.operation !== 'move-down'
-    && message.operation !== 'drag-move'
-  ) {
-    return undefined;
-  }
-
-  const visualEditState = useVisualEditStore.getState();
-  const pending = visualEditState.pendingMutations[message.mutationId];
-  const record = pending
-    ? visualEditState.records.find((candidate) => candidate.id === pending.recordId)
-    : null;
-
-  if (!record || record.kind !== 'structure' || record.payload.kind !== 'structure') {
-    return undefined;
-  }
-
-  const structureRecord = record as VisualEditRecord<'structure'>;
-  const currentStructure = structureRecord.payload.structure;
-  const before = structureBeforeForMutationResult(message, structureRecord);
-  const after = structureAfterForMutationResult(message);
-  const duplicatedTarget = message.operation === 'duplicate' && message.duplicateTarget
-    ? createVisualEditTargetDescriptor(message.duplicateTarget, { nodeId: message.duplicateNodeId ?? null })
-    : currentStructure.duplicatedTarget;
-  const dropTarget = message.operation === 'drag-move' && message.dropTarget
-    ? createVisualEditTargetDescriptor(message.dropTarget, { nodeId: message.dropNodeId ?? null })
-    : currentStructure.dropTarget;
-
-  return {
-    payload: {
-      kind: 'structure',
-      structure: {
-        ...currentStructure,
-        operation: message.operation,
-        before,
-        after,
-        movedDirection: message.operation === 'move-up'
-          ? 'up'
-          : message.operation === 'move-down'
-            ? 'down'
-            : currentStructure.movedDirection,
-        dropPosition: message.operation === 'drag-move'
-          ? message.position ?? currentStructure.dropPosition
-          : currentStructure.dropPosition,
-        dropTarget,
-        duplicatedTarget,
-      },
-    },
-    before: {
-      kind: 'structure',
-      structure: { structure: before },
-    },
-    after: {
-      kind: 'structure',
-      structure: { structure: after },
-    },
-  } as Partial<VisualEditRecord>;
-}
-
-function structureBeforeForMutationResult(
-  message: VisualMutationResultMessage,
-  record: VisualEditRecord<'structure'>,
-) {
-  if (
-    message.kind === 'structure'
-    && (
-      message.operation === 'delete'
-      || message.operation === 'duplicate'
-      || message.operation === 'move-up'
-      || message.operation === 'move-down'
-      || message.operation === 'drag-move'
-    )
-  ) {
-    return message.structure ?? null;
-  }
-
-  return record.payload.structure.before ?? record.before.structure.structure ?? null;
-}
-
-function structureAfterForMutationResult(
-  message: VisualMutationResultMessage,
-) {
-  if (message.kind !== 'structure') {
-    return null;
-  }
-
-  switch (message.operation) {
-    case 'delete':
-      return null;
-    case 'restore':
-      return message.structure ?? null;
-    case 'duplicate':
-    case 'move-up':
-    case 'move-down':
-    case 'drag-move':
-      return message.afterStructure ?? null;
-    default:
-      return null;
-  }
 }

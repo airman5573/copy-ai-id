@@ -3,6 +3,13 @@ import { create } from 'zustand';
 import type { EditorTarget, HighlightOrigin } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 
+/**
+ * Owns highlight *identity* (which target/node is highlighted and from
+ * where) for the layout tree, keyboard traversal, and notebook chips.
+ * Hover *geometry* for the visual toolbar/panel is owned separately by
+ * useVisualSelectionStore.hoverTarget; both are fed from the same
+ * targetHighlighted bridge message by design.
+ */
 interface HighlightStore {
   highlightedTarget: EditorTarget | null;
   highlightedNodeId: string | null;
