@@ -19,7 +19,7 @@ import {
   useNotebookStore,
 } from '../stores/useNotebookStore';
 import {
-  selectHasCopyableVisualEdits,
+  selectHasVisualEdits,
   selectVisualEditRuntimeStatus,
   useVisualEditStore,
 } from '../stores/useVisualEditStore';
@@ -65,7 +65,7 @@ export function NotePanel({
   const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
   const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
   const visualEditStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
-  const hasCopyableVisualEdits = useVisualEditStore(selectHasCopyableVisualEdits);
+  const hasCopyableVisualEdits = useVisualEditStore(selectHasVisualEdits);
   const canCopyNotebook = hasNotebookDraftForCopy || hasCopyableVisualEdits;
   const hasVisualEditState = visualEditStatus.totalCount > 0
     || visualEditStatus.hasPending
@@ -401,7 +401,7 @@ function HiddenVisualPromptStatus({
       aria-live={status.hasErrors ? 'assertive' : 'polite'}
     >
       <strong data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-title">
-        Visual edits {status.hiddenPromptCount}개 저장됨
+        Visual edits {status.exportableCount}개 저장됨
       </strong>
       <span data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-message">
         편집 프롬프트 내용은 노트에 표시하지 않고, 복사할 때만 <code>## Visual edits</code>로 클립보드에 포함됩니다.

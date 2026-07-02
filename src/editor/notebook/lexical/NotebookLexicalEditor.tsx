@@ -4,7 +4,7 @@ import { LexicalComposer, type InitialConfigType } from '@lexical/react/LexicalC
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 
-import { protectNoteEditorFromHover } from '../../note-hover-guard';
+import { protectEditorInteractionFromHover } from '../../note-hover-guard';
 import { ChipNode } from './ChipNode';
 import { $initializeNotebookFromLegacyText } from './chip-import';
 import { NotebookEditorPlugins } from './NotebookEditorPlugins';
@@ -50,10 +50,10 @@ export function NotebookLexicalEditor({
               aria-multiline="true"
               spellCheck={false}
               style={{ fontSize: `${fontSize}px` }}
-              onFocus={() => protectNoteEditorFromHover()}
-              onKeyDown={() => protectNoteEditorFromHover()}
-              onInput={() => protectNoteEditorFromHover()}
-              onPaste={() => protectNoteEditorFromHover()}
+              onFocus={() => protectEditorInteractionFromHover()}
+              onKeyDown={() => protectEditorInteractionFromHover()}
+              onInput={() => protectEditorInteractionFromHover()}
+              onPaste={() => protectEditorInteractionFromHover()}
             />
           )}
           placeholder={(

@@ -53,7 +53,3 @@ function notifyHoverProtectionListeners(protectedFromHover: boolean): void {
     listener(protectedFromHover);
   }
 }
-
-export function protectNoteEditorFromHover(durationMs = NOTE_EDITOR_HOVER_PROTECTION_MS): void {
-  protectEditorInteractionFromHover(durationMs);
-}

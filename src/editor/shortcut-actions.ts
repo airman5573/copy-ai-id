@@ -118,7 +118,10 @@ export function insertTargetReferenceIntoNotebook(reference: EditorTargetReferen
   if (notebook.insertTargetReference) {
     notebook.insertTargetReference(reference);
   } else {
-    notebook.appendTargetReference(reference);
+    // Visible notebook insertions are owned by the mounted Lexical editor via
+    // insertTargetReference. Before it mounts, only record the focused target
+    // instead of falling back to the old raw-text format.
+    notebook.setFocusedTarget(reference.target);
   }
 }
 

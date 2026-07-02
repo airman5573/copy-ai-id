@@ -38,7 +38,6 @@ interface NotebookStore {
   hydrateDraftSession(snapshot: NotebookDraftSessionSnapshot): void;
   setLexicalEditorState(snapshot: NotebookLexicalStateSnapshot): void;
   allocateChipId(): string;
-  appendTargetReference(reference: EditorTargetReference): void;
   setInsertTargetReference(insertTargetReference: ((reference: EditorTargetReference) => void) | null): void;
   setSuffixSettings(settings: NotebookSuffixSettings): void;
   hydrateNoteFontSize(): Promise<void>;
@@ -155,16 +154,6 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
 
     return chipId;
   },
-  appendTargetReference: (targetReference) => set(() => {
-    const { target } = targetReference;
-
-    // Visible notebook insertions are owned by the mounted Lexical editor via
-    // insertTargetReference. If that callback is temporarily unavailable, avoid
-    // falling back to the old raw `[fallback target]`/`[data-ai-id]` text format.
-    return {
-      focusedTarget: target,
-    };
-  }),
   setInsertTargetReference: (insertTargetReference) => set({ insertTargetReference }),
   setSuffixSettings: (suffixSettings) => set({
     suffixSettings: normalizeNotebookSuffixSettings(suffixSettings),

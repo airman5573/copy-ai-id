@@ -51,9 +51,9 @@
   - Files/areas: src/content/editor-bridge/runtime-artifacts.ts (selector/attribute lists, lines ~15-94), src/editor/**, src/content/editor-bridge/**
   - Notes: Verified writers: config-constant hosts, `data-ai-editor-overlay` (overlay.ts:108), `data-copy-ai-id-visual-overlay` (drop indicator), quick-action bar/style attrs and `copy-ai-id-quick-action*`/`copy-ai-id-preview-*`/`copy-ai-id-editor-*` classes. Removed writer-less element selectors, the whole inline-text marker block (visual-content.ts never sets contenteditable), the exact-name attribute set (fully covered by the two attribute prefixes except writer-less `data-ai-temp-id`), the id-prefix rule (nothing sets `id` with those prefixes), and `ai-editor-*`/`copy-ai-id-visual-panel*`/`copy-ai-id-inline-text-` class prefixes (no class writers).
   - Parallelizable: no
-- [ ] Remove editor-side dead code and duplicate selectors
+- [x] Remove editor-side dead code and duplicate selectors
   - Files/areas: src/editor/note-hover-guard.ts (`protectNoteEditorFromHover` alias ~57-59), src/editor/stores/useVisualEditStore.ts (`selectHasCopyableVisualEdits` ~259-261 — inline its one behavior into callers of `selectHasVisualEdits` or vice versa; `hiddenPromptCount` duplicate of `exportableCount` ~280), src/editor/stores/useNotebookStore.ts (`appendTargetReference` stub ~158-167)
-  - Notes: For `appendTargetReference`, confirm the `insertTargetReference == null` fallback is unreachable in practice (the Lexical editor injects the callback on mount in NotebookEditorPlugins); if a mount-race window exists, keep a minimal no-op guard instead of the stub.
+  - Notes: Alias callers rewired to `protectEditorInteractionFromHover`; `selectHasVisualEdits`/`exportableCount` now the single names. The `insertTargetReference == null` mount race IS reachable (floating-panel rAF insert), so the guard was inlined into `insertTargetReferenceIntoNotebook` as a `setFocusedTarget` call and the store stub deleted.
   - Parallelizable: yes
 - [ ] Remove legacy notebook-draft compatibility paths
   - Files/areas: src/editor/notebook/lexical/chip-import.ts (`$initializeNotebookFromLegacyText`, `isLegacyNotebookDraftValue`), src/editor/notebook/session-draft.ts (legacy plaintext fallback branch; keep v2 JSON as the only accepted format), src/shared/editor-targets.ts (`formatEditorTargetReference`, ~44-63)

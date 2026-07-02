@@ -15,7 +15,7 @@ import type { EditorTargetReference } from '../../../shared/editor-messages';
 import { EDITOR_MESSAGE_TYPES } from '../../../shared/editor-messages';
 import { targetIdentityKey } from '../../../shared/editor-targets';
 import { postToBridge } from '../../bridge/bridgeClient';
-import { isNoteEditorHoverProtected, protectNoteEditorFromHover } from '../../note-hover-guard';
+import { isNoteEditorHoverProtected, protectEditorInteractionFromHover } from '../../note-hover-guard';
 import { onNotePanelFocusRequest, type NotePanelFocusRequestDetail } from '../../note-panel-focus';
 import { useHighlightStore } from '../../stores/useHighlightStore';
 import { useNotebookStore } from '../../stores/useNotebookStore';
@@ -32,7 +32,7 @@ export function NotebookEditorPlugins({ draft }: NotebookEditorPluginsProps) {
   const setLexicalEditorState = useNotebookStore((state) => state.setLexicalEditorState);
   const handleChange = useCallback((editorState: EditorState, editor: LexicalEditor): void => {
     if (isLexicalEditorFocused(editor)) {
-      protectNoteEditorFromHover();
+      protectEditorInteractionFromHover();
     }
 
     const exportedState = editorState.read(() => $exportNotebookLexicalState());
@@ -97,7 +97,7 @@ function TargetReferenceInsertionPlugin() {
   const insertTargetReference = useCallback((targetReference: EditorTargetReference): void => {
     const chipId = allocateChipId();
     setFocusedTarget(targetReference.target);
-    protectNoteEditorFromHover();
+    protectEditorInteractionFromHover();
 
     editor.update(() => {
       $insertChipReference(chipId, targetReference);
@@ -124,7 +124,7 @@ function FocusRequestPlugin() {
 
   useEffect(() => {
     return onNotePanelFocusRequest((detail) => {
-      protectNoteEditorFromHover();
+      protectEditorInteractionFromHover();
 
       editor.update(() => {
         $getRoot().selectEnd();

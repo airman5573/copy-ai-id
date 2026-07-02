@@ -5,7 +5,7 @@ import {
   useNotebookStore,
 } from '../stores/useNotebookStore';
 import {
-  selectHasCopyableVisualEdits,
+  selectHasVisualEdits,
   useVisualEditStore,
 } from '../stores/useVisualEditStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
@@ -28,7 +28,7 @@ export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
   const notebook = useNotebookStore.getState();
   const visualEditStore = useVisualEditStore.getState();
   const visualEditRecords = visualEditStore.getExportableRecords();
-  const hasVisualEdits = selectHasCopyableVisualEdits(visualEditStore);
+  const hasVisualEdits = selectHasVisualEdits(visualEditStore);
   const hasNotebookDraft = selectHasNotebookDraftForCopy(notebook);
 
   if (!hasNotebookDraft && !hasVisualEdits) {

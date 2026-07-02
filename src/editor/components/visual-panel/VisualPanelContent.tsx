@@ -174,7 +174,7 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
     >
       {status.hasHiddenPromptText ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-hidden-prompt-count">
-          {panelMessages.hiddenPromptLabel}: {status.hiddenPromptCount}{panelMessages.countSuffix} · {panelMessages.copyOnlySuffix}
+          {panelMessages.hiddenPromptLabel}: {status.exportableCount}{panelMessages.countSuffix} · {panelMessages.copyOnlySuffix}
         </span>
       ) : null}
       {status.hasPending ? (
