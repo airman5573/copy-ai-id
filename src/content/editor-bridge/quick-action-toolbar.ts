@@ -158,10 +158,6 @@ export function destroyQuickActionToolbar(): void {
   isToolbarFocusWithin = false;
 }
 
-export function refreshQuickActionToolbarPlacement(): void {
-  schedulePlacementRefresh();
-}
-
 export function isQuickActionToolbarElement(target: EventTarget | null): boolean {
   const element = elementFromEventTarget(target);
   return Boolean(element?.closest(`[${QUICK_ACTION_BAR_ATTR}]`));

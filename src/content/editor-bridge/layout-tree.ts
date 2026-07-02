@@ -42,10 +42,6 @@ export function resolveAiTarget(aiId: string, instanceIndex: number): Element | 
   return element && element.isConnected ? element : null;
 }
 
-export function buildLayoutTreeMessage(): LayoutTreeMessage {
-  return buildLayoutTreeSnapshot().message;
-}
-
 export function buildAndPostLayoutTreeSnapshot(post: LayoutTreePost): LayoutTreeBuildResult {
   const result = buildLayoutTreeSnapshot();
   post(result.message);

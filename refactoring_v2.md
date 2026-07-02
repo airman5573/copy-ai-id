@@ -39,7 +39,7 @@
   - Files/areas: src/content/editor-bridge/local-picker.ts
   - Notes: Removed `localBoxModelForElement`, types `LocalBoxModel`/`LocalQuad`/`LocalPoint`/`LocalHighlightConfig`, and private quad/rect helpers. Kept `LocalHitTestResult`/`LocalHitTestSource`/`LocalTargetReference` — grep showed they are live return types of `resolveStrictPointHitFromMouseEvent`/`targetReferenceForElement` used by highlight.ts.
   - Parallelizable: yes
-- [ ] Delete unused exports in the content bridge
+- [x] Delete unused exports in the content bridge
   - Files/areas: src/content/editor-bridge/layout-tree.ts (`buildLayoutTreeMessage` line ~45), src/content/editor-bridge/quick-action-toolbar.ts (`refreshQuickActionToolbarPlacement` ~161), src/content/editor-bridge/visual-mutation-results.ts (`postVisualMutationError` ~150, `isVisualMutationResultMessage` ~185), src/content/editor-bridge/visual-targets.ts (`hasSameResolvedVisualTarget` ~817)
   - Notes: Grep each symbol across all of `src/` first; delete only zero-reference exports.
   - Parallelizable: yes

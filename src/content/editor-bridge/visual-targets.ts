@@ -11,10 +11,7 @@ import type {
   VisualMutationErrorCode,
   VisualTargetSnapshot,
 } from '../../shared/editor-messages';
-import {
-  hasSameEditorTarget,
-  isAiIdTarget,
-} from '../../shared/editor-targets';
+import { isAiIdTarget } from '../../shared/editor-targets';
 import { VISUAL_STYLE_COMPUTED_PROPERTIES } from '../../shared/visual-style';
 import {
   sanitizeAttributeMap,
@@ -814,15 +811,3 @@ function isVisiblyRendered(
     && computedStyle.contentVisibility !== 'hidden';
 }
 
-export function hasSameResolvedVisualTarget(
-  first: VisualTargetResolveSuccess | null | undefined,
-  second: VisualTargetResolveSuccess | null | undefined,
-): boolean {
-  if (!first || !second) {
-    return false;
-  }
-
-  return first.element === second.element
-    || (first.nodeId !== null && first.nodeId === second.nodeId)
-    || hasSameEditorTarget(first.target, second.target);
-}

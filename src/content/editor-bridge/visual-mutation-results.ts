@@ -1,6 +1,5 @@
 import {
   EDITOR_MESSAGE_TYPES,
-  type BridgeToEditorMessage,
   type RequestVisualTargetSnapshotMessage,
   type VisualAttributeUpdatedMessage,
   type VisualDragMoveCompletedMessage,
@@ -10,7 +9,6 @@ import {
   type VisualElementRestoredMessage,
   type VisualFormValueUpdatedMessage,
   type VisualMutationError,
-  type VisualMutationKind,
   type VisualMutationRequestBase,
   type VisualMutationResultBase,
   type VisualRichTextUpdatedMessage,
@@ -62,14 +60,6 @@ export interface VisualMutationResultBaseOptions {
   error?: VisualMutationError;
   applied?: boolean;
   snapshotOptions?: VisualTargetSnapshotOptions;
-}
-
-export interface VisualMutationErrorMessageOptions {
-  mutationId?: number;
-  kind?: VisualMutationKind;
-  target?: VisualMutationRequestBase['target'];
-  nodeId?: string | null;
-  error: VisualMutationError;
 }
 
 export function handleVisualTargetSnapshotRequest(
@@ -147,20 +137,6 @@ export function postVisualMutationResult(
   return refreshAfterVisualMutation(post, refreshOptions);
 }
 
-export function postVisualMutationError(
-  post: BridgePost,
-  options: VisualMutationErrorMessageOptions,
-): void {
-  post({
-    type: EDITOR_MESSAGE_TYPES.visualMutationError,
-    mutationId: options.mutationId,
-    kind: options.kind,
-    target: options.target,
-    nodeId: options.nodeId,
-    error: options.error,
-  });
-}
-
 export function refreshAfterVisualMutation(
   post: BridgePost,
   options: VisualMutationRefreshOptions = {},
@@ -180,24 +156,4 @@ export function refreshAfterVisualMutation(
   }
 
   return result;
-}
-
-export function isVisualMutationResultMessage(
-  message: BridgeToEditorMessage,
-): message is VisualMutationResultMessage {
-  switch (message.type) {
-    case EDITOR_MESSAGE_TYPES.visualStyleUpdated:
-    case EDITOR_MESSAGE_TYPES.visualTextUpdated:
-    case EDITOR_MESSAGE_TYPES.visualRichTextUpdated:
-    case EDITOR_MESSAGE_TYPES.visualAttributeUpdated:
-    case EDITOR_MESSAGE_TYPES.visualFormValueUpdated:
-    case EDITOR_MESSAGE_TYPES.visualElementDuplicated:
-    case EDITOR_MESSAGE_TYPES.visualElementMoved:
-    case EDITOR_MESSAGE_TYPES.visualElementDeleted:
-    case EDITOR_MESSAGE_TYPES.visualElementRestored:
-    case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
-      return true;
-    default:
-      return false;
-  }
 }
