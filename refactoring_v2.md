@@ -90,9 +90,9 @@
   - Files/areas: src/content/editor-bridge/local-picker.ts (`targetForElement` ~89), src/content/editor-bridge/visual-structure.ts (`editorTargetForElement` ~704), src/content/editor-bridge/visual-targets.ts (`targetForResolvedElement` ~415)
   - Notes: Shared core in new editor-target.ts with a parameterized instance-index resolver: visual-structure keeps its live-DOM resolver (fresh clones unregistered until tree rebuild), local-picker keeps its pickability guard, visual-targets keeps its `?? requestedTarget` substitution.
   - Parallelizable: no
-- [ ] Extract shared mutation-result posting helpers for the per-kind bridge handlers
+- [x] Extract shared mutation-result posting helpers for the per-kind bridge handlers
   - Files/areas: new src/content/editor-bridge/lib/mutation-result.ts; src/content/editor-bridge/{visual-style,visual-content,visual-attributes,visual-form-value}.ts
-  - Notes: One generic success/failure post helper and one `mutationFailedError` factory replacing the 4 copies; the per-kind handler files stay separate (user decision).
+  - Notes: Shared `mutationFailedError`/`unsupportedTargetError` factories added to visual-mutation-results.ts (per-kind messages stay as one-line delegates). The generic success/failure post helper already exists as `postVisualMutationResult`; the per-kind wrappers assemble kind-specific payloads and stay per the user's "keep per-kind explicit" decision.
   - Parallelizable: no
 - [ ] Move the `BridgePost` type out of `highlight.ts`
   - Files/areas: src/content/editor-bridge/highlight.ts (~26), new src/content/editor-bridge/types.ts, importers (keyboard, navigation, visual-* modules)

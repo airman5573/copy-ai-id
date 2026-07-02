@@ -12,6 +12,8 @@ import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
 import { dispatchNativeInputEvents } from './lib/dom';
 import { type BridgePost } from './highlight';
 import {
+  mutationFailedError as sharedMutationFailedError,
+  unsupportedTargetError,
   createVisualMutationResultBase,
   postVisualMutationResult,
 } from './visual-mutation-results';
@@ -213,17 +215,9 @@ function supportsRichHtmlMutation(element: Element): boolean {
 }
 
 function unsupportedContentError(detail: string): VisualMutationError {
-  return {
-    code: 'unsupported-target',
-    message: 'The selected element cannot be edited with this content control.',
-    detail,
-  };
+  return unsupportedTargetError('The selected element cannot be edited with this content control.', detail);
 }
 
 function mutationFailedError(detail: string): VisualMutationError {
-  return {
-    code: 'mutation-failed',
-    message: 'The content mutation failed.',
-    detail,
-  };
+  return sharedMutationFailedError('The content mutation failed.', detail);
 }

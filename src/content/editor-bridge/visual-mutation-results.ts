@@ -62,6 +62,22 @@ export interface VisualMutationResultBaseOptions {
   snapshotOptions?: VisualTargetSnapshotOptions;
 }
 
+export function mutationFailedError(message: string, detail: string): VisualMutationError {
+  return {
+    code: 'mutation-failed',
+    message,
+    detail,
+  };
+}
+
+export function unsupportedTargetError(message: string, detail: string): VisualMutationError {
+  return {
+    code: 'unsupported-target',
+    message,
+    detail,
+  };
+}
+
 export function handleVisualTargetSnapshotRequest(
   message: RequestVisualTargetSnapshotMessage,
   post: BridgePost,

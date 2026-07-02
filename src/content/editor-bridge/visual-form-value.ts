@@ -12,6 +12,8 @@ import {
 } from './lib/dom';
 import { type BridgePost } from './highlight';
 import {
+  mutationFailedError as sharedMutationFailedError,
+  unsupportedTargetError,
   createVisualMutationResultBase,
   postVisualMutationResult,
 } from './visual-mutation-results';
@@ -202,17 +204,9 @@ function normalizeSelectedIndex(index: number, optionCount: number): number {
 }
 
 function unsupportedFormValueError(detail: string): VisualMutationError {
-  return {
-    code: 'unsupported-target',
-    message: 'The selected element cannot be edited with form value controls.',
-    detail,
-  };
+  return unsupportedTargetError('The selected element cannot be edited with form value controls.', detail);
 }
 
 function mutationFailedError(detail: string): VisualMutationError {
-  return {
-    code: 'mutation-failed',
-    message: 'The form value mutation failed.',
-    detail,
-  };
+  return sharedMutationFailedError('The form value mutation failed.', detail);
 }

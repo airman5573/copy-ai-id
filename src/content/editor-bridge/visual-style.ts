@@ -7,6 +7,8 @@ import {
 } from '../../shared/editor-messages';
 import { type BridgePost } from './highlight';
 import {
+  mutationFailedError as sharedMutationFailedError,
+  unsupportedTargetError,
   createVisualMutationResultBase,
   postVisualMutationResult,
 } from './visual-mutation-results';
@@ -161,17 +163,9 @@ function invalidStyleError(detail: string): VisualMutationError {
 }
 
 function unsupportedStyleError(detail: string): VisualMutationError {
-  return {
-    code: 'unsupported-target',
-    message: 'The selected element cannot be styled.',
-    detail,
-  };
+  return unsupportedTargetError('The selected element cannot be styled.', detail);
 }
 
 function mutationFailedError(detail: string): VisualMutationError {
-  return {
-    code: 'mutation-failed',
-    message: 'The inline style mutation failed.',
-    detail,
-  };
+  return sharedMutationFailedError('The inline style mutation failed.', detail);
 }

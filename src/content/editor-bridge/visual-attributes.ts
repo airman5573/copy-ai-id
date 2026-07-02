@@ -8,6 +8,7 @@ import {
 import { sanitizeVisualAttributeMutation } from '../../shared/visual-attributes';
 import { type BridgePost } from './highlight';
 import {
+  mutationFailedError as sharedMutationFailedError,
   createVisualMutationResultBase,
   postVisualMutationResult,
 } from './visual-mutation-results';
@@ -102,9 +103,5 @@ function applyAttribute(element: Element, attribute: VisualAttributeMutation): v
 }
 
 function mutationFailedError(detail: string): VisualMutationError {
-  return {
-    code: 'mutation-failed',
-    message: 'The attribute mutation failed.',
-    detail,
-  };
+  return sharedMutationFailedError('The attribute mutation failed.', detail);
 }
