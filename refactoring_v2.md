@@ -35,9 +35,9 @@
   - Parallelizable: no
 
 ### Phase 2 - Dead code and legacy path removal
-- [ ] Delete the dead box-model block in `local-picker.ts`
+- [x] Delete the dead box-model block in `local-picker.ts`
   - Files/areas: src/content/editor-bridge/local-picker.ts
-  - Notes: Remove `localBoxModelForElement` (lines ~122-169), types `LocalBoxModel`/`LocalQuad`/`LocalPoint`/`LocalHighlightConfig`/`LocalHitTestResult`/`LocalHitTestSource`/`LocalTargetReference` (~16-47), and helpers `ringToQuads`/`rectToQuads`/`insetRect`/`pxToNumber` (~252-314). Grep each symbol across `src/` before deleting; keep the live picker path intact.
+  - Notes: Removed `localBoxModelForElement`, types `LocalBoxModel`/`LocalQuad`/`LocalPoint`/`LocalHighlightConfig`, and private quad/rect helpers. Kept `LocalHitTestResult`/`LocalHitTestSource`/`LocalTargetReference` — grep showed they are live return types of `resolveStrictPointHitFromMouseEvent`/`targetReferenceForElement` used by highlight.ts.
   - Parallelizable: yes
 - [ ] Delete unused exports in the content bridge
   - Files/areas: src/content/editor-bridge/layout-tree.ts (`buildLayoutTreeMessage` line ~45), src/content/editor-bridge/quick-action-toolbar.ts (`refreshQuickActionToolbarPlacement` ~161), src/content/editor-bridge/visual-mutation-results.ts (`postVisualMutationError` ~150, `isVisualMutationResultMessage` ~185), src/content/editor-bridge/visual-targets.ts (`hasSameResolvedVisualTarget` ~817)
