@@ -16,6 +16,7 @@ import type {
 import { isAiIdTarget } from '../../shared/editor-targets';
 import { VISUAL_STYLE_COMPUTED_PROPERTIES } from '../../shared/visual-style';
 import {
+  isSafeSnapshotAttribute,
   sanitizeAttributeMap,
   sanitizeClassTokens,
 } from '../../shared/visual-targets';
@@ -96,48 +97,6 @@ interface FallbackSelectorResolution {
 }
 
 const SHADOW_SELECTOR_SEPARATOR = /\s+::shadow\s+/g;
-const SAFE_ATTRIBUTE_NAMES = new Set([
-  DATA_AI_ID_ATTRIBUTE,
-  'id',
-  'class',
-  'role',
-  'title',
-  'alt',
-  'href',
-  'target',
-  'rel',
-  'src',
-  'srcset',
-  'sizes',
-  'loading',
-  'decoding',
-  'width',
-  'height',
-  'name',
-  'type',
-  'value',
-  'placeholder',
-  'for',
-  'form',
-  'action',
-  'method',
-  'autocomplete',
-  'checked',
-  'selected',
-  'disabled',
-  'readonly',
-  'required',
-  'multiple',
-  'min',
-  'max',
-  'step',
-  'pattern',
-  'contenteditable',
-  'tabindex',
-  'lang',
-  'dir',
-]);
-const SAFE_ATTRIBUTE_PREFIXES = ['aria-', 'data-'] as const;
 
 export function resolveVisualTarget(
   request: VisualTargetResolveRequest,
@@ -623,14 +582,7 @@ function safeAttributeMapForElement(element: Element): Record<string, string> {
   return sanitizeAttributeMap(attributes);
 }
 
-function isSafeSnapshotAttribute(name: string): boolean {
-  if (name === 'style' || name === 'srcdoc' || name.startsWith('on')) {
-    return false;
-  }
 
-  return SAFE_ATTRIBUTE_NAMES.has(name)
-    || SAFE_ATTRIBUTE_PREFIXES.some((prefix) => name.startsWith(prefix));
-}
 
 function inlineStyleMapForElement(element: Element): Record<string, string> {
   const style = styleDeclarationForElement(element);

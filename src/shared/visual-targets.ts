@@ -319,3 +319,58 @@ function pickRecord(
 function isRuntimeClassToken(token: string): boolean {
   return RUNTIME_CLASS_TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix));
 }
+
+// Attribute allowlist for serialized target snapshots: safe, inspection-
+// relevant attributes only (never event handlers or inline scripts).
+export const SAFE_ATTRIBUTE_NAMES = new Set([
+  DATA_AI_ID_ATTRIBUTE,
+  'id',
+  'class',
+  'role',
+  'title',
+  'alt',
+  'href',
+  'target',
+  'rel',
+  'src',
+  'srcset',
+  'sizes',
+  'loading',
+  'decoding',
+  'width',
+  'height',
+  'name',
+  'type',
+  'value',
+  'placeholder',
+  'for',
+  'form',
+  'action',
+  'method',
+  'autocomplete',
+  'checked',
+  'selected',
+  'disabled',
+  'readonly',
+  'required',
+  'multiple',
+  'min',
+  'max',
+  'step',
+  'pattern',
+  'contenteditable',
+  'tabindex',
+  'lang',
+  'dir',
+]);
+
+export const SAFE_ATTRIBUTE_PREFIXES = ['aria-', 'data-'] as const;
+
+export function isSafeSnapshotAttribute(name: string): boolean {
+  if (name === 'style' || name === 'srcdoc' || name.startsWith('on')) {
+    return false;
+  }
+
+  return SAFE_ATTRIBUTE_NAMES.has(name)
+    || SAFE_ATTRIBUTE_PREFIXES.some((prefix) => name.startsWith(prefix));
+}
