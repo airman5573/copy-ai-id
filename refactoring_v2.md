@@ -25,11 +25,11 @@
 ## Checklist
 
 ### Phase 1 - Branch setup and baseline
-- [ ] Create and switch to a `refactor/v2` branch off `main`
+- [x] Create and switch to a `refactor/v2` branch off `main`
   - Files/areas: git
   - Notes: All subsequent checklist commits land on this branch; do not push.
   - Parallelizable: no
-- [ ] Record a green baseline: run `npm run typecheck` and `npm run build`
+- [x] Record a green baseline: run `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: If the baseline fails, fix only what is required to get green before any refactor commit.
   - Parallelizable: no
