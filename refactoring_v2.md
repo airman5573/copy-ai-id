@@ -47,9 +47,9 @@
   - Files/areas: src/content/editor-bridge/runtime-artifacts.ts
   - Notes: Delete `stripRuntimeArtifactsFromElement` (~122) and the `stripRuntimeArtifactsWithReport`/`describe*Artifact` reporting machinery; keep `stripRuntimeArtifacts` but reimplement it without building the discarded report.
   - Parallelizable: yes
-- [ ] Prune the legacy artifact vocabulary in `runtime-artifacts.ts` against what the current editor actually emits
+- [x] Prune the legacy artifact vocabulary in `runtime-artifacts.ts` against what the current editor actually emits
   - Files/areas: src/content/editor-bridge/runtime-artifacts.ts (selector/attribute lists, lines ~15-94), src/editor/**, src/content/editor-bridge/**
-  - Notes: For each `data-ai-editor-*`/`data-copy-ai-id-*` selector and marker (e.g., `inline-text-active/protected`, `floating-visual-panel`, `preview-scope`), grep the codebase for a writer; remove entries with no writer. Keep any entry that a current module still sets.
+  - Notes: Verified writers: config-constant hosts, `data-ai-editor-overlay` (overlay.ts:108), `data-copy-ai-id-visual-overlay` (drop indicator), quick-action bar/style attrs and `copy-ai-id-quick-action*`/`copy-ai-id-preview-*`/`copy-ai-id-editor-*` classes. Removed writer-less element selectors, the whole inline-text marker block (visual-content.ts never sets contenteditable), the exact-name attribute set (fully covered by the two attribute prefixes except writer-less `data-ai-temp-id`), the id-prefix rule (nothing sets `id` with those prefixes), and `ai-editor-*`/`copy-ai-id-visual-panel*`/`copy-ai-id-inline-text-` class prefixes (no class writers).
   - Parallelizable: no
 - [ ] Remove editor-side dead code and duplicate selectors
   - Files/areas: src/editor/note-hover-guard.ts (`protectNoteEditorFromHover` alias ~57-59), src/editor/stores/useVisualEditStore.ts (`selectHasCopyableVisualEdits` ~259-261 — inline its one behavior into callers of `selectHasVisualEdits` or vice versa; `hiddenPromptCount` duplicate of `exportableCount` ~280), src/editor/stores/useNotebookStore.ts (`appendTargetReference` stub ~158-167)
