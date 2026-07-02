@@ -124,11 +124,11 @@
   - Files/areas: new src/editor/visual/useSelectedTargetReference.ts; src/editor/visual/visualMutationClient.ts (`resolveTargetReference` ~558-583), src/editor/visual/{useStyleEdit,useContentEdit,useAttributeEdit,useFormValueEdit}.ts (each hook's target memo)
   - Notes: The four byte-identical hook memos now share `useSelectedTargetReference()` (pairwise target+nodeId, precedence panel → snapshot → toolbar → hover). `resolveTargetReference` in the mutation client intentionally stays separate: it prepends `options.reference`/`options.snapshot` and resolves nodeId through an independent fall-through — merging would change nodeId in the panel-without-nodeId corner case.
   - Parallelizable: no
-- [ ] Extract the shared dispatch scaffold inside `visualMutationClient.ts`
+- [x] Extract the shared dispatch scaffold inside `visualMutationClient.ts`
   - Files/areas: src/editor/visual/visualMutationClient.ts
-  - Notes: One internal helper covering resolve-context → optimistic `addRecord` → build message → `postVisualMutation`; the six named `dispatchVisual*Mutation` functions remain as thin per-kind wrappers (user decision). Do not touch `visualUndo.ts`.
+  - Notes: `visualMutationMessageBase(context, mutationId)` replaces the five repeated message-base literals and `finishVisualMutationDispatch` replaces the six post+return tails; per-kind diff/summary/record assembly stays explicit in each dispatcher (user decision). `visualUndo.ts` untouched.
   - Parallelizable: no
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no

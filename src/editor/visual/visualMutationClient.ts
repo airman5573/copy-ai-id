@@ -25,6 +25,7 @@ import {
   type VisualFormValueMutation,
   type VisualFormValueSnapshot,
   type VisualMutationKind,
+  type VisualMutationRequestBase,
   type VisualRichTextMutation,
   type VisualStyleDeclarationMutation,
   type VisualStructureMutationSnapshot,
@@ -197,15 +198,11 @@ export function dispatchVisualStyleMutation(
   });
   const message: UpdateVisualStyleMessage = {
     type: EDITOR_MESSAGE_TYPES.updateVisualStyle,
-    mutationId,
-    target: context.reference.target,
-    nodeId: context.reference.nodeId,
-    breakpointId: context.breakpointId,
+    ...visualMutationMessageBase(context, mutationId),
     declarations,
   };
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 function addStyleBreakpointIntentWarning(context: ResolvedVisualMutationContext): ResolvedVisualMutationContext {
@@ -264,15 +261,11 @@ export function dispatchVisualTextMutation(
   });
   const message: UpdateVisualTextMessage = {
     type: EDITOR_MESSAGE_TYPES.updateVisualText,
-    mutationId,
-    target: context.reference.target,
-    nodeId: context.reference.nodeId,
-    breakpointId: context.breakpointId,
+    ...visualMutationMessageBase(context, mutationId),
     text: options.text,
   };
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 export function dispatchVisualRichTextMutation(
@@ -336,15 +329,11 @@ export function dispatchVisualRichTextMutation(
   });
   const message: UpdateVisualRichTextMessage = {
     type: EDITOR_MESSAGE_TYPES.updateVisualRichText,
-    mutationId,
-    target: context.reference.target,
-    nodeId: context.reference.nodeId,
-    breakpointId: context.breakpointId,
+    ...visualMutationMessageBase(context, mutationId),
     richText,
   };
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 function mergeStrippedRuntimeArtifacts(
@@ -401,15 +390,11 @@ export function dispatchVisualAttributeMutation(
   });
   const message: UpdateVisualAttributeMessage = {
     type: EDITOR_MESSAGE_TYPES.updateVisualAttribute,
-    mutationId,
-    target: context.reference.target,
-    nodeId: context.reference.nodeId,
-    breakpointId: context.breakpointId,
+    ...visualMutationMessageBase(context, mutationId),
     attribute,
   };
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 export function dispatchVisualFormValueMutation(
@@ -447,15 +432,11 @@ export function dispatchVisualFormValueMutation(
   });
   const message: UpdateVisualFormValueMessage = {
     type: EDITOR_MESSAGE_TYPES.updateVisualFormValue,
-    mutationId,
-    target: context.reference.target,
-    nodeId: context.reference.nodeId,
-    breakpointId: context.breakpointId,
+    ...visualMutationMessageBase(context, mutationId),
     formValue: options.formValue,
   };
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 export function dispatchVisualStructureMutation(
@@ -506,13 +487,34 @@ export function dispatchVisualStructureMutation(
   });
   const message = createStructureMessage(options, context.reference, context.breakpointId, mutationId);
 
-  postVisualMutation(message, context.reference);
-  return { mutationId, record, message };
+  return finishVisualMutationDispatch(context, mutationId, record, message);
 }
 
 function postVisualMutation(message: EditorToBridgeMessage, reference: EditorTargetReference): void {
   useVisualSelectionStore.getState().setSnapshotLoading(reference);
   postToBridge(message);
+}
+
+function visualMutationMessageBase(
+  context: ResolvedVisualMutationContext,
+  mutationId: number,
+): Pick<VisualMutationRequestBase, 'mutationId' | 'target' | 'nodeId' | 'breakpointId'> {
+  return {
+    mutationId,
+    target: context.reference.target,
+    nodeId: context.reference.nodeId,
+    breakpointId: context.breakpointId,
+  };
+}
+
+function finishVisualMutationDispatch<K extends VisualMutationKind>(
+  context: ResolvedVisualMutationContext,
+  mutationId: number,
+  record: VisualEditRecord<K>,
+  message: EditorToBridgeMessage,
+): VisualMutationDispatchResult<K> {
+  postVisualMutation(message, context.reference);
+  return { mutationId, record, message };
 }
 
 function addOptimisticRecord<K extends VisualMutationKind>(
