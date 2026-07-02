@@ -164,15 +164,15 @@
   - Files/areas: src/shared/editor-messages.ts → new src/shared/protocol/editor-bridge-messages.ts (message-type constants, message interfaces, `EditorToBridgeMessage`/`BridgeToEditorMessage` unions) and new src/shared/domain/ modules (EditorTarget, VisualTargetSnapshot, VisualMutation* payloads, box-model enums, viewport geometry types); update all importers
   - Notes: Split into domain/{targets,geometry,visual}.ts + protocol/editor-bridge-messages.ts; all 61 importers rewritten mechanically by symbol→module map, original file deleted. No type renames.
   - Parallelizable: no
-- [ ] Add hand-rolled runtime guards for both directions of the editor↔bridge protocol
+- [x] Add hand-rolled runtime guards for both directions of the editor↔bridge protocol
   - Files/areas: new src/shared/protocol/guards.ts; src/content/editor-bridge/index.ts (`route()` ~125-193), src/editor/bridge/bridgeClient.ts (receive path ~226-247)
   - Notes: Validate `source` tag, `type` against the known constant set, and the presence/primitive-type of fields the receiver reads — no deep structural validation. On failure: `console.warn` with the offending `type` and drop. No new dependencies.
   - Parallelizable: no
-- [ ] Formalize the third (frame-toggle) channel as a typed shared contract
+- [x] Formalize the third (frame-toggle) channel as a typed shared contract
   - Files/areas: new src/shared/protocol/frame-messages.ts (constant, message type, guard for `copy-ai-id:set-top-editor-enabled` + source `copy-ai-id-content-script`); src/content/bootstrap/index.ts (~36, ~126-130, ~240-252), src/content/editor-bridge/keyboard.ts (~19-23)
   - Notes: Replace both hardcoded copies; keep the wire strings identical so old/new frames interoperate during reload.
   - Parallelizable: no
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no

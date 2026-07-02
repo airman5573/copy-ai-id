@@ -16,6 +16,7 @@ import {
   type VisualMutationErrorMessage,
   type VisualTargetSnapshotMessage,
 } from '../../shared/protocol/editor-bridge-messages';
+import { isBridgeToEditorMessage } from '../../shared/protocol/guards';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import { isVisualTargetResolutionError } from '../../shared/visual-targets';
 import {
@@ -205,12 +206,21 @@ export function installBridgeClient(): () => void {
       return;
     }
 
-    const message = event.data as (BridgeToEditorMessage & { source?: unknown }) | null;
-    if (!message || message.source !== 'copy-ai-id-preview-bridge') {
+    const data: unknown = event.data;
+    if (
+      typeof data !== 'object'
+      || data === null
+      || (data as { source?: unknown }).source !== 'copy-ai-id-preview-bridge'
+    ) {
       return;
     }
 
-    routeBridgeMessage(message);
+    if (!isBridgeToEditorMessage(data)) {
+      console.warn('[Copy AI ID] Dropped unknown bridge message.', (data as { type?: unknown }).type);
+      return;
+    }
+
+    routeBridgeMessage(data);
   };
 
   window.addEventListener('message', handleMessage);

@@ -9,6 +9,10 @@ import {
   PREVIEW_OVERLAY_ATTR,
 } from '../../shared/config';
 import {
+  createSetTopEditorEnabledMessage,
+  isSetTopEditorEnabledMessage,
+} from '../../shared/protocol/frame-messages';
+import {
   RUNTIME_MESSAGE_TYPES,
   isCopyAiIdRuntimeMessage,
   type RuntimeStateMessageResponse,
@@ -33,7 +37,6 @@ declare global {
 }
 
 const DESTROY_EVENT_NAME = 'copy-ai-id:destroy-content-script-instance';
-const CHILD_FRAME_SET_ENABLED_MESSAGE_TYPE = 'copy-ai-id:set-top-editor-enabled';
 const ACTIVE_QUERY_PARAM_NAME = 'copyaiid';
 const ACTIVE_QUERY_PARAM_VALUE = 'active';
 
@@ -123,11 +126,7 @@ const shiftZToggleController = createShiftZSpaceToggleController({
     await setEnabledState(nextEnabled);
 
     if (!isTopFrame()) {
-      window.parent.postMessage({
-        source: 'copy-ai-id-content-script',
-        type: CHILD_FRAME_SET_ENABLED_MESSAGE_TYPE,
-        enabled: nextEnabled,
-      }, '*');
+      window.parent.postMessage(createSetTopEditorEnabledMessage(nextEnabled), '*');
     }
   },
 });
@@ -238,17 +237,11 @@ function attachChildFrameMessageListener(): () => void {
   }
 
   const handleMessage = (event: MessageEvent): void => {
-    const message = event.data as { source?: unknown; type?: unknown; enabled?: unknown };
-    if (
-      !message
-      || message.source !== 'copy-ai-id-content-script'
-      || message.type !== CHILD_FRAME_SET_ENABLED_MESSAGE_TYPE
-      || typeof message.enabled !== 'boolean'
-    ) {
+    if (!isSetTopEditorEnabledMessage(event.data)) {
       return;
     }
 
-    void setEnabledState(message.enabled);
+    void setEnabledState(event.data.enabled);
   };
 
   window.addEventListener('message', handleMessage);

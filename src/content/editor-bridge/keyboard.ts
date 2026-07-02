@@ -2,6 +2,7 @@ import {
   EDITOR_MESSAGE_TYPES,
   type EditorKeyboardShortcut,
 } from '../../shared/protocol/editor-bridge-messages';
+import { createSetTopEditorEnabledMessage } from '../../shared/protocol/frame-messages';
 import { handleNavigationShortcut } from './navigation';
 import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference } from './highlight';
 import type { BridgePost } from './types';
@@ -19,11 +20,7 @@ export function installBridgeKeyboard(post: BridgePost): () => void {
 
     if (isShiftZSpace(event, zKeyPressed)) {
       consumeKeyboardEvent(event);
-      window.parent.postMessage({
-        source: 'copy-ai-id-content-script',
-        type: 'copy-ai-id:set-top-editor-enabled',
-        enabled: false,
-      }, '*');
+      window.parent.postMessage(createSetTopEditorEnabledMessage(false), '*');
       return;
     }
 

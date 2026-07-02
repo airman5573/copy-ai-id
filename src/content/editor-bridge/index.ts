@@ -4,6 +4,7 @@ import {
   type EditorToBridgeMessage,
   type SetCanvasZoomMessage,
 } from '../../shared/protocol/editor-bridge-messages';
+import { isEditorToBridgeMessage } from '../../shared/protocol/guards';
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
 import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overlay';
@@ -93,8 +94,11 @@ export function startPreviewBridge(): PreviewBridgeController {
       return;
     }
 
-    const message = event.data as EditorToBridgeMessage | null;
-    if (!message || typeof message !== 'object' || typeof message.type !== 'string') {
+    const message: unknown = event.data;
+    if (!isEditorToBridgeMessage(message)) {
+      if (typeof message === 'object' && message !== null && 'type' in message) {
+        console.warn('[Copy AI ID] Dropped unknown editor message.', (message as { type?: unknown }).type);
+      }
       return;
     }
 
