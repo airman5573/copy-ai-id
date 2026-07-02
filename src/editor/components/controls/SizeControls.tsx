@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState, type HTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import { type ReactElement } from 'react';
 
-import {
-  getVisualStylePropertyDefinition,
-  type VisualStylePreset,
-} from '../../../shared/visual-style';
 import {
   SIZE_UNITS,
   useVisualStyleForm,
   type LengthFieldApi,
 } from '../../forms/useVisualStyleForm';
 import { useStyleEdit } from '../../visual/useStyleEdit';
-import { PresetSelect, type VisualPresetOption } from '../visual/PresetSelect';
-import { selectTextInputValue } from '../visual/inputSelection';
 import { UnitValueInput } from '../visual/UnitValueInput';
-import { VisualControl, VisualResetButton } from '../visual/VisualControl';
+import {
+  CssPresetSelect,
+  CssTextInput,
+  StyleControlGroup,
+  type CssPresetSelectProps,
+  type CssTextInputProps,
+} from './styleControlHelpers';
 
 export type SizeControlsProps = {
   disabled?: boolean;
@@ -65,7 +65,7 @@ export function SizeControls({ disabled = false }: SizeControlsProps): ReactElem
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-size-controls">
-      <SizeControlGroup
+      <StyleControlGroup
         title="Box sizing"
         description="요소의 width/height 계산 방식과 기본 크기를 조정합니다."
         dataAiId="copy-ai-id-editor-size-box-group"
@@ -95,9 +95,9 @@ export function SizeControls({ disabled = false }: SizeControlsProps): ReactElem
             presets={WIDTH_HEIGHT_PRESETS}
           />
         </div>
-      </SizeControlGroup>
+      </StyleControlGroup>
 
-      <SizeControlGroup
+      <StyleControlGroup
         title="Min / Max"
         description="반응형 레이아웃에서 요소가 줄어들거나 커지는 한계를 설정합니다."
         dataAiId="copy-ai-id-editor-size-constraints-group"
@@ -136,9 +136,9 @@ export function SizeControls({ disabled = false }: SizeControlsProps): ReactElem
             presets={MAX_SIZE_PRESETS}
           />
         </div>
-      </SizeControlGroup>
+      </StyleControlGroup>
 
-      <SizeControlGroup
+      <StyleControlGroup
         title="Media"
         description="이미지, 비디오, iframe 같은 replaced element의 비율과 채우기 방식을 설정합니다."
         dataAiId="copy-ai-id-editor-size-media-group"
@@ -168,36 +168,8 @@ export function SizeControls({ disabled = false }: SizeControlsProps): ReactElem
           helperText="예: center, top right, 50% 50%"
           presets={OBJECT_POSITION_PRESETS}
         />
-      </SizeControlGroup>
+      </StyleControlGroup>
     </div>
-  );
-}
-
-type SizeControlGroupProps = {
-  title: string;
-  description: string;
-  dataAiId: string;
-  children: ReactNode;
-};
-
-function SizeControlGroup({ title, description, dataAiId, children }: SizeControlGroupProps): ReactElement {
-  return (
-    <section
-      className="rounded-xl border border-gray-800 bg-gray-950/45 p-3.5 shadow-sm"
-      data-ai-id={dataAiId}
-    >
-      <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
-          {title}
-        </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-          {description}
-        </p>
-      </div>
-      <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
-        {children}
-      </div>
-    </section>
   );
 }
 
@@ -266,163 +238,10 @@ function SizeLengthField({
   );
 }
 
-type StylePresetSelectProps = {
-  property: string;
-  label: string;
-  dataAiId: string;
-  disabled?: boolean;
-  helperText?: string;
-  options?: VisualPresetOption[];
-};
-
-function StylePresetSelect({
-  property,
-  label,
-  dataAiId,
-  disabled = false,
-  helperText,
-  options,
-}: StylePresetSelectProps): ReactElement {
-  const edit = useStyleEdit();
-  const resolvedOptions = useMemo(() => options ?? presetOptionsForProperty(property), [options, property]);
-
-  return (
-    <PresetSelect
-      label={label}
-      dataAiId={dataAiId}
-      value={edit.valueOf(property)}
-      options={resolvedOptions}
-      disabled={disabled}
-      helperText={helperText}
-      showPlaceholderOption={false}
-      onChange={(value) => edit.commitStyle(property, value, {
-        category: 'size',
-        control: { id: `size:${property}`, label },
-      })}
-      onReset={() => edit.resetStyle(property, {
-        category: 'size',
-        control: { id: `size:${property}`, label },
-      })}
-    />
-  );
+function StylePresetSelect(props: Omit<CssPresetSelectProps, 'category' | 'controlPrefix'>): ReactElement {
+  return <CssPresetSelect {...props} category="size" />;
 }
 
-type StyleTextInputProps = {
-  property: string;
-  label: string;
-  dataAiId: string;
-  disabled?: boolean;
-  placeholder?: string;
-  helperText?: string;
-  inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
-  presets?: readonly SizeKeywordPreset[];
-};
-
-function StyleTextInput({
-  property,
-  label,
-  dataAiId,
-  disabled = false,
-  placeholder,
-  helperText,
-  inputMode = 'text',
-  presets = [],
-}: StyleTextInputProps): ReactElement {
-  const edit = useStyleEdit();
-  const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
-
-  const commitValue = (value: string): void => {
-    const next = normalizeTextInput(value);
-    setDraft(next);
-    edit.commitStyle(property, next, {
-      category: 'size',
-      control: { id: `size:${property}`, label },
-    });
-  };
-
-  return (
-    <VisualControl
-      label={label}
-      dataAiId={`${dataAiId}-field`}
-      helperText={helperText}
-      disabled={disabled}
-      actions={
-        <VisualResetButton
-          dataAiId={`${dataAiId}-reset-button`}
-          disabled={disabled}
-          onClick={() => {
-            setDraft('');
-            edit.resetStyle(property, {
-              category: 'size',
-              control: { id: `size:${property}`, label },
-            });
-          }}
-        />
-      }
-    >
-      <div className="space-y-2" data-ai-id={`${dataAiId}-text-control`}>
-        <input
-          type="text"
-          inputMode={inputMode}
-          value={draft}
-          disabled={disabled}
-          placeholder={placeholder}
-          className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
-          onFocus={(event) => selectTextInputValue(event.currentTarget)}
-          onClick={(event) => selectTextInputValue(event.currentTarget)}
-          onChange={(event) => setDraft(event.currentTarget.value)}
-          onBlur={() => commitValue(draft)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              event.currentTarget.blur();
-            }
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              setDraft(committed);
-              event.currentTarget.blur();
-            }
-          }}
-          data-ai-id={dataAiId}
-        />
-        {presets.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5" data-ai-id={`${dataAiId}-preset-row`}>
-            {presets.map((preset) => (
-              <button
-                key={preset.value}
-                type="button"
-                className="rounded-full border border-gray-700 bg-gray-950/70 px-2 py-1 text-[10px] font-bold text-gray-400 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={disabled}
-                onClick={() => commitValue(preset.value)}
-                data-ai-id={`${dataAiId}-preset-button`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </VisualControl>
-  );
-}
-
-function presetOptionsForProperty(property: string): VisualPresetOption[] {
-  const definition = getVisualStylePropertyDefinition(property);
-  return (definition?.presets ?? []).map(visualPresetToOption);
-}
-
-function visualPresetToOption(preset: VisualStylePreset): VisualPresetOption {
-  return {
-    value: preset.value,
-    label: preset.label,
-  };
-}
-
-function normalizeTextInput(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
+function StyleTextInput(props: Omit<CssTextInputProps, 'category' | 'controlPrefix'>): ReactElement {
+  return <CssTextInput {...props} category="size" />;
 }

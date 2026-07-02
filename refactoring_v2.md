@@ -108,9 +108,9 @@
   - Parallelizable: no
 
 ### Phase 4 - Editor-side deduplication
-- [ ] Delete the local control-component copies in `SizeControls`/`LayoutControls` in favor of `styleControlHelpers`
+- [x] Delete the local control-component copies in `SizeControls`/`LayoutControls` in favor of `styleControlHelpers`
   - Files/areas: src/editor/components/controls/SizeControls.tsx, LayoutControls.tsx, styleControlHelpers.tsx
-  - Notes: Local `StylePresetSelect`, `StyleTextInput`, `presetOptionsForProperty`, `visualPresetToOption`, `normalizeTextInput`, and local `*ControlGroup` duplicate canonical exports (`StyleControlGroup`, `CssPresetSelect`, `CssTextInput`, `presetOptionsForProperty`, `normalizeCssValue`). Diff local vs canonical before switching; extend the canonical component with a prop rather than keeping a fork if they diverge.
+  - Notes: Local implementations replaced with one-line wrappers over `CssPresetSelect`/`CssTextInput` passing `category="size"`/`"layout"`; local groups replaced by canonical `StyleControlGroup` (Size/Layout groups now show the breakpoint badge like every other category — the missing badge was the inconsistency). ~250 duplicated lines removed.
   - Parallelizable: no
 - [ ] Extract a shared controlled-input hook for the draft/focus/blur/Enter/Escape pattern
   - Files/areas: new src/editor/components/controls/useDraftValue.ts (name to match repo style); the ~10 control files repeating `const [draft, setDraft] = useState` + commit-on-blur/Enter, revert-on-Escape

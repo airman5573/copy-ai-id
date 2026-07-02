@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState, type HTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import { type ReactElement, type ReactNode } from 'react';
 
-import {
-  getVisualStylePropertyDefinition,
-  type VisualStylePreset,
-} from '../../../shared/visual-style';
-import { selectTextInputValue } from '../visual/inputSelection';
-import { PresetSelect, type VisualPresetOption } from '../visual/PresetSelect';
-import { VisualControl, VisualResetButton } from '../visual/VisualControl';
+import { type VisualPresetOption } from '../visual/PresetSelect';
 import { useStyleEdit } from '../../visual/useStyleEdit';
+import {
+  CssPresetSelect,
+  CssTextInput,
+  StyleControlGroup,
+  normalizeCssValue,
+  type CssPresetSelectProps,
+  type CssTextInputProps,
+} from './styleControlHelpers';
 
 const DISPLAY_PROPERTY = 'display';
 const FLEX_DISPLAY_VALUES = new Set(['flex', 'inline-flex']);
@@ -94,7 +96,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-layout-controls">
-      <LayoutControlGroup
+      <StyleControlGroup
         title="디스플레이"
         description="선택 요소가 문서 흐름 안에서 렌더링되는 기본 방식을 정합니다."
         dataAiId="copy-ai-id-editor-layout-display-group"
@@ -107,9 +109,9 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
           disabled={!canEdit}
           helperText="display 값은 flex/grid 하위 컨트롤 노출에도 사용됩니다."
         />
-      </LayoutControlGroup>
+      </StyleControlGroup>
 
-      <LayoutControlGroup
+      <StyleControlGroup
         title="Flex / 정렬"
         description="flex 또는 grid 컨테이너의 자식 배치 방향과 정렬을 조정합니다."
         dataAiId="copy-ai-id-editor-layout-flex-group"
@@ -161,9 +163,9 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
           disabled={!canEdit}
           helperText="여러 줄 flex/grid 영역에서 효과가 큽니다."
         />
-      </LayoutControlGroup>
+      </StyleControlGroup>
 
-      <LayoutControlGroup
+      <StyleControlGroup
         title="Grid"
         description="CSS grid의 열/행 템플릿과 자동 배치 방식을 설정합니다."
         dataAiId="copy-ai-id-editor-layout-grid-group"
@@ -206,9 +208,9 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
           options={PLACE_ITEMS_OPTIONS}
           disabled={!canEdit}
         />
-      </LayoutControlGroup>
+      </StyleControlGroup>
 
-      <LayoutControlGroup
+      <StyleControlGroup
         title="위치 / 오버플로우"
         description="position, inset, z-index, overflow 값을 inline CSS로 적용합니다."
         dataAiId="copy-ai-id-editor-layout-position-overflow-group"
@@ -268,48 +270,8 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
             disabled={!canEdit}
           />
         </div>
-      </LayoutControlGroup>
+      </StyleControlGroup>
     </div>
-  );
-}
-
-type LayoutControlGroupProps = {
-  title: string;
-  description: string;
-  dataAiId: string;
-  children: ReactNode;
-  tone?: 'active' | 'muted';
-};
-
-function LayoutControlGroup({
-  title,
-  description,
-  dataAiId,
-  children,
-  tone = 'active',
-}: LayoutControlGroupProps): ReactElement {
-  return (
-    <section
-      className={`rounded-xl border p-3.5 shadow-sm ${
-        tone === 'active'
-          ? 'border-gray-800 bg-gray-950/45'
-          : 'border-dashed border-gray-800/90 bg-gray-950/25'
-      }`}
-      data-ai-id={dataAiId}
-      data-ai-editor-layout-control-group-tone={tone}
-    >
-      <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
-          {title}
-        </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-          {description}
-        </p>
-      </div>
-      <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
-        {children}
-      </div>
-    </section>
   );
 }
 
@@ -324,180 +286,16 @@ function LayoutHint({ dataAiId, children }: { dataAiId: string; children: ReactN
   );
 }
 
-type StylePresetSelectProps = {
-  property: string;
-  label: string;
-  dataAiId: string;
-  disabled?: boolean;
-  helperText?: string;
-  options?: VisualPresetOption[];
-};
-
-function StylePresetSelect({
-  property,
-  label,
-  dataAiId,
-  disabled = false,
-  helperText,
-  options,
-}: StylePresetSelectProps): ReactElement {
-  const edit = useStyleEdit();
-  const resolvedOptions = useMemo(() => options ?? presetOptionsForProperty(property), [options, property]);
-
-  return (
-    <PresetSelect
-      label={label}
-      dataAiId={dataAiId}
-      value={edit.valueOf(property)}
-      options={resolvedOptions}
-      disabled={disabled}
-      helperText={helperText}
-      showPlaceholderOption={false}
-      onChange={(value) => edit.commitStyle(property, value, {
-        category: 'layout',
-        control: { id: `layout:${property}`, label },
-      })}
-      onReset={() => edit.resetStyle(property, {
-        category: 'layout',
-        control: { id: `layout:${property}`, label },
-      })}
-    />
-  );
+function StylePresetSelect(props: Omit<CssPresetSelectProps, 'category' | 'controlPrefix'>): ReactElement {
+  return <CssPresetSelect {...props} category="layout" />;
 }
 
-type StyleTextInputProps = {
-  property: string;
-  label: string;
-  dataAiId: string;
-  disabled?: boolean;
-  placeholder?: string;
-  helperText?: string;
-  inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
-  normalize?: (value: string) => string;
-  presets?: VisualPresetOption[];
-};
-
-function StyleTextInput({
-  property,
-  label,
-  dataAiId,
-  disabled = false,
-  placeholder,
-  helperText,
-  inputMode = 'text',
-  normalize = normalizeTextInput,
-  presets = [],
-}: StyleTextInputProps): ReactElement {
-  const edit = useStyleEdit();
-  const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
-
-  const commit = (): void => {
-    const next = normalize(draft);
-    setDraft(next);
-    edit.commitStyle(property, next, {
-      category: 'layout',
-      control: { id: `layout:${property}`, label },
-    });
-  };
-
-  const selectPreset = (value: string): void => {
-    const next = normalize(value);
-    setDraft(next);
-    edit.commitStyle(property, next, {
-      category: 'layout',
-      control: { id: `layout:${property}`, label },
-    });
-  };
-
-  return (
-    <VisualControl
-      label={label}
-      dataAiId={`${dataAiId}-field`}
-      helperText={helperText}
-      disabled={disabled}
-      actions={
-        <VisualResetButton
-          dataAiId={`${dataAiId}-reset-button`}
-          disabled={disabled}
-          onClick={() => {
-            setDraft('');
-            edit.resetStyle(property, {
-              category: 'layout',
-              control: { id: `layout:${property}`, label },
-            });
-          }}
-        />
-      }
-    >
-      <div className="space-y-2" data-ai-id={`${dataAiId}-text-control`}>
-        <input
-          type="text"
-          inputMode={inputMode}
-          value={draft}
-          disabled={disabled}
-          placeholder={placeholder}
-          className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
-          onFocus={(event) => selectTextInputValue(event.currentTarget)}
-          onClick={(event) => selectTextInputValue(event.currentTarget)}
-          onChange={(event) => setDraft(event.currentTarget.value)}
-          onBlur={commit}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              event.currentTarget.blur();
-            }
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              setDraft(committed);
-              event.currentTarget.blur();
-            }
-          }}
-          data-ai-id={dataAiId}
-        />
-        {presets.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5" data-ai-id={`${dataAiId}-preset-row`}>
-            {presets.map((preset) => (
-              <button
-                key={preset.value}
-                type="button"
-                className="rounded-full border border-gray-700 bg-gray-950/70 px-2 py-1 text-[10px] font-bold text-gray-400 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={disabled}
-                onClick={() => selectPreset(preset.value)}
-                data-ai-id={`${dataAiId}-preset-button`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    </VisualControl>
-  );
-}
-
-function presetOptionsForProperty(property: string): VisualPresetOption[] {
-  const definition = getVisualStylePropertyDefinition(property);
-  return (definition?.presets ?? []).map(visualPresetToOption);
-}
-
-function visualPresetToOption(preset: VisualStylePreset): VisualPresetOption {
-  return {
-    value: preset.value,
-    label: preset.label,
-  };
-}
-
-function normalizeTextInput(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
+function StyleTextInput(props: Omit<CssTextInputProps, 'category' | 'controlPrefix'>): ReactElement {
+  return <CssTextInput {...props} category="layout" />;
 }
 
 function normalizeGridTemplateColumnsInput(value: string): string {
-  const normalized = normalizeTextInput(value);
+  const normalized = normalizeCssValue(value);
   if (/^[1-9]\d*$/.test(normalized)) {
     return `repeat(${normalized}, minmax(0, 1fr))`;
   }
@@ -505,7 +303,7 @@ function normalizeGridTemplateColumnsInput(value: string): string {
 }
 
 function normalizeGridTemplateRowsInput(value: string): string {
-  const normalized = normalizeTextInput(value);
+  const normalized = normalizeCssValue(value);
   if (/^[1-9]\d*$/.test(normalized)) {
     return `repeat(${normalized}, minmax(0, auto))`;
   }
