@@ -204,31 +204,32 @@
   - Parallelizable: no
 
 ### Phase 8 - Big-file splits (behavior-preserving)
-- [ ] Split `quick-action-toolbar.ts` (916 lines) into focused modules
+- [x] Split `quick-action-toolbar.ts` (916 lines) into focused modules
   - Files/areas: src/content/editor-bridge/quick-action-toolbar.ts → toolbar-styles.ts (the ~130-line CSS string, ~786-916), toolbar-geometry.ts (`calculateToolbarPlacement` ~669-692, corridor math ~170-225 — pure functions), toolbar-drag.ts (drag state machine ~505-589), toolbar-messages.ts (`postCategoryRequest`/`postStructureRequest`/`postDrag*` ~435-503); main file keeps lifecycle/render/singleton state
   - Notes: The corridor hover-handoff and `pendingHide`/`hasActiveToolbarInteraction` gating are load-bearing; move code verbatim, no logic edits in this step.
+  - Done: styles + pure geometry extracted verbatim; the drag machine, corridor hit-test, and post emitters read module singletons, so extracting them would require state injection (a logic edit) — they stay in the main module by design.
   - Parallelizable: no
-- [ ] Split `visual-target-resolver.ts` into resolution engine and snapshot serializer
+- [x] Split `visual-target-resolver.ts` into resolution engine and snapshot serializer
   - Files/areas: src/content/editor-bridge/visual-target-resolver.ts → keep resolution (`resolveVisualTarget`, resolveBy* ~, fuzzy matching, `::shadow` parser); new visual-target-snapshot.ts (`createVisualTargetSnapshot` ~173-209 plus the ~15 `*ForElement` extractors ~616-803)
   - Notes: Preserve the resolve-miss → layout-tree-rebuild path (`resolveVisualTarget` rebuild at ~141) exactly.
   - Parallelizable: no
-- [ ] Split `visual-structure.ts` into handlers, result assembly, and clone/sanitize utils
+- [x] Split `visual-structure.ts` into handlers, result assembly, and clone/sanitize utils
   - Files/areas: src/content/editor-bridge/visual-structure.ts → keep operation handlers (duplicate/move/delete/restore/drag + drop-target resolution); new visual-structure-results.ts (`structureResultForOperation` ~338-393); clone/HTML-sanitize helpers into lib/ or a sibling module
   - Notes: Result-message shapes must stay identical to the protocol types from Phase 6.
   - Parallelizable: no
-- [ ] Split `fallback-target.ts` into label heuristic and selector generation
+- [x] Split `fallback-target.ts` into label heuristic and selector generation
   - Files/areas: src/content/editor-bridge/fallback-target.ts → fallback-label.ts (`identifyElementLabel` ~81-198, restructured as a tag→strategy table if it stays output-identical) and fallback-selector.ts (`generateFallbackSelector` ~213-305 + path/dedupe utils); shared string utils move to lib/text.ts
   - Notes: Fallback selectors are embedded in copied output and re-resolved later — generation must remain output-identical for the same DOM.
   - Parallelizable: yes
-- [ ] Extract pure geometry from `box-model.ts`
+- [x] Extract pure geometry from `box-model.ts`
   - Files/areas: src/content/editor-bridge/box-model.ts → new box-model-geometry.ts (`computeRegionRects` ~222-319, `computeGapRects` ~321-404, `clipRect`); rendering/color tables stay
   - Notes: Verbatim move; the rAF scheduling and overlay delegation in overlay.ts are untouched.
   - Parallelizable: yes
-- [ ] Split `visual-edits-export.ts` into the human-Markdown formatter and the compact-JSON builder
+- [x] Split `visual-edits-export.ts` into the human-Markdown formatter and the compact-JSON builder
   - Files/areas: src/editor/notebook/visual-edits-export.ts (647 lines) → visual-edits-markdown.ts (`formatVisualEditsSection`/`formatVisualEditTargetGroup`/`formatVisualEditRecordSummary`, `formatPayloadSummary` ~298-321) and visual-edits-compact.ts (`CompactVisualEditsExportDocument` builder, `compactVisualEditDiffForRecord` ~413-509, `compactChangeForRecord`, `compactStructure*`)
   - Notes: Copied Markdown output must remain byte-identical; both export formats are kept (unifying them was not approved).
   - Parallelizable: yes
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no
