@@ -25,8 +25,8 @@ import {
 } from './highlight';
 import type { BridgePost } from './types';
 import { refreshOverlays } from './overlay';
+import { createVisualTargetSnapshot } from './visual-target-snapshot';
 import {
-  createVisualTargetSnapshot,
   resolveVisualTargetSnapshot,
   type VisualTargetResolveSuccess,
   type VisualTargetSnapshotOptions,

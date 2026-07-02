@@ -32,3 +32,7 @@ export function nextEditableSibling(element: Element): Element | null {
   }
   return sibling;
 }
+
+export function isResolvableElement(element: Element): boolean {
+  return element.isConnected && !isExtensionOwnedElement(element);
+}
