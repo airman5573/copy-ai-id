@@ -3,6 +3,12 @@ import type {
   BridgeViewportRect,
 } from '../../shared/domain/geometry';
 
+/**
+ * Same shapes as the Bridge* types, but a different coordinate space: the
+ * Bridge* names measure inside the preview iframe's viewport, while the
+ * Editor* names measure in the top-frame editor viewport (after the zoom
+ * and iframe-offset conversion in bridgeViewportRectToEditorViewportRect).
+ */
 export type EditorViewportPoint = BridgeViewportPoint;
 export type EditorViewportRect = BridgeViewportRect;
 
@@ -131,20 +137,6 @@ export function bridgeViewportRectToEditorViewportRect(
   });
 }
 
-export function bridgeViewportPointToEditorViewportPoint(
-  point: BridgeViewportPoint,
-): EditorViewportPoint | null {
-  const geometry = getPreviewWorkspaceGeometrySnapshot();
-  if (!geometry) {
-    return null;
-  }
-
-  return {
-    x: geometry.iframeRect.left + (point.x * geometry.scaleX),
-    y: geometry.iframeRect.top + (point.y * geometry.scaleY),
-  };
-}
-
 export function editorViewportPointToBridgeViewportPoint(
   point: EditorViewportPoint,
 ): BridgeViewportPoint | null {
@@ -157,22 +149,6 @@ export function editorViewportPointToBridgeViewportPoint(
     x: (point.x - geometry.iframeRect.left) / geometry.scaleX,
     y: (point.y - geometry.iframeRect.top) / geometry.scaleY,
   };
-}
-
-export function editorViewportRectToBridgeViewportRect(
-  rect: EditorViewportRect,
-): BridgeViewportRect | null {
-  const geometry = getPreviewWorkspaceGeometrySnapshot();
-  if (!geometry) {
-    return null;
-  }
-
-  return createEditorViewportRect({
-    left: (rect.left - geometry.iframeRect.left) / geometry.scaleX,
-    top: (rect.top - geometry.iframeRect.top) / geometry.scaleY,
-    width: rect.width / geometry.scaleX,
-    height: rect.height / geometry.scaleY,
-  });
 }
 
 export function getPreviewOverlayBounds(): EditorViewportRect {
@@ -205,14 +181,6 @@ export function calculateFloatingOverlayPlacement(
   }
 
   return calculateVerticalAnchorPlacement(anchorRect, size, { gap, padding, bounds });
-}
-
-export function calculateFloatingVisualPanelPlacement(
-  anchorRect: EditorViewportRect,
-  size: OverlaySize,
-  options: FloatingVisualPanelPlacementOptions = {},
-): OverlayPlacement {
-  return calculateFloatingOverlayPlacement(anchorRect, size, options);
 }
 
 export function domRectToEditorViewportRect(rect: DOMRect | DOMRectReadOnly): EditorViewportRect {

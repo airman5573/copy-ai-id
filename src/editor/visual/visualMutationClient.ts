@@ -139,10 +139,6 @@ export function getNextVisualMutationId(): number {
   return mutationId;
 }
 
-export function resetVisualMutationIdCounter(): void {
-  nextMutationId = 1;
-}
-
 export function dispatchVisualStyleMutation(
   options: DispatchVisualStyleMutationOptions,
 ): VisualMutationDispatchResult<'style'> {

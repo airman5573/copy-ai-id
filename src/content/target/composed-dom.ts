@@ -44,19 +44,6 @@ export function closestComposedElementMatching(
   return null;
 }
 
-export function closestComposedElementMatchingSelector(
-  element: Element | null,
-  selector: string,
-): Element | null {
-  return closestComposedElementMatching(element, (candidate) => {
-    try {
-      return candidate.matches(selector);
-    } catch {
-      return false;
-    }
-  });
-}
-
 export function getDeepElementFromPoint(
   x: number,
   y: number,
@@ -102,42 +89,8 @@ function collectComposedElementsFromPoint(
   }
 }
 
-export function hasComposedAncestorMatching(
-  element: Element | null,
-  predicate: (candidate: Element) => boolean,
-): boolean {
-  for (const candidate of walkComposedAncestors(element, { includeSelf: true })) {
-    if (predicate(candidate)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 export function getOpenShadowRoot(element: Element): ShadowRoot | null {
   return element instanceof HTMLElement ? element.shadowRoot : null;
-}
-
-export function getDeepActiveElement(
-  root: Document | ShadowRoot = document,
-): Element | null {
-  let current = root.activeElement;
-  const visited = new Set<Element>();
-
-  while (current && !visited.has(current)) {
-    visited.add(current);
-
-    const shadowRoot = getOpenShadowRoot(current);
-    const shadowActiveElement = shadowRoot?.activeElement ?? null;
-    if (!shadowActiveElement || shadowActiveElement === current) {
-      break;
-    }
-
-    current = shadowActiveElement;
-  }
-
-  return current;
 }
 
 export function getComposedChildElements(element: Element): Element[] {

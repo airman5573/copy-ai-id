@@ -45,10 +45,6 @@ export async function queryActiveTabContext(): Promise<ActiveTabContext | null> 
   });
 }
 
-export async function queryActiveTabUrl(): Promise<string | null> {
-  return (await queryActiveTabContext())?.url ?? null;
-}
-
 export function formatScopeLabel(scopeKey: string): string {
   return scopeKey
     .replace(/^https?:\/\//, '')

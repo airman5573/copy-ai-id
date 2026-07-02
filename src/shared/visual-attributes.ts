@@ -166,11 +166,6 @@ export function visualAttributeDefinitionByName(name: string): VisualAttributeDe
   return normalizedName ? VISUAL_ATTRIBUTE_DEFINITION_BY_NAME.get(normalizedName) ?? null : null;
 }
 
-export function isSupportedVisualAttributeName(name: string): name is VisualAttributeName {
-  const normalizedName = normalizeVisualAttributeName(name);
-  return Boolean(normalizedName && ATTRIBUTE_NAME_SET.has(normalizedName));
-}
-
 export function sanitizeVisualAttributeMutation(
   mutation: VisualAttributeMutation,
 ): VisualAttributeSanitizeResult {

@@ -69,17 +69,6 @@ export function formatChipTargetMap(chips: readonly ExportedChipTarget[]): strin
   ].join('\n');
 }
 
-export function appendChipTargetMapToText(value: string, chipTargetMap: string): string {
-  const trimmedValue = value.trimEnd();
-  const trimmedChipTargetMap = chipTargetMap.trim();
-
-  if (!trimmedChipTargetMap) {
-    return trimmedValue;
-  }
-
-  return `${trimmedValue}\n\n${trimmedChipTargetMap}`;
-}
-
 export function formatChipTargetMapLine(chip: ExportedChipTarget): string {
   return `${chip.chipId}: ${formatChipTargetDescription(chip.target)}`;
 }

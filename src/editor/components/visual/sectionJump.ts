@@ -17,6 +17,3 @@ export const QUICK_ACTION_SECTION_IDS: Record<QuickActionCategory, VisualPanelSe
   border: 'copy-ai-id-editor-visual-border-section',
 };
 
-export function sectionIdForQuickActionCategory(category: QuickActionCategory): VisualPanelSectionId {
-  return QUICK_ACTION_SECTION_IDS[category];
-}

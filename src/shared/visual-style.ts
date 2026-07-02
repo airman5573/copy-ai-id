@@ -353,8 +353,6 @@ export const VISUAL_STYLE_PROPERTY_BY_ID = Object.fromEntries(
   VISUAL_STYLE_PROPERTY_DEFINITIONS.map((definition) => [definition.property, definition]),
 ) as Record<VisualCssPropertyId, VisualStylePropertyDefinition>;
 
-export const VISUAL_STYLE_CATEGORIES = ['layout', 'spacing', 'size', 'style', 'border'] as const satisfies readonly VisualStyleCategory[];
-
 export const VISUAL_STYLE_PROPERTY_GROUPS = [
   { id: 'display', category: 'layout', label: 'Display', properties: ['display'] },
   { id: 'position', category: 'layout', label: 'Position', properties: ['position', 'top', 'right', 'bottom', 'left', 'z-index'] },
@@ -392,55 +390,7 @@ export function getVisualStylePropertyDefinition(
   return isVisualCssPropertyId(property) ? VISUAL_STYLE_PROPERTY_BY_ID[property] : null;
 }
 
-export function getVisualStylePropertiesByCategory(
-  category: VisualStyleCategory,
-): VisualStylePropertyDefinition[] {
-  return VISUAL_STYLE_PROPERTY_DEFINITIONS.filter((definition) => definition.category === category);
-}
-
-export function getVisualStylePropertiesByGroup(group: string): VisualStylePropertyDefinition[] {
-  return VISUAL_STYLE_PROPERTY_DEFINITIONS.filter((definition) => definition.group === group);
-}
-
-export function getVisualStyleGroupDefinition(
-  group: string,
-): VisualStylePropertyGroupDefinition | null {
-  return VISUAL_STYLE_PROPERTY_GROUPS.find((definition) => definition.id === group) ?? null;
-}
-
-export function createVisualStyleDeclaration(
-  property: VisualCssPropertyId,
-  value: string,
-  previousValue?: string | null,
-  priority: '' | 'important' = '',
-): VisualStyleDeclarationMutation {
-  return {
-    property,
-    value: normalizeVisualStyleValue(value),
-    priority,
-    previousValue,
-  };
-}
-
 export function normalizeVisualStyleValue(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-export function cssNumberWithUnit(value: number | string, unit: VisualStyleUnit = 'px'): string {
-  if (typeof value === 'string') {
-    const normalized = normalizeVisualStyleValue(value);
-    if (
-      normalized === ''
-      || normalized === '0'
-      || /^-?\d*\.?\d+[a-z%]+$/i.test(normalized)
-      || /^(auto|none|fit-content|max-content|min-content|inherit|initial|revert|unset)$/i.test(normalized)
-      || /^(calc|min|max|clamp|var)\(/i.test(normalized)
-    ) {
-      return normalized;
-    }
-
-    return `${normalized}${unit}`;
-  }
-
-  return value === 0 ? '0' : `${value}${unit}`;
-}

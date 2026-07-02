@@ -2,9 +2,6 @@ import { getCurrentMessages } from '../../shared/i18n';
 
 export type NotebookBreakpointScope = 'desktop' | 'tablet' | 'mobile';
 
-export const TAILWIND_MD_BREAKPOINT_PX = 768;
-export const TAILWIND_LG_BREAKPOINT_PX = 1024;
-
 export const NOTEBOOK_BREAKPOINT_SCOPE_ORDER: readonly NotebookBreakpointScope[] = [
   'mobile',
   'tablet',

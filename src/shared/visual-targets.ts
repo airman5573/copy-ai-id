@@ -201,31 +201,6 @@ export function visualEditTargetSerializationKey(descriptor: VisualEditTargetDes
   ].join(':');
 }
 
-export function serializeVisualEditTargetDescriptor(
-  descriptor: VisualEditTargetDescriptor,
-): VisualEditTargetDescriptor {
-  const target = sanitizeEditorTargetForVisualEdit(descriptor.target);
-
-  if (descriptor.strategy === 'ai-id') {
-    return {
-      ...descriptor,
-      target,
-      classTokens: sanitizeClassTokens(descriptor.classTokens ?? []),
-    };
-  }
-
-  const fallback = descriptor.fallback
-    ? createVisualEditFallbackDescriptor(descriptor.fallback, descriptor.nodeId)
-    : undefined;
-
-  return {
-    ...descriptor,
-    target,
-    fallback,
-    classTokens: sanitizeClassTokens(descriptor.classTokens ?? fallback?.classTokens ?? []),
-  };
-}
-
 export function sanitizeEditorTargetForVisualEdit(target: EditorTarget): EditorTarget {
   if (!isFallbackTarget(target)) {
     return target;
@@ -279,10 +254,6 @@ export function isVisualEditRuntimeAttribute(name: string, value: string | null 
   }
 
   return false;
-}
-
-export function isSerializableVisualEditTarget(target: EditorTarget | null | undefined): target is EditorTarget {
-  return isAiIdTarget(target) || isFallbackTarget(target);
 }
 
 export function isVisualTargetResolutionError(

@@ -57,7 +57,7 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 | **Shift + Enter** | 현재 노트 전체를 suffix와 함께 복사 |
 | **Esc** | 상황에 따라 선택 해제 또는 에디터 닫기/끄기 |
 
-키보드 이동은 `data-ai-id`가 있는 대상만이 아니라 레이아웃 트리의 모든 DOM 노드를 따라 이동합니다. **Space**는 계속 `data-ai-id`를 우선 사용하며, ID가 없는 노드는 덜 안정적인 fallback chip으로 연결합니다. 예시는 [`docs/keyboard-traversal.md`](docs/keyboard-traversal.md)를 참고하세요.
+키보드 이동은 `data-ai-id`가 있는 대상만이 아니라 레이아웃 트리의 모든 DOM 노드를 따라 이동합니다. **Space**는 계속 `data-ai-id`를 우선 사용하며, ID가 없는 노드는 덜 안정적인 fallback chip으로 연결합니다.
 
 편집 가능한 필드에 입력 중이거나 IME 조합 중일 때는 단축키를 가로채지 않습니다. 단, 노트북 안의 **Shift + Enter**는 현재 노트북을 복사합니다.
 
@@ -69,27 +69,9 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 <button data-ai-id="login-form-submit-button">Sign in</button>
 ```
 
-## 스킬로 `data-ai-id` 추가하기
+## 마크업에 `data-ai-id` 추가하기
 
-이 저장소에는 HTML, JSX, TSX, 컴포넌트 마크업에 안정적인 semantic ID를 추가하기 위한 `add-data-ai-id` 스킬이 포함되어 있습니다.
-
-이 레포지토리를 다운받으신 후에 AI에게 스킬을 설치해달라고 하시면 바로 설치해줍니다.
-
-### 스킬 사용하기
-
-Codex:
-
-```text
-$add-data-ai-id @src/components/LoginForm.tsx
-```
-
-Claude Code:
-
-```text
-/add-data-ai-id @src/components/LoginForm.tsx
-```
-
-이 스킬은 먼저 기존 프로젝트의 규칙을 확인합니다. 기존 규칙이 없다면 다음과 같이 deterministic parent-child kebab-case ID를 사용합니다.
+`data-ai-id`는 프로젝트의 HTML, JSX, TSX, 컴포넌트 마크업에 안정적인 semantic ID가 있을 때 가장 잘 동작합니다. AI 코딩 어시스턴트에게 기존 프로젝트의 ID 규칙을 먼저 따르도록 요청하고, 규칙이 없다면 다음과 같은 deterministic parent-child kebab-case ID를 사용하세요.
 
 ```html
 <form data-ai-id="login-form">
@@ -98,8 +80,6 @@ Claude Code:
   <button data-ai-id="login-form-submit-button">Sign in</button>
 </form>
 ```
-
-자세한 내용: [`docs/add-data-ai-id.md`](docs/add-data-ai-id.md)
 
 ## 로컬 개발 빌드
 
@@ -127,7 +107,6 @@ Chrome은 해당 확장 프로그램에 파일 접근 권한을 켜지 않는 �
 3. **Details**를 클릭합니다.
 4. **Allow access to file URLs**를 켭니다.
 
-![Chrome extension details page with Allow access to file URLs enabled](docs/images/05-allow-file-url-access.png)
 
 ## 제품 범위
 

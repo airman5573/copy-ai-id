@@ -30,20 +30,6 @@ export function dispatchQuickActionStructureOperation(
   }
 }
 
-export function dispatchQuickActionDragMoveFromEditorPoint(
-  reference: EditorTargetReference,
-  point: EditorViewportPointLike,
-): void {
-  const dropPoint = editorViewportPointToBridgeViewportPoint(point);
-
-  if (!dropPoint) {
-    showEditorToast('드래그 위치를 미리보기 좌표로 변환할 수 없습니다.', 'error');
-    return;
-  }
-
-  dispatchQuickActionDragMoveFromBridgePoint(reference, dropPoint);
-}
-
 export function dispatchQuickActionDragMoveFromBridgePoint(
   reference: EditorTargetReference,
   dropPoint: BridgeViewportPoint,
@@ -59,20 +45,6 @@ export function dispatchQuickActionDragMoveFromBridgePoint(
   } catch (error) {
     showEditorToast(error instanceof Error ? error.message : '드래그 이동을 시작할 수 없습니다.', 'error');
   }
-}
-
-export function previewQuickActionDragMoveFromEditorPoint(
-  reference: EditorTargetReference,
-  point: EditorViewportPointLike,
-): void {
-  const dropPoint = editorViewportPointToBridgeViewportPoint(point);
-
-  if (!dropPoint) {
-    clearQuickActionDragMovePreview();
-    return;
-  }
-
-  previewQuickActionDragMoveFromBridgePoint(reference, dropPoint);
 }
 
 export function previewQuickActionDragMoveFromBridgePoint(

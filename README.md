@@ -58,7 +58,7 @@ Visual editing is an interface for creating precise implementation prompts. It d
 | **Shift + Enter** | Copy the current notebook text with suffixes |
 | **Esc** | Clear selection or close/off the editor where applicable |
 
-Keyboard traversal moves through every layout-tree DOM node, not only nodes with `data-ai-id`. **Space** remains `data-ai-id`-first, while no-ID nodes use fallback chips as a less-stable bridge. See [`docs/keyboard-traversal.md`](docs/keyboard-traversal.md) for examples.
+Keyboard traversal moves through every layout-tree DOM node, not only nodes with `data-ai-id`. **Space** remains `data-ai-id`-first, while no-ID nodes use fallback chips as a less-stable bridge.
 
 Shortcuts are ignored while typing in editable fields or during IME composition, except **Shift + Enter** inside the notebook copies the current notebook.
 
@@ -70,27 +70,9 @@ Shortcuts are ignored while typing in editable fields or during IME composition,
 <button data-ai-id="login-form-submit-button">Sign in</button>
 ```
 
-## Add `data-ai-id` with the skill
+## Add `data-ai-id` to your markup
 
-This repository includes an `add-data-ai-id` skill for adding stable semantic IDs to HTML, JSX, TSX, and component markup.
-
-After downloading this repository, ask your AI coding assistant to install the skill. It can install the skill for you right away.
-
-### Use the skill
-
-Codex:
-
-```text
-$add-data-ai-id @src/components/LoginForm.tsx
-```
-
-Claude Code:
-
-```text
-/add-data-ai-id @src/components/LoginForm.tsx
-```
-
-The skill inspects existing project conventions first. If no convention exists, it uses deterministic parent-child kebab-case IDs such as:
+`data-ai-id` works best when your project adds stable semantic IDs to HTML, JSX, TSX, and component markup. Ask your AI coding assistant to follow your project's existing ID convention first; if none exists, deterministic parent-child kebab-case IDs work well:
 
 ```html
 <form data-ai-id="login-form">
@@ -99,8 +81,6 @@ The skill inspects existing project conventions first. If no convention exists, 
   <button data-ai-id="login-form-submit-button">Sign in</button>
 </form>
 ```
-
-More details: [`docs/add-data-ai-id.md`](docs/add-data-ai-id.md)
 
 ## Local development build
 
@@ -128,7 +108,6 @@ To fix it:
 3. Click **Details**.
 4. Turn on **Allow access to file URLs**.
 
-![Chrome extension details page with Allow access to file URLs enabled](docs/images/05-allow-file-url-access.png)
 
 ## Product scope
 

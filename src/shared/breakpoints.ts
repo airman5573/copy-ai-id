@@ -46,11 +46,3 @@ export function breakpointById(id: BreakpointId): Breakpoint {
   return BREAKPOINTS.find((breakpoint) => breakpoint.id === id) ?? BREAKPOINTS[0];
 }
 
-export function isBreakpointId(value: unknown): value is BreakpointId {
-  return typeof value === 'string' && BREAKPOINT_ORDER.includes(value as BreakpointId);
-}
-
-export function cascadeOrder(id: BreakpointId): BreakpointId[] {
-  const index = BREAKPOINT_ORDER.indexOf(id);
-  return BREAKPOINT_ORDER.slice(0, index + 1).reverse() as BreakpointId[];
-}
