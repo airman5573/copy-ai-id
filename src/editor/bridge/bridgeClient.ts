@@ -306,7 +306,7 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
 
 function handleBridgeReady(message: BridgeReadyMessage): void {
   useVisualEditStore.getState().resetVisualEditStore();
-  useVisualSelectionStore.getState().resetVisualSelectionState();
+  useVisualSelectionStore.getState().resetVisualSelectionStore();
   useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
   useSectionJumpStore.getState().resetSectionJumpStore();
   useBridgeStore.getState().markReady(message.url, message.aiIdCount);

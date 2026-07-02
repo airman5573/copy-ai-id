@@ -134,27 +134,27 @@
   - Parallelizable: no
 
 ### Phase 5 - Store ownership cleanup (remove dual-writes, keep boundaries)
-- [ ] Write an ownership map for every field duplicated across stores
+- [x] Write an ownership map for every field duplicated across stores
   - Files/areas: src/editor/stores/useVisualSelectionStore.ts, useVisualBridgeStore.ts, useFloatingVisualPanelStore.ts, useHighlightStore.ts; src/editor/bridge/bridgeClient.ts
-  - Notes: Known duplicates: `targetSnapshot` (bridge store) vs `snapshot` lifecycle (selection store); panel target/category held in selection store `panelTarget`, bridge store `selectedQuickActionCategory`, and floating-panel store `target`/`category`; `hoverTarget` vs highlight store. Record the single owner per field as code comments in this step's commit (temporary scaffolding is fine).
+  - Notes: Ownership recorded as doc comments on useVisualSelectionStore (selection data + snapshot lifecycle), useFloatingVisualPanelStore (open state only), useHighlightStore (highlight identity vs hover geometry — intentional fan-out from targetHighlighted).
   - Parallelizable: no
-- [ ] Remove duplicated fields and point readers at the owning store
+- [x] Remove duplicated fields and point readers at the owning store
   - Files/areas: the four stores above and every component/module reading the removed fields
-  - Notes: Keep store boundaries — no store merges (user decision). Readers subscribe to the owning store directly; do not introduce cross-store sync effects.
+  - Notes: useVisualBridgeStore was write-only (its lone reachable reader was a dead note-panel-anchor candidate) — deleted outright. Floating panel target/category/rects now read from selection `panelTarget`; floating store keeps only `isOpen` (openedAt/updatedAt had no readers).
   - Parallelizable: no
-- [ ] Rework `bridgeClient` fan-out so each bridge message writes to exactly one owning store
+- [x] Rework `bridgeClient` fan-out so each bridge message writes to exactly one owning store
   - Files/areas: src/editor/bridge/bridgeClient.ts (`routeBridgeMessage` ~249-433, `syncVisualBridgeGeometry` ~103-143, `selectQuickActionCategory` ~159-216)
-  - Notes: Preserve observable sequencing, especially the `bridgeReady` store resets completing before `layoutTree` population.
+  - Notes: All duplicate-copy writes removed. Remaining multi-store writes are cross-domain by design (targetHighlighted → highlight identity + hover geometry; mutation results → selection lifecycle + edit ledger; bridgeReady → reset broadcast). Sequencing preserved.
   - Parallelizable: no
-- [ ] Split `routeBridgeMessage` into per-domain handler functions
+- [x] Split `routeBridgeMessage` into per-domain handler functions
   - Files/areas: src/editor/bridge/bridgeClient.ts; new src/editor/bridge/handlers/*.ts (lifecycle, layout-tree, highlight/anchor, snapshot, mutation-results, structure)
-  - Notes: The switch stays as a thin routing table; business logic moves to named handlers. Move `createVisualEditRecordPatchForMutationResult` (~468-578) next to the edit-record logic (useVisualEditStore or a records module). Keep the `isVisualUndoMutationResult` special-case behavior byte-for-byte.
+  - Notes: Named handlers live in bridgeClient below the routing table (small enough post-cleanup that a handlers/ directory would over-fragment); `createVisualEditRecordPatchForMutationResult` + structure before/after builders moved to src/editor/visual/mutationResultPatch.ts. `isVisualUndoMutationResult` special-case preserved byte-for-byte.
   - Parallelizable: no
-- [ ] Normalize store reset/clear method naming
+- [x] Normalize store reset/clear method naming
   - Files/areas: all src/editor/stores/*.ts (`resetVisualSelectionState`, `resetVisualEditStore`, `resetVisualBridgeState`, `resetFloatingVisualPanelStore`, `resetFloatingNotePanelRuntime`, `clearDraft`, `clearVisualEdits`, `clearQuickActionTargets`)
-  - Notes: Pick one convention (`reset*` for full-store resets, `clear*` for partial field clears), rename accordingly, update callers. Pure rename — no logic change.
+  - Notes: Convention already held (`reset*Store` full resets, `clear*` partial, `Runtime`/field-level qualifiers meaningful); the one outlier `resetVisualSelectionState` renamed to `resetVisualSelectionStore`.
   - Parallelizable: yes
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no

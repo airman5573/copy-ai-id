@@ -112,7 +112,7 @@ interface VisualSelectionStore extends VisualSelectionStateSnapshot {
     snapshotEditorRect?: EditorViewportRect | null;
   }): void;
   markStale(reason: VisualSelectionStaleReason, error?: VisualMutationError | null): void;
-  resetVisualSelectionState(): void;
+  resetVisualSelectionStore(): void;
 }
 
 export type VisualPanelReadinessStatus =
@@ -354,7 +354,7 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
     snapshotError,
     staleReason,
   }),
-  resetVisualSelectionState: () => set({ ...initialVisualSelectionState }),
+  resetVisualSelectionStore: () => set({ ...initialVisualSelectionState }),
 }));
 
 export function selectVisualPanelReadinessSummary(
