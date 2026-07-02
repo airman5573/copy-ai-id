@@ -43,7 +43,7 @@
   - Files/areas: src/content/editor-bridge/layout-tree.ts (`buildLayoutTreeMessage` line ~45), src/content/editor-bridge/quick-action-toolbar.ts (`refreshQuickActionToolbarPlacement` ~161), src/content/editor-bridge/visual-mutation-results.ts (`postVisualMutationError` ~150, `isVisualMutationResultMessage` ~185), src/content/editor-bridge/visual-targets.ts (`hasSameResolvedVisualTarget` ~817)
   - Notes: Grep each symbol across all of `src/` first; delete only zero-reference exports.
   - Parallelizable: yes
-- [ ] Remove the dead artifact-reporting path in `runtime-artifacts.ts`
+- [x] Remove the dead artifact-reporting path in `runtime-artifacts.ts`
   - Files/areas: src/content/editor-bridge/runtime-artifacts.ts
   - Notes: Delete `stripRuntimeArtifactsFromElement` (~122) and the `stripRuntimeArtifactsWithReport`/`describe*Artifact` reporting machinery; keep `stripRuntimeArtifacts` but reimplement it without building the discarded report.
   - Parallelizable: yes
