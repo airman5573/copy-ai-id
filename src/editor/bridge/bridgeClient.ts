@@ -27,9 +27,8 @@ import { useFloatingVisualPanelStore } from '../stores/useFloatingVisualPanelSto
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
 import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';
-import { useVisualBridgeStore, type VisualMutationResultMessage } from '../stores/useVisualBridgeStore';
 import { useVisualEditStore } from '../stores/useVisualEditStore';
-import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
+import { useVisualSelectionStore, type VisualMutationResultMessage } from '../stores/useVisualSelectionStore';
 import {
   quickActionCategoryToSectionId,
   useSectionJumpStore,
@@ -101,14 +100,7 @@ export function postCurrentCanvasZoomToBridge(): void {
 }
 
 export function syncVisualBridgeGeometry(): void {
-  const visualState = useVisualBridgeStore.getState();
   const selectionState = useVisualSelectionStore.getState();
-  const quickActionAnchorEditorRect = visualState.quickActionAnchor?.elementRect
-    ? bridgeViewportRectToEditorViewportRect(visualState.quickActionAnchor.elementRect)
-    : null;
-  const targetSnapshotEditorRect = visualState.targetSnapshot?.snapshot?.elementRect
-    ? bridgeViewportRectToEditorViewportRect(visualState.targetSnapshot.snapshot.elementRect)
-    : null;
   const hoverEditorRect = selectionState.hoverTarget?.elementRect
     ? bridgeViewportRectToEditorViewportRect(selectionState.hoverTarget.elementRect)
     : null;
@@ -121,11 +113,6 @@ export function syncVisualBridgeGeometry(): void {
   const selectionSnapshotEditorRect = selectionState.snapshot?.elementRect
     ? bridgeViewportRectToEditorViewportRect(selectionState.snapshot.elementRect)
     : null;
-
-  visualState.syncEditorRects({
-    quickActionAnchorEditorRect,
-    targetSnapshotEditorRect,
-  });
 
   selectionState.syncEditorRects({
     hoverEditorRect,
@@ -169,11 +156,6 @@ export function selectQuickActionCategory(
     && hasSameEditorTarget(activeToolbarTarget?.target, reference.target)
     && activeToolbarTarget?.nodeId === reference.nodeId;
 
-  useVisualBridgeStore.getState().setQuickActionCategorySelection({
-    target: reference.target,
-    nodeId: reference.nodeId,
-    category,
-  });
   const elementRect = options.elementRect
     ?? (isActiveToolbarTarget ? activeToolbarTarget?.elementRect ?? null : null);
   const editorRect = options.editorRect
@@ -249,7 +231,6 @@ export function installBridgeClient(): () => void {
 function routeBridgeMessage(message: BridgeToEditorMessage): void {
   switch (message.type) {
     case EDITOR_MESSAGE_TYPES.bridgeReady:
-      useVisualBridgeStore.getState().resetVisualBridgeState();
       useVisualEditStore.getState().resetVisualEditStore();
       useVisualSelectionStore.getState().resetVisualSelectionState();
       useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
@@ -266,7 +247,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       return;
     case EDITOR_MESSAGE_TYPES.layoutTree:
       useLayoutTreeStore.getState().setTree(message.root, message.url);
-      useVisualBridgeStore.getState().markLayoutTreeRefreshed();
       flushPendingPostMutationSnapshotRefresh();
       return;
     case EDITOR_MESSAGE_TYPES.targetHighlighted:
@@ -305,10 +285,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
         return;
       }
 
-      useVisualBridgeStore.getState().setQuickActionAnchor(
-        message,
-        message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
-      );
       useVisualSelectionStore.getState().setQuickActionAnchor(
         message,
         message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
@@ -345,10 +321,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       clearQuickActionDragMovePreview();
       return;
     case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
-      useVisualBridgeStore.getState().setVisualTargetSnapshot(
-        message,
-        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
-      );
       useVisualSelectionStore.getState().setSnapshotResult(
         message,
         message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
@@ -367,10 +339,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.visualElementDeleted:
     case EDITOR_MESSAGE_TYPES.visualElementRestored:
     case EDITOR_MESSAGE_TYPES.visualDragMoveCompleted:
-      useVisualBridgeStore.getState().setVisualMutationResult(
-        message as VisualMutationResultMessage,
-        message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
-      );
       useVisualSelectionStore.getState().applyMutationResult(
         message as VisualMutationResultMessage,
         message.snapshot ? bridgeViewportRectToEditorViewportRect(message.snapshot.elementRect) : null,
@@ -400,7 +368,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
       }
       return;
     case EDITOR_MESSAGE_TYPES.visualMutationError:
-      useVisualBridgeStore.getState().setVisualMutationError(message);
       useVisualSelectionStore.getState().setMutationError(message);
       if (message.mutationId !== undefined) {
         useVisualEditStore.getState().markMutationFailed(message.mutationId, message.error);

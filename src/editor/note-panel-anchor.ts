@@ -13,7 +13,6 @@ import {
 } from './bridge/geometry';
 import { useHighlightStore } from './stores/useHighlightStore';
 import type { FloatingNotePanelAnchorInput } from './stores/useFloatingNotePanelStore';
-import { useVisualBridgeStore } from './stores/useVisualBridgeStore';
 import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 
 export interface NotePanelAnchorGeometryInput {
@@ -45,18 +44,6 @@ export function captureNotePanelAnchor(
   const hoverAnchor = anchorFromCandidate(reference, visualSelection.hoverTarget);
   if (hoverAnchor) {
     return hoverAnchor;
-  }
-
-  const visualBridge = useVisualBridgeStore.getState();
-  const quickActionAnchor = anchorFromCandidate(reference, {
-    target: visualBridge.quickActionAnchor?.target ?? null,
-    nodeId: visualBridge.quickActionAnchor?.nodeId ?? null,
-    elementRect: visualBridge.quickActionAnchor?.elementRect ?? null,
-    editorRect: visualBridge.quickActionAnchorEditorRect,
-    viewport: visualBridge.quickActionAnchor?.viewport ?? null,
-  });
-  if (quickActionAnchor) {
-    return quickActionAnchor;
   }
 
   const highlighted = useHighlightStore.getState();
