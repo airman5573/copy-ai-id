@@ -5,7 +5,7 @@ import {
   type VisualStyleDeclarationMutation,
   type VisualStyleUpdatedMessage,
 } from '../../shared/editor-messages';
-import { type BridgePost } from './highlight';
+import type { BridgePost } from './types';
 import {
   mutationFailedError as sharedMutationFailedError,
   unsupportedTargetError,

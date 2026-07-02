@@ -1,6 +1,7 @@
 import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../../shared/editor-messages';
 import { handleNavigationShortcut } from './navigation';
-import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference, type BridgePost } from './highlight';
+import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference } from './highlight';
+import type { BridgePost } from './types';
 
 const Z_CODE = 'KeyZ';
 const SPACE_CODE = 'Space';

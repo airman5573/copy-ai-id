@@ -22,8 +22,8 @@ import {
 } from './layout-tree';
 import {
   refreshHighlightedElement,
-  type BridgePost,
 } from './highlight';
+import type { BridgePost } from './types';
 import { refreshOverlays } from './overlay';
 import {
   createVisualTargetSnapshot,

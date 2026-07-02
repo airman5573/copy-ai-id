@@ -10,7 +10,7 @@ import {
   dispatchNativeInputEvents,
   isContentEditableElement,
 } from './lib/dom';
-import { type BridgePost } from './highlight';
+import type { BridgePost } from './types';
 import {
   mutationFailedError as sharedMutationFailedError,
   unsupportedTargetError,

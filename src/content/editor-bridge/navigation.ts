@@ -9,8 +9,8 @@ import {
   getHighlightedElement,
   setHighlightedElement,
   suppressHoverHighlightUntilMouseMove,
-  type BridgePost,
 } from './highlight';
+import type { BridgePost } from './types';
 
 type NavigationDirection =
   | 'parent'

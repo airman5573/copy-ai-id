@@ -94,7 +94,7 @@
   - Files/areas: new src/content/editor-bridge/lib/mutation-result.ts; src/content/editor-bridge/{visual-style,visual-content,visual-attributes,visual-form-value}.ts
   - Notes: Shared `mutationFailedError`/`unsupportedTargetError` factories added to visual-mutation-results.ts (per-kind messages stay as one-line delegates). The generic success/failure post helper already exists as `postVisualMutationResult`; the per-kind wrappers assemble kind-specific payloads and stay per the user's "keep per-kind explicit" decision.
   - Parallelizable: no
-- [ ] Move the `BridgePost` type out of `highlight.ts`
+- [x] Move the `BridgePost` type out of `highlight.ts`
   - Files/areas: src/content/editor-bridge/highlight.ts (~26), new src/content/editor-bridge/types.ts, importers (keyboard, navigation, visual-* modules)
   - Notes: Pure type move; breaks the coupling hub on a stateful module.
   - Parallelizable: yes

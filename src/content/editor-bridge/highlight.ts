@@ -1,11 +1,11 @@
 import {
   EDITOR_MESSAGE_TYPES,
-  type BridgeToEditorMessage,
   type EditorTarget,
   type HighlightOrigin,
   type QuickActionCategory,
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
+import type { BridgePost } from './types';
 import { resolveTreeNode } from './layout-tree';
 import { viewportSize } from './lib/viewport';
 import {
@@ -22,8 +22,6 @@ import {
   requestQuickActionToolbarHide,
   showQuickActionToolbar,
 } from './quick-action-toolbar';
-
-export type BridgePost = (message: BridgeToEditorMessage) => void;
 
 interface HighlightRefreshOptions {
   force?: boolean;

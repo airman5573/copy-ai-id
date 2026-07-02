@@ -6,7 +6,7 @@ import {
   type VisualMutationError,
 } from '../../shared/editor-messages';
 import { sanitizeVisualAttributeMutation } from '../../shared/visual-attributes';
-import { type BridgePost } from './highlight';
+import type { BridgePost } from './types';
 import {
   mutationFailedError as sharedMutationFailedError,
   createVisualMutationResultBase,

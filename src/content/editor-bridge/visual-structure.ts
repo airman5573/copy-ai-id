@@ -27,7 +27,7 @@ import {
   getDeepElementFromPoint,
 } from '../target/composed-dom';
 import { fallbackTargetForElement } from './fallback-target';
-import { type BridgePost } from './highlight';
+import type { BridgePost } from './types';
 import {
   instancesOf,
   resolveNodeIdForElement,
