@@ -1,7 +1,7 @@
 import type {
   VisualAttributeMutation,
   VisualMutationError,
-} from './editor-messages';
+} from './domain/visual';
 
 export type VisualAttributeName =
   | 'href'

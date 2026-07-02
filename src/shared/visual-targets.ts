@@ -10,10 +10,12 @@ import type {
   FallbackEditorTarget,
   FallbackTargetMetadata,
   LayoutTreeNode,
+} from './domain/targets';
+import type {
   VisualMutationError,
   VisualMutationErrorCode,
   VisualTargetSnapshot,
-} from './editor-messages';
+} from './domain/visual';
 import {
   isAiIdTarget,
   isFallbackTarget,

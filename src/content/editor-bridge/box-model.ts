@@ -1,5 +1,8 @@
 import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
-import type { VisualBoxEdge, VisualBoxRegion } from '../../shared/editor-messages';
+import type {
+  VisualBoxEdge,
+  VisualBoxRegion,
+} from '../../shared/domain/visual';
 
 type OverlayKind = 'hover' | 'control';
 type Edge = 'top' | 'right' | 'bottom' | 'left';

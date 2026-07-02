@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
-import type { EditorTargetReference, QuickActionCategory } from '../../shared/editor-messages';
+import type { EditorTargetReference } from '../../shared/domain/targets';
+import type { QuickActionCategory } from '../../shared/domain/visual';
 import {
   QUICK_ACTION_SECTION_IDS,
   type VisualPanelSectionId,

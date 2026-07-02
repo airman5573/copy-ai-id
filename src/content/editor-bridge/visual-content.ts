@@ -1,13 +1,15 @@
 import {
+  type VisualMutationError,
+  type VisualRichTextMutation,
+  type VisualTextMutation,
+} from '../../shared/domain/visual';
+import {
   EDITOR_MESSAGE_TYPES,
   type UpdateVisualRichTextMessage,
   type UpdateVisualTextMessage,
-  type VisualMutationError,
-  type VisualRichTextMutation,
   type VisualRichTextUpdatedMessage,
-  type VisualTextMutation,
   type VisualTextUpdatedMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
 import { dispatchNativeInputEvents } from './lib/dom';
 import type { BridgePost } from './types';

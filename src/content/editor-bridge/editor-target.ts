@@ -1,5 +1,5 @@
 import { DATA_AI_ID_ATTRIBUTE } from '../../shared/config';
-import type { EditorTarget } from '../../shared/editor-messages';
+import type { EditorTarget } from '../../shared/domain/targets';
 import { fallbackTargetForElement } from './fallback-target';
 import { instancesOf, resolveNodeIdForElement } from './layout-tree';
 

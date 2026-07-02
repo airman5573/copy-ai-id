@@ -11,7 +11,7 @@ import {
 } from 'react';
 
 import { breakpointById, type BreakpointId } from '../../../shared/breakpoints';
-import type { QuickActionCategory } from '../../../shared/editor-messages';
+import type { QuickActionCategory } from '../../../shared/domain/visual';
 import { getCurrentMessages } from '../../../shared/i18n';
 import { selectQuickActionCategory } from '../../bridge/bridgeClient';
 import {

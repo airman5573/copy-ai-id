@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import type {
   VisualMutationError,
   VisualMutationKind,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
 import {
   VISUAL_EDITS_EXPORT_VERSION,
   type VisualEditId,

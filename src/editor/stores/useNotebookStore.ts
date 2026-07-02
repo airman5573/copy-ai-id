@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 
-import type { EditorTarget, EditorTargetReference } from '../../shared/editor-messages';
+import type {
+  EditorTarget,
+  EditorTargetReference,
+} from '../../shared/domain/targets';
 import {
   FIRST_NOTEBOOK_CHIP_INDEX,
   formatNotebookChipId,

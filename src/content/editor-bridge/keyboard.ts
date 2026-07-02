@@ -1,4 +1,7 @@
-import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../../shared/editor-messages';
+import {
+  EDITOR_MESSAGE_TYPES,
+  type EditorKeyboardShortcut,
+} from '../../shared/protocol/editor-bridge-messages';
 import { handleNavigationShortcut } from './navigation';
 import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference } from './highlight';
 import type { BridgePost } from './types';

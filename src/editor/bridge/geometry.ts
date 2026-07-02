@@ -1,7 +1,7 @@
 import type {
   BridgeViewportPoint,
   BridgeViewportRect,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/geometry';
 
 export type EditorViewportPoint = BridgeViewportPoint;
 export type EditorViewportRect = BridgeViewportRect;

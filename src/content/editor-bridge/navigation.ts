@@ -1,5 +1,5 @@
 import { isExtensionOwnedElement } from '../../shared/config';
-import type { EditorKeyboardShortcut } from '../../shared/editor-messages';
+import type { EditorKeyboardShortcut } from '../../shared/protocol/editor-bridge-messages';
 import {
   getComposedChildElements,
   getComposedParentElement,

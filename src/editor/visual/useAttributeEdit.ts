@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
-import type {
-  EditorTargetReference,
-  VisualMutationError,
-} from '../../shared/editor-messages';
+import type { EditorTargetReference } from '../../shared/domain/targets';
+import type { VisualMutationError } from '../../shared/domain/visual';
 import {
   sanitizeVisualAttributeMutation,
   visualAttributeDefinitionByName,

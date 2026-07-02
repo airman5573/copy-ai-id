@@ -1,9 +1,9 @@
 import {
-  EDITOR_MESSAGE_TYPES,
   type BridgeToEditorMessage,
+  EDITOR_MESSAGE_TYPES,
   type EditorToBridgeMessage,
   type SetCanvasZoomMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
 import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overlay';

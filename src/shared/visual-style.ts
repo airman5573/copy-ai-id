@@ -3,7 +3,7 @@ import type {
   VisualBoxEdge,
   VisualBoxRegion,
   VisualStyleDeclarationMutation,
-} from './editor-messages';
+} from './domain/visual';
 
 export type VisualStyleCategory = Exclude<QuickActionCategory, 'content'>;
 

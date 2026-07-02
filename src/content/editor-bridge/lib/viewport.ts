@@ -1,7 +1,7 @@
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
-} from '../../../shared/editor-messages';
+} from '../../../shared/domain/geometry';
 
 export function viewportRectForElement(element: Element): BridgeViewportRect {
   const rect = element.getBoundingClientRect();

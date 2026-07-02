@@ -3,16 +3,31 @@ import {
   truncatedPreview,
 } from '../lib/format';
 import { breakpointById, type BreakpointId } from '../../shared/breakpoints';
+import { type BridgeViewportPoint } from '../../shared/domain/geometry';
 import {
-  EDITOR_MESSAGE_TYPES,
-  type BridgeViewportPoint,
-  type DeleteVisualElementMessage,
-  type DuplicateVisualElementMessage,
   type EditorTarget,
   type EditorTargetReference,
+} from '../../shared/domain/targets';
+import {
+  type QuickActionCategory,
+  type VisualAttributeMutation,
+  type VisualDropPosition,
+  type VisualFormValueMutation,
+  type VisualFormValueSnapshot,
+  type VisualMutationKind,
+  type VisualRichTextMutation,
+  type VisualStructureMutationSnapshot,
+  type VisualStructureOperation,
+  type VisualStyleDeclarationMutation,
+  type VisualTargetSnapshot,
+  type VisualTextMutation,
+} from '../../shared/domain/visual';
+import {
+  type DeleteVisualElementMessage,
+  type DuplicateVisualElementMessage,
+  EDITOR_MESSAGE_TYPES,
   type EditorToBridgeMessage,
   type MoveVisualElementMessage,
-  type QuickActionCategory,
   type RequestVisualDragMoveMessage,
   type RestoreVisualElementMessage,
   type UpdateVisualAttributeMessage,
@@ -20,19 +35,8 @@ import {
   type UpdateVisualRichTextMessage,
   type UpdateVisualStyleMessage,
   type UpdateVisualTextMessage,
-  type VisualAttributeMutation,
-  type VisualDropPosition,
-  type VisualFormValueMutation,
-  type VisualFormValueSnapshot,
-  type VisualMutationKind,
   type VisualMutationRequestBase,
-  type VisualRichTextMutation,
-  type VisualStyleDeclarationMutation,
-  type VisualStructureMutationSnapshot,
-  type VisualStructureOperation,
-  type VisualTargetSnapshot,
-  type VisualTextMutation,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import {
   getVisualStylePropertyDefinition,

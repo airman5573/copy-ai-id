@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 
-import type { EditorTarget, LayoutTreeNode } from '../../shared/editor-messages';
+import type {
+  EditorTarget,
+  LayoutTreeNode,
+} from '../../shared/domain/targets';
 import { isAiIdTarget, isFallbackTarget } from '../../shared/editor-targets';
 
 interface LayoutTreeStore {

@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 
+import type { EditorTargetReference } from '../../shared/domain/targets';
 import type {
-  EditorTargetReference,
   VisualFormValueMutation,
   VisualFormValueSnapshot,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
 import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 import { useBreakpointStore } from '../stores/useBreakpointStore';

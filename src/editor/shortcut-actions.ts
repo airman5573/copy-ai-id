@@ -1,10 +1,12 @@
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
+} from '../shared/domain/geometry';
+import type { EditorTargetReference } from '../shared/domain/targets';
+import type {
   EditorKeyboardShortcut,
-  EditorTargetReference,
   EditorToBridgeMessage,
-} from '../shared/editor-messages';
+} from '../shared/protocol/editor-bridge-messages';
 import { bridgeViewportRectToEditorViewportRect, type EditorViewportRect } from './bridge/geometry';
 import { captureNotePanelAnchor } from './note-panel-anchor';
 import { requestNotePanelFocus } from './note-panel-focus';

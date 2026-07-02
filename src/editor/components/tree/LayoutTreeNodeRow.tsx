@@ -1,7 +1,11 @@
 import { useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { ChevronRight, EyeOff, TriangleAlert } from 'lucide-react';
 
-import { EDITOR_MESSAGE_TYPES, type EditorTarget, type LayoutTreeNode } from '../../../shared/editor-messages';
+import {
+  type EditorTarget,
+  type LayoutTreeNode,
+} from '../../../shared/domain/targets';
+import { EDITOR_MESSAGE_TYPES } from '../../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../../shared/editor-targets';
 import { getCurrentMessages } from '../../../shared/i18n';
 import { postToBridge, requestBridgeQuickActionSelectionClear } from '../../bridge/bridgeClient';

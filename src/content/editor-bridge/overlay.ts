@@ -1,5 +1,5 @@
 import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
-import type { VisualDropPosition } from '../../shared/editor-messages';
+import type { VisualDropPosition } from '../../shared/domain/visual';
 import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
 
 type OverlayKind = 'hover';

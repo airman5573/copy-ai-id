@@ -160,9 +160,9 @@
   - Parallelizable: no
 
 ### Phase 6 - Protocol split and runtime validation
-- [ ] Split `shared/editor-messages.ts` into wire protocol vs domain types
+- [x] Split `shared/editor-messages.ts` into wire protocol vs domain types
   - Files/areas: src/shared/editor-messages.ts → new src/shared/protocol/editor-bridge-messages.ts (message-type constants, message interfaces, `EditorToBridgeMessage`/`BridgeToEditorMessage` unions) and new src/shared/domain/ modules (EditorTarget, VisualTargetSnapshot, VisualMutation* payloads, box-model enums, viewport geometry types); update all importers
-  - Notes: Type-only reshuffle; no renames of the types themselves in this step to keep the diff reviewable.
+  - Notes: Split into domain/{targets,geometry,visual}.ts + protocol/editor-bridge-messages.ts; all 61 importers rewritten mechanically by symbol→module map, original file deleted. No type renames.
   - Parallelizable: no
 - [ ] Add hand-rolled runtime guards for both directions of the editor↔bridge protocol
   - Files/areas: new src/shared/protocol/guards.ts; src/content/editor-bridge/index.ts (`route()` ~125-193), src/editor/bridge/bridgeClient.ts (receive path ~226-247)

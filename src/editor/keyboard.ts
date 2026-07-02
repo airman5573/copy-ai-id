@@ -1,4 +1,7 @@
-import { EDITOR_MESSAGE_TYPES, type EditorKeyboardShortcut } from '../shared/editor-messages';
+import {
+  EDITOR_MESSAGE_TYPES,
+  type EditorKeyboardShortcut,
+} from '../shared/protocol/editor-bridge-messages';
 import { postToBridge, requestBridgeQuickActionSelectionClear } from './bridge/bridgeClient';
 import { suppressHoverUntilMouseMove } from './keyboard-hover-guard';
 import { handleEditorEscapeAction, handleEditorShortcutAction } from './shortcut-actions';

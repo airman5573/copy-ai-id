@@ -1,10 +1,12 @@
 import {
+  type VisualAttributeMutation,
+  type VisualMutationError,
+} from '../../shared/domain/visual';
+import {
   EDITOR_MESSAGE_TYPES,
   type UpdateVisualAttributeMessage,
-  type VisualAttributeMutation,
   type VisualAttributeUpdatedMessage,
-  type VisualMutationError,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { sanitizeVisualAttributeMutation } from '../../shared/visual-attributes';
 import type { BridgePost } from './types';
 import {

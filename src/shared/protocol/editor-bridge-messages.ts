@@ -1,4 +1,34 @@
-import type { BreakpointId } from './breakpoints';
+// Wire protocol for the editor <-> preview-bridge postMessage channel.
+// Domain value types live in shared/domain/.
+
+import type { BreakpointId } from '../breakpoints';
+import type {
+  BridgeViewportPoint,
+  BridgeViewportRect,
+  BridgeViewportSize,
+} from '../domain/geometry';
+import type {
+  EditorTarget,
+  EditorTargetReference,
+  HighlightOrigin,
+  LayoutTreeNode,
+} from '../domain/targets';
+import type {
+  QuickActionCategory,
+  QuickActionStructureOperation,
+  VisualAttributeMutation,
+  VisualBoxRegionHighlight,
+  VisualDropPosition,
+  VisualFormValueMutation,
+  VisualMoveDirection,
+  VisualMutationError,
+  VisualMutationKind,
+  VisualRichTextMutation,
+  VisualStructureMutationSnapshot,
+  VisualStyleDeclarationMutation,
+  VisualTargetSnapshot,
+  VisualTextMutation,
+} from '../domain/visual';
 
 export const EDITOR_MESSAGE_TYPES = {
   bridgeReady: 'copy-ai-id:bridge-ready',
@@ -55,59 +85,6 @@ export type BridgeConnectionStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export type IframeStatus = 'loading' | 'ready' | 'blocked' | 'error';
 
-export type FallbackSelectorKind =
-  | 'unique-semantic-tag'
-  | 'id'
-  | 'unique-class'
-  | 'nth-child'
-  | 'shadow-path';
-
-export interface AiIdEditorTarget {
-  kind: 'ai-id';
-  aiId: string;
-  instanceIndex: number;
-}
-
-export interface FallbackTargetMetadata {
-  tagName: string;
-  label: string;
-  selector: string;
-  selectorKind: FallbackSelectorKind;
-  path: string;
-  fullPath?: string;
-  textPreview?: string;
-  nearbyText?: string;
-  classTokens: string[];
-  accessibility?: string;
-}
-
-export interface FallbackEditorTarget extends FallbackTargetMetadata {
-  kind: 'fallback';
-  nodeId: string;
-}
-
-export type EditorTarget = AiIdEditorTarget | FallbackEditorTarget;
-
-export interface EditorTargetReference {
-  target: EditorTarget;
-  nodeId: string | null;
-}
-
-export type HighlightOrigin = 'preview' | 'layout-tree' | 'editor';
-
-export interface LayoutTreeNode {
-  nodeId: string;
-  tagName: string;
-  aiId: string | null;
-  instanceIndex: number;
-  duplicateCount: number;
-  classTokens: string[];
-  textPreview: string;
-  fallback: FallbackTargetMetadata | null;
-  isVisible: boolean;
-  children: LayoutTreeNode[];
-}
-
 export type EditorKeyboardShortcut =
   | 'arrow-up'
   | 'arrow-down'
@@ -117,167 +94,6 @@ export type EditorKeyboardShortcut =
   | 'shift-enter'
   | 'undo'
   | 'escape';
-
-export type QuickActionCategory = 'content' | 'layout' | 'spacing' | 'size' | 'style' | 'border';
-
-export type VisualMutationKind =
-  | 'style'
-  | 'attribute'
-  | 'text'
-  | 'rich-text'
-  | 'form-value'
-  | 'structure'
-  | 'html';
-
-export type VisualMutationErrorCode =
-  | 'target-not-found'
-  | 'stale-target'
-  | 'ambiguous-target'
-  | 'protected-target'
-  | 'unsupported-target'
-  | 'invalid-value'
-  | 'invalid-html'
-  | 'mutation-failed'
-  | 'restore-unavailable';
-
-export type VisualStructureOperation = 'duplicate' | 'move-up' | 'move-down' | 'delete' | 'restore' | 'drag-move';
-
-export type QuickActionStructureOperation = Extract<
-  VisualStructureOperation,
-  'duplicate' | 'move-up' | 'move-down' | 'delete'
->;
-
-export type VisualMoveDirection = 'up' | 'down';
-
-export type VisualDropPosition = 'before' | 'after' | 'inside-start' | 'inside-end';
-
-export type VisualBoxRegion = 'margin' | 'border' | 'padding' | 'content' | 'gap';
-
-export type VisualBoxEdge = 'top' | 'right' | 'bottom' | 'left' | 'row' | 'column' | 'all';
-
-export interface BridgeViewportSize {
-  width: number;
-  height: number;
-}
-
-export interface BridgeViewportPoint {
-  x: number;
-  y: number;
-}
-
-export interface BridgeViewportRect extends BridgeViewportPoint {
-  width: number;
-  height: number;
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-}
-
-export interface VisualElementImageSnapshot {
-  src: string;
-  alt?: string;
-  width?: number;
-  height?: number;
-}
-
-export interface VisualElementLinkSnapshot {
-  href: string;
-  target?: string;
-  rel?: string;
-  text?: string;
-}
-
-export interface VisualFormValueSnapshot {
-  value?: string;
-  checked?: boolean;
-  selectedIndex?: number;
-  selectedValues?: string[];
-}
-
-export interface VisualParentSnapshot {
-  nodeId: string | null;
-  tagName: string;
-  aiId: string | null;
-  fallback: FallbackTargetMetadata | null;
-}
-
-export interface VisualSiblingSnapshot {
-  nodeId: string | null;
-  tagName: string;
-  aiId: string | null;
-  textPreview?: string;
-  fallback: FallbackTargetMetadata | null;
-}
-
-export interface VisualTargetSnapshot {
-  target: EditorTarget;
-  nodeId: string | null;
-  tagName: string;
-  label: string;
-  classTokens: string[];
-  attributes: Record<string, string>;
-  inlineStyle: Record<string, string>;
-  computedStyle: Record<string, string>;
-  textValue?: string;
-  richHtml?: string;
-  formValue?: VisualFormValueSnapshot;
-  image?: VisualElementImageSnapshot;
-  link?: VisualElementLinkSnapshot;
-  parent?: VisualParentSnapshot;
-  previousSibling?: VisualSiblingSnapshot;
-  nextSibling?: VisualSiblingSnapshot;
-  fallback: FallbackTargetMetadata | null;
-  elementRect: BridgeViewportRect;
-  viewport: BridgeViewportSize;
-  isVisible: boolean;
-}
-
-export interface VisualMutationError {
-  code: VisualMutationErrorCode;
-  message: string;
-  detail?: string;
-}
-
-export interface VisualStyleDeclarationMutation {
-  property: string;
-  value: string;
-  priority?: '' | 'important';
-  previousValue?: string | null;
-}
-
-export interface VisualAttributeMutation {
-  name: string;
-  value: string | null;
-  previousValue?: string | null;
-}
-
-export interface VisualTextMutation {
-  value: string;
-  previousValue?: string;
-}
-
-export interface VisualRichTextMutation {
-  html: string;
-  previousHtml?: string;
-}
-
-export interface VisualFormValueMutation {
-  value?: string;
-  checked?: boolean;
-  selectedIndex?: number;
-  selectedValues?: string[];
-  previousValue?: VisualFormValueSnapshot;
-}
-
-export interface VisualStructureMutationSnapshot {
-  operation: VisualStructureOperation;
-  parentNodeId?: string | null;
-  childElementIndex?: number | null;
-  previousSiblingNodeId?: string | null;
-  nextSiblingNodeId?: string | null;
-  targetHtml?: string;
-}
 
 export interface VisualMutationRequestBase extends EditorTargetReference {
   mutationId: number;
@@ -289,14 +105,6 @@ export interface VisualMutationResultBase extends EditorTargetReference {
   applied: boolean;
   snapshot?: VisualTargetSnapshot;
   error?: VisualMutationError;
-}
-
-export interface VisualBoxRegionHighlight {
-  target: EditorTarget;
-  nodeId: string | null;
-  region: VisualBoxRegion;
-  edge?: VisualBoxEdge;
-  rect?: BridgeViewportRect;
 }
 
 export interface BridgeReadyMessage {

@@ -7,10 +7,8 @@ import {
   describeVisualEditTarget,
   visualEditTargetSerializationKey,
 } from '../../shared/visual-targets';
-import type {
-  EditorTarget,
-  VisualStructureMutationSnapshot,
-} from '../../shared/editor-messages';
+import type { EditorTarget } from '../../shared/domain/targets';
+import type { VisualStructureMutationSnapshot } from '../../shared/domain/visual';
 import type {
   VisualEditPayload,
   VisualEditRecord,

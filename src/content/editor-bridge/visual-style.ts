@@ -1,10 +1,12 @@
 import {
-  EDITOR_MESSAGE_TYPES,
-  type UpdateVisualStyleMessage,
   type VisualMutationError,
   type VisualStyleDeclarationMutation,
+} from '../../shared/domain/visual';
+import {
+  EDITOR_MESSAGE_TYPES,
+  type UpdateVisualStyleMessage,
   type VisualStyleUpdatedMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import type { BridgePost } from './types';
 import {
   mutationFailedError as sharedMutationFailedError,

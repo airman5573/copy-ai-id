@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
-import type {
-  EditorTargetReference,
-  VisualTextMutation,
-} from '../../shared/editor-messages';
+import type { EditorTargetReference } from '../../shared/domain/targets';
+import type { VisualTextMutation } from '../../shared/domain/visual';
 import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
 import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';

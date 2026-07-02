@@ -1,21 +1,27 @@
 import { create } from 'zustand';
 
 import {
-  type BridgeToEditorMessage,
   type BridgeViewportRect,
   type BridgeViewportSize,
+} from '../../shared/domain/geometry';
+import {
   type EditorTarget,
   type EditorTargetReference,
   type HighlightOrigin,
-  type QuickActionAnchorChangedMessage,
+} from '../../shared/domain/targets';
+import {
   type QuickActionCategory,
-  type TargetHighlightedMessage,
   type VisualMutationError,
   type VisualMutationErrorCode,
-  type VisualMutationErrorMessage,
   type VisualTargetSnapshot,
+} from '../../shared/domain/visual';
+import {
+  type BridgeToEditorMessage,
+  type QuickActionAnchorChangedMessage,
+  type TargetHighlightedMessage,
+  type VisualMutationErrorMessage,
   type VisualTargetSnapshotMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import { getCurrentMessages } from '../../shared/i18n';
 import { isVisualTargetResolutionError } from '../../shared/visual-targets';

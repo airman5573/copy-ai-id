@@ -1,8 +1,10 @@
 import type { BreakpointId } from './breakpoints';
+import type { BridgeViewportRect } from './domain/geometry';
 import type {
-  BridgeViewportRect,
   EditorTarget,
   FallbackSelectorKind,
+} from './domain/targets';
+import type {
   QuickActionCategory,
   VisualDropPosition,
   VisualFormValueSnapshot,
@@ -11,7 +13,7 @@ import type {
   VisualStructureMutationSnapshot,
   VisualStructureOperation,
   VisualTargetSnapshot,
-} from './editor-messages';
+} from './domain/visual';
 
 export const VISUAL_EDITS_EXPORT_VERSION = 1 as const;
 

@@ -6,11 +6,11 @@ import {
   elementOwnText,
   tokenizeClassValue,
 } from './lib/text';
+import { type LayoutTreeNode } from '../../shared/domain/targets';
 import {
   EDITOR_MESSAGE_TYPES,
   type LayoutTreeMessage,
-  type LayoutTreeNode,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { getComposedChildElements } from '../target/composed-dom';
 import { fallbackMetadataForElement } from './fallback-target';
 

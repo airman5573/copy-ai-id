@@ -1,4 +1,4 @@
-import type { QuickActionCategory } from '../../../shared/editor-messages';
+import type { QuickActionCategory } from '../../../shared/domain/visual';
 
 export type VisualPanelSectionId =
   | 'copy-ai-id-editor-content-text-section'

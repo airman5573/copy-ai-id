@@ -1,9 +1,9 @@
 import {
-  EDITOR_MESSAGE_TYPES,
   type EditorTarget,
   type HighlightOrigin,
-  type QuickActionCategory,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/targets';
+import { type QuickActionCategory } from '../../shared/domain/visual';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import type { BridgePost } from './types';
 import { resolveTreeNode } from './layout-tree';

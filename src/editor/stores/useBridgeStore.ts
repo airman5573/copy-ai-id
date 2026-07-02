@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import type {
   BridgeConnectionStatus,
   IframeStatus,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 
 interface BridgeStore {
   status: BridgeConnectionStatus;

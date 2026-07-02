@@ -1,9 +1,11 @@
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
+} from '../shared/domain/geometry';
+import type {
   EditorTarget,
   EditorTargetReference,
-} from '../shared/editor-messages';
+} from '../shared/domain/targets';
 import { hasSameEditorTarget } from '../shared/editor-targets';
 import {
   bridgeViewportRectToEditorViewportRect,

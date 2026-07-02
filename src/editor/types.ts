@@ -1,11 +1,13 @@
 import type {
-  BridgeConnectionStatus,
   EditorTarget,
   EditorTargetReference,
   HighlightOrigin,
-  IframeStatus,
   LayoutTreeNode,
-} from '../shared/editor-messages';
+} from '../shared/domain/targets';
+import type {
+  BridgeConnectionStatus,
+  IframeStatus,
+} from '../shared/protocol/editor-bridge-messages';
 import type { BreakpointId } from '../shared/breakpoints';
 import type { NotebookSuffixSettings } from './notebook/suffix-settings';
 import type { ExportedChipTarget } from './notebook/lexical/chip-export';

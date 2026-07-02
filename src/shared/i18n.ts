@@ -1,5 +1,5 @@
 import type { BreakpointId } from './breakpoints';
-import type { QuickActionCategory } from './editor-messages';
+import type { QuickActionCategory } from './domain/visual';
 
 export type CopyAiIdLocale = 'en' | 'ko';
 

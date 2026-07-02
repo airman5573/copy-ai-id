@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 
-import type { EditorTarget, HighlightOrigin } from '../../shared/editor-messages';
+import type {
+  EditorTarget,
+  HighlightOrigin,
+} from '../../shared/domain/targets';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 
 /**

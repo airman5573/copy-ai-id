@@ -1,11 +1,11 @@
 import { cssPropertyLabel } from '../lib/format';
 import { useCallback } from 'react';
 
+import type { EditorTargetReference } from '../../shared/domain/targets';
 import type {
-  EditorTargetReference,
   QuickActionCategory,
   VisualStyleDeclarationMutation,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
 import {
   getVisualStylePropertyDefinition,
   normalizeVisualStyleValue,

@@ -7,7 +7,7 @@ import {
   type LexicalNode,
 } from 'lexical';
 
-import type { EditorTarget } from '../../../shared/editor-messages';
+import type { EditorTarget } from '../../../shared/domain/targets';
 import { $isChipNode, type ChipNode } from './ChipNode';
 
 export interface ExportedChipTarget {

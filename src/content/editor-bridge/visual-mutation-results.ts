@@ -1,3 +1,4 @@
+import { type VisualMutationError } from '../../shared/domain/visual';
 import {
   EDITOR_MESSAGE_TYPES,
   type RequestVisualTargetSnapshotMessage,
@@ -8,14 +9,13 @@ import {
   type VisualElementMovedMessage,
   type VisualElementRestoredMessage,
   type VisualFormValueUpdatedMessage,
-  type VisualMutationError,
   type VisualMutationRequestBase,
   type VisualMutationResultBase,
   type VisualRichTextUpdatedMessage,
   type VisualStyleUpdatedMessage,
   type VisualTargetSnapshotMessage,
   type VisualTextUpdatedMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import {
   buildAndPostLayoutTreeSnapshot,
   type LayoutTreeBuildResult,

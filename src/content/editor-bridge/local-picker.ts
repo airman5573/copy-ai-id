@@ -2,8 +2,8 @@ import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/conf
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
-  EditorTarget,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/geometry';
+import type { EditorTarget } from '../../shared/domain/targets';
 import { getComposedElementsFromPoint } from '../target/composed-dom';
 import { editorTargetForElement } from './editor-target';
 import {

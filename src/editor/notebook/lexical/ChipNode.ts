@@ -9,7 +9,7 @@ import {
   TextNode,
 } from 'lexical';
 
-import type { EditorTarget } from '../../../shared/editor-messages';
+import type { EditorTarget } from '../../../shared/domain/targets';
 
 export interface ChipNodePayload {
   chipId: string;

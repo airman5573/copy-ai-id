@@ -3,8 +3,8 @@ import { create } from 'zustand';
 import type {
   BridgeViewportRect,
   BridgeViewportSize,
-  EditorTargetReference,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/geometry';
+import type { EditorTargetReference } from '../../shared/domain/targets';
 import type { EditorViewportRect } from '../bridge/geometry';
 
 const NOTE_PANEL_FLOATING_ENABLED_STORAGE_KEY = 'copy-ai-id:note-panel-floating-enabled:v1';

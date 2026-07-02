@@ -1,7 +1,11 @@
+import { type EditorTargetReference } from '../../shared/domain/targets';
 import {
-  EDITOR_MESSAGE_TYPES,
+  type VisualDropPosition,
+  type VisualStructureMutationSnapshot,
+} from '../../shared/domain/visual';
+import {
   type BridgeToEditorMessage,
-  type EditorTargetReference,
+  EDITOR_MESSAGE_TYPES,
   type EditorToBridgeMessage,
   type RequestVisualDragMoveMessage,
   type UpdateVisualAttributeMessage,
@@ -9,9 +13,7 @@ import {
   type UpdateVisualRichTextMessage,
   type UpdateVisualStyleMessage,
   type UpdateVisualTextMessage,
-  type VisualDropPosition,
-  type VisualStructureMutationSnapshot,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import type {
   VisualAttributeEditPayload,
   VisualEditRecord,

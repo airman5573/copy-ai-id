@@ -1,11 +1,13 @@
 import {
-  EDITOR_MESSAGE_TYPES,
-  type UpdateVisualFormValueMessage,
   type VisualFormValueMutation,
   type VisualFormValueSnapshot,
-  type VisualFormValueUpdatedMessage,
   type VisualMutationError,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
+import {
+  EDITOR_MESSAGE_TYPES,
+  type UpdateVisualFormValueMessage,
+  type VisualFormValueUpdatedMessage,
+} from '../../shared/protocol/editor-bridge-messages';
 import {
   dispatchNativeInputEvents,
   isContentEditableElement,

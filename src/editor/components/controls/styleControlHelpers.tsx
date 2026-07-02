@@ -8,7 +8,7 @@ import {
 import { useDraftValue } from './useDraftValue';
 
 import { breakpointById } from '../../../shared/breakpoints';
-import type { QuickActionCategory } from '../../../shared/editor-messages';
+import type { QuickActionCategory } from '../../../shared/domain/visual';
 import {
   getVisualStylePropertyDefinition,
   type VisualStylePreset,

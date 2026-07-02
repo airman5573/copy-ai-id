@@ -3,7 +3,7 @@ import {
   isNotebookChipId,
   normalizeNextNotebookChipIndex,
 } from './lexical/chip-ids';
-import type { FallbackSelectorKind } from '../../shared/editor-messages';
+import type { FallbackSelectorKind } from '../../shared/domain/targets';
 
 const NOTEBOOK_DRAFT_STORAGE_KEY_PREFIX = 'copy-ai-id:notebook-draft:v1:';
 const NOTEBOOK_DRAFT_SESSION_VERSION = 2;

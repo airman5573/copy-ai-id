@@ -1,9 +1,9 @@
+import { type EditorTargetReference } from '../../shared/domain/targets';
 import {
-  EDITOR_MESSAGE_TYPES,
-  type EditorTargetReference,
   type VisualBoxEdge,
   type VisualBoxRegion,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 
 export function highlightVisualBoxRegion(

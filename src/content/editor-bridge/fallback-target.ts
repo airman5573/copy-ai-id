@@ -8,7 +8,7 @@ import type {
   FallbackEditorTarget,
   FallbackSelectorKind,
   FallbackTargetMetadata,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/targets';
 import {
   closestComposedElementMatching,
   getComposedParentElement,

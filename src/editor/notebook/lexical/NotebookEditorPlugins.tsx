@@ -11,8 +11,8 @@ import {
   type LexicalEditor,
 } from 'lexical';
 
-import type { EditorTargetReference } from '../../../shared/editor-messages';
-import { EDITOR_MESSAGE_TYPES } from '../../../shared/editor-messages';
+import type { EditorTargetReference } from '../../../shared/domain/targets';
+import { EDITOR_MESSAGE_TYPES } from '../../../shared/protocol/editor-bridge-messages';
 import { targetIdentityKey } from '../../../shared/editor-targets';
 import { postToBridge } from '../../bridge/bridgeClient';
 import { isNoteEditorHoverProtected, protectEditorInteractionFromHover } from '../../note-hover-guard';

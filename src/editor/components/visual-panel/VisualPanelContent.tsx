@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/shallow';
 import type {
   QuickActionCategory,
   VisualTargetSnapshot,
-} from '../../../shared/editor-messages';
+} from '../../../shared/domain/visual';
 import { getCurrentMessages } from '../../../shared/i18n';
 import {
   describeVisualSelectionStaleReason,

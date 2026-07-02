@@ -1,15 +1,13 @@
-import type {
-  BridgeViewportPoint,
-  EditorTargetReference,
-  QuickActionStructureOperation,
-} from '../../shared/editor-messages';
-import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
+import type { BridgeViewportPoint } from '../../shared/domain/geometry';
+import type { EditorTargetReference } from '../../shared/domain/targets';
+import type { QuickActionStructureOperation } from '../../shared/domain/visual';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 import { editorViewportPointToBridgeViewportPoint } from '../bridge/geometry';
 import { showEditorToast } from '../toast';
 import { dispatchVisualStructureMutation } from './visualMutationClient';
 
-export type { QuickActionStructureOperation } from '../../shared/editor-messages';
+export type { QuickActionStructureOperation } from '../../shared/domain/visual';
 
 export interface EditorViewportPointLike {
   x: number;

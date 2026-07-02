@@ -1,21 +1,21 @@
+import { type BridgeViewportRect } from '../../shared/domain/geometry';
+import { type EditorTargetReference } from '../../shared/domain/targets';
+import { type QuickActionCategory } from '../../shared/domain/visual';
 import {
-  EDITOR_MESSAGE_TYPES,
   type BridgeReadyMessage,
   type BridgeToEditorMessage,
-  type BridgeViewportRect,
-  type EditorToBridgeMessage,
+  EDITOR_MESSAGE_TYPES,
   type EditorKeyboardShortcut,
-  type EditorTargetReference,
+  type EditorToBridgeMessage,
   type KeyboardShortcutMessage,
   type QuickActionAnchorChangedMessage,
-  type QuickActionCategory,
   type RequestVisualTargetSnapshotMessage,
   type TargetHighlightedMessage,
   type TargetReferenceRejectedMessage,
   type TargetReferenceRequestedMessage,
   type VisualMutationErrorMessage,
   type VisualTargetSnapshotMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import { isVisualTargetResolutionError } from '../../shared/visual-targets';
 import {

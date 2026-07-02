@@ -1,4 +1,4 @@
-import type { LayoutTreeNode } from '../../../shared/editor-messages';
+import type { LayoutTreeNode } from '../../../shared/domain/targets';
 
 export interface VisibleTreeRow {
   node: LayoutTreeNode;

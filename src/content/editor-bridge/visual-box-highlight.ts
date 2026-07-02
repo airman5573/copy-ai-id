@@ -1,4 +1,4 @@
-import type { HighlightVisualBoxRegionMessage } from '../../shared/editor-messages';
+import type { HighlightVisualBoxRegionMessage } from '../../shared/protocol/editor-bridge-messages';
 import { hideBoxModel, showBoxModelRegion } from './box-model';
 import { resolveVisualTarget } from './visual-targets';
 

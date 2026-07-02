@@ -2,7 +2,7 @@ import type {
   AiIdEditorTarget,
   EditorTarget,
   FallbackEditorTarget,
-} from './editor-messages';
+} from './domain/targets';
 
 export function isAiIdTarget(target: EditorTarget | null | undefined): target is AiIdEditorTarget {
   return target?.kind === 'ai-id';

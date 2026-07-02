@@ -1,6 +1,9 @@
 import { useCallback, type ReactElement, type ReactNode } from 'react';
 
-import type { VisualBoxEdge, VisualBoxRegion } from '../../../shared/editor-messages';
+import type {
+  VisualBoxEdge,
+  VisualBoxRegion,
+} from '../../../shared/domain/visual';
 import {
   MARGIN_UNITS,
   SPACING_UNITS,

@@ -1,27 +1,31 @@
 import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/config';
+import { type BridgeViewportPoint } from '../../shared/domain/geometry';
 import {
-  EDITOR_MESSAGE_TYPES,
-  type BridgeViewportPoint,
+  type EditorTarget,
+  type EditorTargetReference,
+} from '../../shared/domain/targets';
+import {
+  type VisualDropPosition,
+  type VisualMutationError,
+  type VisualStructureMutationSnapshot,
+  type VisualStructureOperation,
+} from '../../shared/domain/visual';
+import {
   type ClearVisualDragMovePreviewMessage,
   type DeleteVisualElementMessage,
   type DuplicateVisualElementMessage,
-  type EditorTarget,
-  type EditorTargetReference,
+  EDITOR_MESSAGE_TYPES,
   type MoveVisualElementMessage,
   type PreviewVisualDragMoveMessage,
   type RequestVisualDragMoveMessage,
   type RestoreVisualElementMessage,
-  type VisualDropPosition,
+  type VisualDragMoveCompletedMessage,
   type VisualElementDeletedMessage,
   type VisualElementDuplicatedMessage,
   type VisualElementMovedMessage,
   type VisualElementRestoredMessage,
-  type VisualMutationError,
   type VisualMutationRequestBase,
-  type VisualStructureMutationSnapshot,
-  type VisualStructureOperation,
-  type VisualDragMoveCompletedMessage,
-} from '../../shared/editor-messages';
+} from '../../shared/protocol/editor-bridge-messages';
 import {
   getComposedParentElement,
   getDeepElementFromPoint,

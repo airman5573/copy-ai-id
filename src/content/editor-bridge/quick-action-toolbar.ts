@@ -4,15 +4,19 @@ import {
   QUICK_ACTION_STYLE_ATTR,
 } from '../../shared/config';
 import {
-  EDITOR_MESSAGE_TYPES,
-  type BridgeToEditorMessage,
   type BridgeViewportPoint,
   type BridgeViewportRect,
   type BridgeViewportSize,
-  type EditorTargetReference,
+} from '../../shared/domain/geometry';
+import { type EditorTargetReference } from '../../shared/domain/targets';
+import {
   type QuickActionCategory,
   type QuickActionStructureOperation,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
+import {
+  type BridgeToEditorMessage,
+  EDITOR_MESSAGE_TYPES,
+} from '../../shared/protocol/editor-bridge-messages';
 import { getCurrentMessages } from '../../shared/i18n';
 import {
   nextEditableSibling,

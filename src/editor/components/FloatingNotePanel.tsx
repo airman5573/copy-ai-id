@@ -20,7 +20,7 @@ import {
   type OverlaySize,
 } from '../bridge/geometry';
 import type { BreakpointId } from '../../shared/breakpoints';
-import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 import { handleEditorEscapeAction } from '../shortcut-actions';
 import { useBreakpointStore } from '../stores/useBreakpointStore';

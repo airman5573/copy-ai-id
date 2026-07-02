@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { EditorTargetReference } from '../../shared/editor-messages';
+import type { EditorTargetReference } from '../../shared/domain/targets';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 
 /**

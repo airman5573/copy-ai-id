@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { EDITOR_MESSAGE_TYPES } from '../../shared/editor-messages';
+import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 
 interface BoxModelStore {

@@ -6,7 +6,7 @@ import {
   type ReactElement,
 } from 'react';
 
-import type { VisualFormValueMutation } from '../../../shared/editor-messages';
+import type { VisualFormValueMutation } from '../../../shared/domain/visual';
 import {
   useFormValueEdit,
   type FormValueEditApi,

@@ -1,5 +1,5 @@
 import { getCurrentMessages } from '../shared/i18n';
-import type { VisualMutationError } from '../shared/editor-messages';
+import type { VisualMutationError } from '../shared/domain/visual';
 import { useToastStore, type EditorToastTone } from './stores/useToastStore';
 
 const TOAST_RESET_MS = 1600;

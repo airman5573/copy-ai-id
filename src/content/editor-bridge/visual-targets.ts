@@ -2,15 +2,17 @@ import {
   DATA_AI_ID_ATTRIBUTE,
   isExtensionOwnedElement,
 } from '../../shared/config';
+import type { BridgeViewportRect } from '../../shared/domain/geometry';
 import type {
-  BridgeViewportRect,
   EditorTarget,
   FallbackEditorTarget,
   FallbackTargetMetadata,
+} from '../../shared/domain/targets';
+import type {
   VisualMutationError,
   VisualMutationErrorCode,
   VisualTargetSnapshot,
-} from '../../shared/editor-messages';
+} from '../../shared/domain/visual';
 import { isAiIdTarget } from '../../shared/editor-targets';
 import { VISUAL_STYLE_COMPUTED_PROPERTIES } from '../../shared/visual-style';
 import {
