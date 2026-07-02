@@ -1,3 +1,7 @@
+import {
+  cssPropertyLabel,
+  truncatedPreview,
+} from '../lib/format';
 import { breakpointById, type BreakpointId } from '../../shared/breakpoints';
 import {
   EDITOR_MESSAGE_TYPES,
@@ -798,16 +802,6 @@ function exhaustiveStructureOperation(value: never): never {
   throw new Error(`Unsupported visual structure operation: ${JSON.stringify(value)}`);
 }
 
-function cssPropertyLabel(property: string): string {
-  return property
-    .split('-')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
 function quotePreview(value: string): string {
-  const normalized = value.replace(/\s+/g, ' ').trim();
-  const preview = normalized.length > 80 ? `${normalized.slice(0, 79)}…` : normalized;
-  return `"${preview}"`;
+  return `"${truncatedPreview(value)}"`;
 }

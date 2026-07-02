@@ -1,3 +1,7 @@
+import {
+  formatInlineCode,
+  truncatedPreview,
+} from '../lib/format';
 import { breakpointById } from '../../shared/breakpoints';
 import {
   describeVisualEditTarget,
@@ -628,20 +632,13 @@ function formatLengthChange(before: string, after: string): string {
 }
 
 function formatQuotedPreview(value: string): string {
-  const normalized = value.replace(/\s+/g, ' ').trim();
-  const preview = normalized.length > 80 ? `${normalized.slice(0, 79)}…` : normalized;
-  return `"${preview.replace(/"/g, '\\"')}"`;
+  return `"${truncatedPreview(value).replace(/"/g, '\\"')}"`;
 }
 
 function formatJsonInline(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function formatInlineCode(value: string): string {
-  return `\`${value.replace(/`/g, '\\`')}\``;
-}
-
 function formatPlainPreview(value: string): string {
-  const normalized = value.replace(/\s+/g, ' ').trim();
-  return normalized.length > 160 ? `${normalized.slice(0, 159)}…` : normalized;
+  return truncatedPreview(value, 160);
 }

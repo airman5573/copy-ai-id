@@ -1,3 +1,4 @@
+import { cssPropertyLabel } from '../lib/format';
 import { useCallback, useMemo } from 'react';
 
 import type {
@@ -210,10 +211,3 @@ function createStyleControlDescriptor(
   };
 }
 
-function cssPropertyLabel(property: string): string {
-  return property
-    .split('-')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}

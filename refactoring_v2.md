@@ -116,9 +116,9 @@
   - Files/areas: new src/editor/components/controls/useDraftValue.ts (name to match repo style); the ~10 control files repeating `const [draft, setDraft] = useState` + commit-on-blur/Enter, revert-on-Escape
   - Notes: `useDraftValue(committed, resetKey?)` adopted in 6 sites (CssTextInput, CssTextarea, BorderColorField, ColorField, BackgroundImage, Opacity). ContentControls/FormValueControls use a different focus-guarded resync with `lastDispatchedRef` (live-edit semantics) and AttributeControls couples draft with error state — left explicit intentionally.
   - Parallelizable: no
-- [ ] Consolidate duplicated formatting helpers into one module
-  - Files/areas: new src/editor/notebook/format-utils.ts (or extend existing format.ts); src/editor/notebook/lexical/chip-export.ts (`formatInlineCode` ~216), src/editor/notebook/visual-edits-export.ts (`formatInlineCode` ~640, `formatQuotedPreview` ~630), src/editor/visual/visualMutationClient.ts (`quotePreview` ~809, `cssPropertyLabel` ~801), src/editor/visual/useStyleEdit.ts (`cssPropertyLabel` ~213)
-  - Notes: Verify identical output for each duplicate pair before merging.
+- [x] Consolidate duplicated formatting helpers into one module
+  - Files/areas: new src/editor/lib/format.ts; src/editor/notebook/lexical/chip-export.ts (`formatInlineCode` ~216), src/editor/notebook/visual-edits-export.ts (`formatInlineCode` ~640, `formatQuotedPreview` ~630), src/editor/visual/visualMutationClient.ts (`quotePreview` ~809, `cssPropertyLabel` ~801), src/editor/visual/useStyleEdit.ts (`cssPropertyLabel` ~213)
+  - Notes: `formatInlineCode`/`cssPropertyLabel` were byte-identical pairs. `quotePreview` vs `formatQuotedPreview` differ (quote escaping) — both now wrap shared `truncatedPreview(value, maxLength)`; `formatPlainPreview` (160-char variant) folded onto the same core. Placed in src/editor/lib/ (mirrors content/editor-bridge/lib/).
   - Parallelizable: yes
 - [ ] Extract one shared target-resolution helper for the mutation/edit fall-through
   - Files/areas: new src/editor/visual/resolve-target.ts; src/editor/visual/visualMutationClient.ts (`resolveTargetReference` ~558-583), src/editor/visual/{useStyleEdit,useContentEdit,useAttributeEdit,useFormValueEdit}.ts (each hook's target memo)

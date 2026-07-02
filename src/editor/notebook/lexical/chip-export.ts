@@ -1,3 +1,4 @@
+import { formatInlineCode } from '../../lib/format';
 import {
   $getRoot,
   $isElementNode,
@@ -213,6 +214,3 @@ function formatChipTargetDetail(chip: ExportedChipTarget): string {
   return lines.join('\n');
 }
 
-function formatInlineCode(value: string): string {
-  return `\`${value.replace(/`/g, '\\`')}\``;
-}
