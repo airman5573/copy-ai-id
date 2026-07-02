@@ -23,6 +23,7 @@ import {
   getComposedSiblingElement,
   getOpenShadowRoot,
 } from '../target/composed-dom';
+import { editorTargetForElement } from './editor-target';
 import {
   isContentEditableElement,
   tagNameOf,
@@ -35,10 +36,7 @@ import {
   viewportRectForElement,
   viewportSize,
 } from './lib/viewport';
-import {
-  fallbackMetadataForElement,
-  fallbackTargetForElement,
-} from './fallback-target';
+import { fallbackMetadataForElement } from './fallback-target';
 import { stripRuntimeArtifacts } from './runtime-artifacts';
 import {
   buildLayoutTreeSnapshot,
@@ -422,18 +420,7 @@ function elementMatchesEditorTarget(element: Element, target: EditorTarget): boo
 }
 
 function targetForResolvedElement(element: Element, requestedTarget: EditorTarget): EditorTarget {
-  const aiId = element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '';
-  if (aiId) {
-    const instanceIndex = Math.max(0, instancesOf(aiId).indexOf(element));
-    return { kind: 'ai-id', aiId, instanceIndex };
-  }
-
-  const fallback = fallbackTargetForElement(element, resolveNodeIdForElement(element));
-  if (fallback) {
-    return fallback;
-  }
-
-  return requestedTarget;
+  return editorTargetForElement(element) ?? requestedTarget;
 }
 
 function fallbackElementMatchesTarget(element: Element, target: FallbackEditorTarget): boolean {

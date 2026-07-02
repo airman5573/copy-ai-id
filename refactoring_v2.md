@@ -86,9 +86,9 @@
   - Notes: 3× `viewportRectForElement`, 2× editable-sibling pair, 2× `isContentEditableElement`, 2× `dispatchNativeInputEvents`, class tokenizers (`getClassTokens`/`tokenizeClassName`/`classTokensForElement`), `directTextPreview` (fallback-target ~341 vs layout-tree ~149). Diff each pair before merging; where copies genuinely diverge (beyond viewportSize), keep behavior of each call site and note the divergence in a code comment only if load-bearing.
   - Done: trim helpers genuinely diverge (ellipsis length, input placeholder fallback), so lib/text.ts exposes `normalizeWhitespace` + untrimmed `elementOwnText` and each site keeps its own trim; fallback-target keeps its clean/dedupe pipeline on top of the shared tokenizer.
   - Parallelizable: no
-- [ ] Unify the three "ai-id-or-fallback" target builders into one
+- [x] Unify the three "ai-id-or-fallback" target builders into one
   - Files/areas: src/content/editor-bridge/local-picker.ts (`targetForElement` ~89), src/content/editor-bridge/visual-structure.ts (`editorTargetForElement` ~704), src/content/editor-bridge/visual-targets.ts (`targetForResolvedElement` ~415)
-  - Notes: Compare the three implementations field-by-field first; only merge if output shapes are identical per input, otherwise parameterize the differences explicitly.
+  - Notes: Shared core in new editor-target.ts with a parameterized instance-index resolver: visual-structure keeps its live-DOM resolver (fresh clones unregistered until tree rebuild), local-picker keeps its pickability guard, visual-targets keeps its `?? requestedTarget` substitution.
   - Parallelizable: no
 - [ ] Extract shared mutation-result posting helpers for the per-kind bridge handlers
   - Files/areas: new src/content/editor-bridge/lib/mutation-result.ts; src/content/editor-bridge/{visual-style,visual-content,visual-attributes,visual-form-value}.ts

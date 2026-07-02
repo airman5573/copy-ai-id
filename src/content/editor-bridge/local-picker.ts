@@ -5,12 +5,12 @@ import type {
   EditorTarget,
 } from '../../shared/editor-messages';
 import { getComposedElementsFromPoint } from '../target/composed-dom';
+import { editorTargetForElement } from './editor-target';
 import {
   viewportRectForElement,
   viewportSize,
 } from './lib/viewport';
-import { fallbackTargetForElement } from './fallback-target';
-import { instancesOf, resolveNodeIdForElement } from './layout-tree';
+import { resolveNodeIdForElement } from './layout-tree';
 
 export type LocalHitTestSource = 'point' | 'composed-path' | 'event-target';
 
@@ -70,20 +70,7 @@ export function connectedPickableElement(element: Element | null): Element | nul
 
 export function targetForElement(element: Element): EditorTarget | null {
   const connected = connectedPickableElement(element);
-  if (!connected) {
-    return null;
-  }
-
-  const aiId = connected.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '';
-  if (!aiId) {
-    return fallbackTargetForElement(connected, resolveNodeIdForElement(connected));
-  }
-
-  return {
-    kind: 'ai-id',
-    aiId,
-    instanceIndex: Math.max(0, instancesOf(aiId).indexOf(connected)),
-  };
+  return connected ? editorTargetForElement(connected) : null;
 }
 
 export function targetReferenceForElement(element: Element): LocalTargetReference | null {

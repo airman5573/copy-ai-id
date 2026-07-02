@@ -37,6 +37,7 @@ import {
   hideVisualDropIndicator,
   showVisualDropIndicator,
 } from './overlay';
+import { editorTargetForElement as editorTargetForElementWithOptions } from './editor-target';
 import {
   nextEditableSibling,
   previousEditableSibling,
@@ -690,16 +691,9 @@ function getInsertionForDrop(
 }
 
 function editorTargetForElement(element: Element): EditorTarget | null {
-  const aiId = element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '';
-  if (aiId) {
-    return {
-      kind: 'ai-id',
-      aiId,
-      instanceIndex: resolveAiIdInstanceIndex(aiId, element),
-    };
-  }
-
-  return fallbackTargetForElement(element, resolveNodeIdForElement(element));
+  return editorTargetForElementWithOptions(element, {
+    resolveInstanceIndex: resolveAiIdInstanceIndex,
+  });
 }
 
 function resolveAiIdInstanceIndex(aiId: string, element: Element): number {
