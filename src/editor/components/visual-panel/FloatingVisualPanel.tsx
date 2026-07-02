@@ -26,9 +26,11 @@ import {
 import { useBreakpointStore } from '../../stores/useBreakpointStore';
 import {
   useFloatingVisualPanelStore,
-  type FloatingVisualPanelTarget,
 } from '../../stores/useFloatingVisualPanelStore';
-import { useVisualSelectionStore } from '../../stores/useVisualSelectionStore';
+import {
+  useVisualSelectionStore,
+  type VisualPanelTargetState,
+} from '../../stores/useVisualSelectionStore';
 import {
   getVisualPanelCategoryMeta,
   VisualPanelContent,
@@ -62,8 +64,8 @@ const QUICK_CATEGORY_TABS: QuickActionCategory[] = ['content', 'layout', 'spacin
 
 export function FloatingVisualPanel(): ReactElement | null {
   const isOpen = useFloatingVisualPanelStore((state) => state.isOpen);
-  const activeCategory = useFloatingVisualPanelStore((state) => state.category);
-  const target = useFloatingVisualPanelStore((state) => state.target);
+  const target = useVisualSelectionStore((state) => state.panelTarget);
+  const activeCategory = target?.category ?? null;
   const closePanel = useFloatingVisualPanelStore((state) => state.closePanel);
   const closeVisualSelectionPanel = useVisualSelectionStore((state) => state.closePanel);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
@@ -230,7 +232,7 @@ export function FloatingVisualPanel(): ReactElement | null {
 
 type FloatingVisualPanelTabsProps = {
   activeCategory: QuickActionCategory;
-  target: FloatingVisualPanelTarget | null;
+  target: VisualPanelTargetState | null;
 };
 
 function FloatingVisualPanelTabs({ activeCategory, target }: FloatingVisualPanelTabsProps): ReactElement {
@@ -296,9 +298,8 @@ function VisualPanelBreakpointBadge({ dataAiId }: { dataAiId: string }): ReactEl
   );
 }
 
-function openCategory(category: QuickActionCategory, target: FloatingVisualPanelTarget | null): void {
+function openCategory(category: QuickActionCategory, target: VisualPanelTargetState | null): void {
   if (!target) {
-    useFloatingVisualPanelStore.getState().setCategory(category);
     return;
   }
 
@@ -318,7 +319,7 @@ function computePanelPlacement({
 }: {
   mode: FloatingPanelPlacementMode;
   panelSize: OverlaySize;
-  target: FloatingVisualPanelTarget | null;
+  target: VisualPanelTargetState | null;
 }): FloatingPanelPlacement {
   const editorBounds = getEditorBounds();
   const requestedWidth = mode === 'mobile-iframe-right'
@@ -380,7 +381,7 @@ function resolvePanelAnchorRect({
   target,
 }: {
   mode: FloatingPanelPlacementMode;
-  target: FloatingVisualPanelTarget | null;
+  target: VisualPanelTargetState | null;
 }): EditorViewportRect | null {
   if (mode === 'desktop-follow-anchor') {
     return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
@@ -389,7 +390,7 @@ function resolvePanelAnchorRect({
   return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
 }
 
-function targetEditorRect(target: FloatingVisualPanelTarget | null): EditorViewportRect | null {
+function targetEditorRect(target: VisualPanelTargetState | null): EditorViewportRect | null {
   if (!target) {
     return null;
   }

@@ -121,12 +121,6 @@ export function syncVisualBridgeGeometry(): void {
     snapshotEditorRect: selectionSnapshotEditorRect,
   });
 
-  if (selectionState.panelTarget && useFloatingVisualPanelStore.getState().isOpen) {
-    useFloatingVisualPanelStore.getState().updateAnchorRects({
-      elementRect: selectionState.panelTarget.elementRect,
-      editorRect: panelEditorRect,
-    });
-  }
 }
 
 export function requestVisualTargetSnapshot(
@@ -174,13 +168,7 @@ export function selectQuickActionCategory(
     floatingNotePanel.closePanel();
   }
 
-  useFloatingVisualPanelStore.getState().openForTarget({
-    target: reference.target,
-    nodeId: reference.nodeId,
-    category,
-    elementRect,
-    editorRect,
-  });
+  useFloatingVisualPanelStore.getState().openPanel();
   useSectionJumpStore.getState().queueSectionJump({
     target: reference.target,
     nodeId: reference.nodeId,

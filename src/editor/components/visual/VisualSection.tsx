@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import { useFloatingVisualPanelStore } from '../../stores/useFloatingVisualPanelStore';
+import { useVisualSelectionStore } from '../../stores/useVisualSelectionStore';
 import { useSectionJumpStore } from '../../stores/useSectionJumpStore';
 import type { VisualPanelSectionId } from './sectionJump';
 
@@ -50,7 +50,7 @@ export function VisualSection({
   const [flash, setFlash] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
   const contentId = useId();
-  const targetKey = useFloatingVisualPanelStore((state) => targetKeyFromPanelTarget(state.target));
+  const targetKey = useVisualSelectionStore((state) => targetKeyFromPanelTarget(state.panelTarget));
   const jumpRequest = useSectionJumpStore((state) => (
     state.pendingJump?.sectionId === dataAiId ? state.pendingJump : null
   ));
@@ -216,7 +216,7 @@ export function VisualSection({
   );
 }
 
-function targetKeyFromPanelTarget(target: ReturnType<typeof useFloatingVisualPanelStore.getState>['target']): string {
+function targetKeyFromPanelTarget(target: ReturnType<typeof useVisualSelectionStore.getState>['panelTarget']): string {
   if (!target) {
     return '';
   }

@@ -17,7 +17,7 @@ import {
   useVisualEditStore,
   type VisualEditRuntimeStatusSummary,
 } from '../../stores/useVisualEditStore';
-import type { FloatingVisualPanelTarget } from '../../stores/useFloatingVisualPanelStore';
+import type { VisualPanelTargetState } from '../../stores/useVisualSelectionStore';
 import { QUICK_ACTION_SECTION_IDS } from '../visual/sectionJump';
 import { LayoutControls } from '../controls/LayoutControls';
 import { ContentControls } from '../controls/ContentControls';
@@ -38,7 +38,7 @@ export function getVisualPanelCategoryMeta(category: QuickActionCategory) {
 
 export interface VisualPanelContentProps {
   category: QuickActionCategory;
-  target: FloatingVisualPanelTarget | null;
+  target: VisualPanelTargetState | null;
 }
 
 export function VisualPanelContent({ category, target }: VisualPanelContentProps): ReactElement {
@@ -195,7 +195,7 @@ function FloatingVisualPanelSelectionSummary({
   target,
   snapshot,
 }: {
-  target: FloatingVisualPanelTarget | null;
+  target: VisualPanelTargetState | null;
   snapshot: VisualTargetSnapshot | null;
 }): ReactElement | null {
   if (!target && !snapshot) {
@@ -239,7 +239,7 @@ function FloatingVisualPanelSelectionSummary({
   );
 }
 
-function getTargetLabel(target: FloatingVisualPanelTarget | null): string {
+function getTargetLabel(target: VisualPanelTargetState | null): string {
   if (!target) {
     return getCurrentMessages().visualEditor.panel.selectedElementFallback;
   }
