@@ -120,9 +120,9 @@
   - Files/areas: new src/editor/lib/format.ts; src/editor/notebook/lexical/chip-export.ts (`formatInlineCode` ~216), src/editor/notebook/visual-edits-export.ts (`formatInlineCode` ~640, `formatQuotedPreview` ~630), src/editor/visual/visualMutationClient.ts (`quotePreview` ~809, `cssPropertyLabel` ~801), src/editor/visual/useStyleEdit.ts (`cssPropertyLabel` ~213)
   - Notes: `formatInlineCode`/`cssPropertyLabel` were byte-identical pairs. `quotePreview` vs `formatQuotedPreview` differ (quote escaping) — both now wrap shared `truncatedPreview(value, maxLength)`; `formatPlainPreview` (160-char variant) folded onto the same core. Placed in src/editor/lib/ (mirrors content/editor-bridge/lib/).
   - Parallelizable: yes
-- [ ] Extract one shared target-resolution helper for the mutation/edit fall-through
-  - Files/areas: new src/editor/visual/resolve-target.ts; src/editor/visual/visualMutationClient.ts (`resolveTargetReference` ~558-583), src/editor/visual/{useStyleEdit,useContentEdit,useAttributeEdit,useFormValueEdit}.ts (each hook's target memo)
-  - Notes: The 6-candidate fall-through across selection/bridge stores must keep its exact precedence order.
+- [x] Extract one shared target-resolution helper for the mutation/edit fall-through
+  - Files/areas: new src/editor/visual/useSelectedTargetReference.ts; src/editor/visual/visualMutationClient.ts (`resolveTargetReference` ~558-583), src/editor/visual/{useStyleEdit,useContentEdit,useAttributeEdit,useFormValueEdit}.ts (each hook's target memo)
+  - Notes: The four byte-identical hook memos now share `useSelectedTargetReference()` (pairwise target+nodeId, precedence panel → snapshot → toolbar → hover). `resolveTargetReference` in the mutation client intentionally stays separate: it prepends `options.reference`/`options.snapshot` and resolves nodeId through an independent fall-through — merging would change nodeId in the panel-without-nodeId corner case.
   - Parallelizable: no
 - [ ] Extract the shared dispatch scaffold inside `visualMutationClient.ts`
   - Files/areas: src/editor/visual/visualMutationClient.ts

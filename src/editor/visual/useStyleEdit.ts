@@ -1,5 +1,5 @@
 import { cssPropertyLabel } from '../lib/format';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import type {
   EditorTargetReference,
@@ -14,6 +14,7 @@ import {
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
+import { useSelectedTargetReference } from './useSelectedTargetReference';
 import {
   dispatchVisualStyleMutation,
   type VisualMutationDispatchResult,
@@ -46,27 +47,11 @@ export interface StyleEditApi {
 
 export function useStyleEdit(): StyleEditApi {
   const panelTarget = useVisualSelectionStore((state) => state.panelTarget);
-  const activeToolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
-  const hoverTarget = useVisualSelectionStore((state) => state.hoverTarget);
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const snapshotStatus = useVisualSelectionStore((state) => state.snapshotStatus);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
 
-  const target = useMemo<EditorTargetReference | null>(() => {
-    if (panelTarget?.target) {
-      return { target: panelTarget.target, nodeId: panelTarget.nodeId };
-    }
-    if (snapshot?.target) {
-      return { target: snapshot.target, nodeId: snapshot.nodeId };
-    }
-    if (activeToolbarTarget?.target) {
-      return { target: activeToolbarTarget.target, nodeId: activeToolbarTarget.nodeId };
-    }
-    if (hoverTarget?.target) {
-      return { target: hoverTarget.target, nodeId: hoverTarget.nodeId };
-    }
-    return null;
-  }, [activeToolbarTarget, hoverTarget, panelTarget, snapshot]);
+  const target = useSelectedTargetReference();
 
   const inlineValueOf = useCallback((propertyId: string): string | null => {
     if (!snapshot) {

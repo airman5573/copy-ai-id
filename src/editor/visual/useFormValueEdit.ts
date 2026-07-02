@@ -9,6 +9,7 @@ import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared
 import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
+import { useSelectedTargetReference } from './useSelectedTargetReference';
 import {
   dispatchVisualFormValueMutation,
   type VisualMutationDispatchResult,
@@ -35,28 +36,11 @@ export interface FormValueEditApi {
 }
 
 export function useFormValueEdit(): FormValueEditApi {
-  const panelTarget = useVisualSelectionStore((state) => state.panelTarget);
-  const activeToolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
-  const hoverTarget = useVisualSelectionStore((state) => state.hoverTarget);
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const snapshotStatus = useVisualSelectionStore((state) => state.snapshotStatus);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
 
-  const target = useMemo<EditorTargetReference | null>(() => {
-    if (panelTarget?.target) {
-      return { target: panelTarget.target, nodeId: panelTarget.nodeId };
-    }
-    if (snapshot?.target) {
-      return { target: snapshot.target, nodeId: snapshot.nodeId };
-    }
-    if (activeToolbarTarget?.target) {
-      return { target: activeToolbarTarget.target, nodeId: activeToolbarTarget.nodeId };
-    }
-    if (hoverTarget?.target) {
-      return { target: hoverTarget.target, nodeId: hoverTarget.nodeId };
-    }
-    return null;
-  }, [activeToolbarTarget, hoverTarget, panelTarget, snapshot]);
+  const target = useSelectedTargetReference();
 
   const targetKey = useMemo(() => targetKeyForReference(target), [target]);
   const targetKind = formValueTargetKind(snapshot?.tagName, snapshot?.attributes, snapshot?.formValue);
