@@ -1,4 +1,9 @@
 import { DATA_AI_ID_ATTRIBUTE, isExtensionOwnedElement } from '../../shared/config';
+import { tagNameOf } from './lib/dom';
+import {
+  classTokensForElement,
+  elementOwnText,
+} from './lib/text';
 import type {
   FallbackEditorTarget,
   FallbackSelectorKind,
@@ -339,18 +344,7 @@ function getElementPath(element: Element, maxDepth: number): string {
 }
 
 function directTextPreview(element: Element): string {
-  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-    return trimText(element.value || element.placeholder || '', TEXT_PREVIEW_LENGTH);
-  }
-
-  let text = '';
-  for (const node of Array.from(element.childNodes)) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      text += node.textContent ?? '';
-    }
-  }
-
-  return trimText(text, TEXT_PREVIEW_LENGTH);
+  return trimText(elementOwnText(element, { inputPlaceholderFallback: true }), TEXT_PREVIEW_LENGTH);
 }
 
 function getNearbyText(element: Element): string {
@@ -416,7 +410,7 @@ function isFocusable(element: Element): boolean {
 
 function getClassTokens(element: Element): string[] {
   return dedupe(
-    rawClassTokens(element)
+    classTokensForElement(element)
       .map(cleanClassToken)
       .filter(Boolean),
   );
@@ -424,13 +418,6 @@ function getClassTokens(element: Element): string[] {
 
 function meaningfulClassTokens(element: Element): string[] {
   return getClassTokens(element).filter(isMeaningfulClassToken);
-}
-
-function rawClassTokens(element: Element): string[] {
-  return (element.getAttribute('class') ?? '')
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
 }
 
 function cleanClassToken(token: string): string {
@@ -463,10 +450,6 @@ function matchesSafe(element: Element, selector: string): boolean {
   } catch {
     return false;
   }
-}
-
-function tagNameOf(element: Element): string {
-  return element.tagName.toLowerCase();
 }
 
 function trimText(value: string, maxLength: number): string {

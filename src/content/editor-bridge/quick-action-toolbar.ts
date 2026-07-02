@@ -14,6 +14,14 @@ import {
   type QuickActionStructureOperation,
 } from '../../shared/editor-messages';
 import { getCurrentMessages } from '../../shared/i18n';
+import {
+  nextEditableSibling,
+  previousEditableSibling,
+} from './lib/dom';
+import {
+  viewportRectForElement,
+  viewportSize,
+} from './lib/viewport';
 
 const QUICK_ACTION_BAR_CLASS = 'copy-ai-id-quick-action-bar';
 const QUICK_ACTION_BAR_BUTTON_CLASS = 'copy-ai-id-quick-action-bar__button';
@@ -368,22 +376,6 @@ function isStructureActionDisabled(action: QuickActionStructureOperation, elemen
   }
 }
 
-function previousEditableSibling(element: Element): Element | null {
-  let sibling = element.previousElementSibling;
-  while (sibling && isExtensionOwnedElement(sibling)) {
-    sibling = sibling.previousElementSibling;
-  }
-  return sibling;
-}
-
-function nextEditableSibling(element: Element): Element | null {
-  let sibling = element.nextElementSibling;
-  while (sibling && isExtensionOwnedElement(sibling)) {
-    sibling = sibling.nextElementSibling;
-  }
-  return sibling;
-}
-
 function exhaustiveStructureAction(action: never): never {
   throw new Error(`Unsupported quick-action structure operation: ${JSON.stringify(action)}`);
 }
@@ -728,28 +720,6 @@ function getVisibleCategories(categories: readonly QuickActionCategory[]): Set<Q
   }
 
   return new Set(QUICK_ACTION_CATEGORIES.filter((category) => requested.has(category)));
-}
-
-function viewportRectForElement(element: Element): BridgeViewportRect {
-  const rect = element.getBoundingClientRect();
-
-  return {
-    x: rect.left,
-    y: rect.top,
-    left: rect.left,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-function viewportSize(): BridgeViewportSize {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
 }
 
 function clamp(value: number, min: number, max: number): number {

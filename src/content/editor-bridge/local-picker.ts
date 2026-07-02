@@ -5,6 +5,10 @@ import type {
   EditorTarget,
 } from '../../shared/editor-messages';
 import { getComposedElementsFromPoint } from '../target/composed-dom';
+import {
+  viewportRectForElement,
+  viewportSize,
+} from './lib/viewport';
 import { fallbackTargetForElement } from './fallback-target';
 import { instancesOf, resolveNodeIdForElement } from './layout-tree';
 
@@ -99,28 +103,6 @@ export function targetReferenceForElement(element: Element): LocalTargetReferenc
 
 export function hasUsableAiId(element: Element): boolean {
   return (element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '').length > 0;
-}
-
-export function viewportRectForElement(element: Element): BridgeViewportRect {
-  const rect = element.getBoundingClientRect();
-
-  return {
-    x: rect.left,
-    y: rect.top,
-    left: rect.left,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-export function viewportSize(): BridgeViewportSize {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
 }
 
 function firstPickableElement(elements: Element[]): Element | null {

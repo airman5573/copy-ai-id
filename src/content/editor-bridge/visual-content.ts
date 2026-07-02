@@ -9,6 +9,7 @@ import {
   type VisualTextUpdatedMessage,
 } from '../../shared/editor-messages';
 import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
+import { dispatchNativeInputEvents } from './lib/dom';
 import { type BridgePost } from './highlight';
 import {
   createVisualMutationResultBase,
@@ -209,11 +210,6 @@ function supportsRichHtmlMutation(element: Element): boolean {
     && !(element instanceof HTMLVideoElement)
     && !(element instanceof HTMLAudioElement)
     && 'innerHTML' in element;
-}
-
-function dispatchNativeInputEvents(element: HTMLElement): void {
-  element.dispatchEvent(new Event('input', { bubbles: true }));
-  element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 function unsupportedContentError(detail: string): VisualMutationError {

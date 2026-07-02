@@ -37,6 +37,10 @@ import {
   hideVisualDropIndicator,
   showVisualDropIndicator,
 } from './overlay';
+import {
+  nextEditableSibling,
+  previousEditableSibling,
+} from './lib/dom';
 import { stripRuntimeArtifacts } from './runtime-artifacts';
 import {
   createVisualMutationResultBase,
@@ -455,22 +459,6 @@ function editableElementIndex(element: Element): number | null {
 
 function editableElementChildren(parent: Element): Element[] {
   return Array.from(parent.children).filter((child) => !isExtensionOwnedElement(child));
-}
-
-function previousEditableSibling(element: Element): Element | null {
-  let sibling = element.previousElementSibling;
-  while (sibling && isExtensionOwnedElement(sibling)) {
-    sibling = sibling.previousElementSibling;
-  }
-  return sibling;
-}
-
-function nextEditableSibling(element: Element): Element | null {
-  let sibling = element.nextElementSibling;
-  while (sibling && isExtensionOwnedElement(sibling)) {
-    sibling = sibling.nextElementSibling;
-  }
-  return sibling;
 }
 
 interface DropTargetResolution {

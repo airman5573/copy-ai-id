@@ -24,6 +24,18 @@ import {
   getOpenShadowRoot,
 } from '../target/composed-dom';
 import {
+  isContentEditableElement,
+  tagNameOf,
+} from './lib/dom';
+import {
+  classTokensForElement,
+  normalizeWhitespace,
+} from './lib/text';
+import {
+  viewportRectForElement,
+  viewportSize,
+} from './lib/viewport';
+import {
   fallbackMetadataForElement,
   fallbackTargetForElement,
 } from './fallback-target';
@@ -569,7 +581,7 @@ function optionalTextMatches(first: string | undefined, second: string | undefin
     return false;
   }
 
-  return normalizeContextText(first) === normalizeContextText(second);
+  return normalizeWhitespace(first) === normalizeWhitespace(second);
 }
 
 function hasClassTokenOverlap(first: string[], second: string[]): boolean {
@@ -579,35 +591,6 @@ function hasClassTokenOverlap(first: string[], second: string[]): boolean {
 
   const firstSet = new Set(first);
   return second.some((token) => firstSet.has(token));
-}
-
-function normalizeContextText(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
-}
-
-function viewportRectForElement(element: Element): BridgeViewportRect {
-  const rect = element.getBoundingClientRect();
-  return {
-    x: rect.x,
-    y: rect.y,
-    width: rect.width,
-    height: rect.height,
-    top: rect.top,
-    right: rect.right,
-    bottom: rect.bottom,
-    left: rect.left,
-  };
-}
-
-function viewportSize(): { width: number; height: number } {
-  return {
-    width: window.visualViewport?.width ?? window.innerWidth,
-    height: window.visualViewport?.height ?? window.innerHeight,
-  };
-}
-
-function tagNameOf(element: Element): string {
-  return element.tagName.toLowerCase();
 }
 
 function labelForElement(
@@ -628,19 +611,12 @@ function labelForElement(
     return ariaLabel;
   }
 
-  const text = normalizeContextText(element.textContent ?? '');
+  const text = normalizeWhitespace(element.textContent ?? '');
   if (text) {
     return text.length > 80 ? `${text.slice(0, 79)}…` : text;
   }
 
   return tagNameOf(element);
-}
-
-function classTokensForElement(element: Element): string[] {
-  return (element.getAttribute('class') ?? '')
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
 }
 
 function safeAttributeMapForElement(element: Element): Record<string, string> {
@@ -751,14 +727,6 @@ function formValueForElement(element: Element): VisualTargetSnapshot['formValue'
   return undefined;
 }
 
-function isContentEditableElement(element: Element): element is HTMLElement {
-  return element instanceof HTMLElement && (
-    element.isContentEditable
-    || element.getAttribute('contenteditable') === ''
-    || element.getAttribute('contenteditable')?.toLowerCase() === 'true'
-  );
-}
-
 function imageSnapshotForElement(element: Element): VisualTargetSnapshot['image'] {
   if (!(element instanceof HTMLImageElement)) {
     return undefined;
@@ -781,7 +749,7 @@ function linkSnapshotForElement(element: Element): VisualTargetSnapshot['link'] 
     href: element.href,
     target: element.target || undefined,
     rel: element.rel || undefined,
-    text: normalizeContextText(element.textContent ?? '') || undefined,
+    text: normalizeWhitespace(element.textContent ?? '') || undefined,
   };
 }
 

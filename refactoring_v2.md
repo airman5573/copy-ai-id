@@ -73,17 +73,18 @@
   - Parallelizable: no
 
 ### Phase 3 - Content-bridge deduplication and confirmed fixes
-- [ ] Create shared utility modules under `src/content/editor-bridge/lib/`
+- [x] Create shared utility modules under `src/content/editor-bridge/lib/`
   - Files/areas: new src/content/editor-bridge/lib/viewport.ts, lib/dom.ts, lib/text.ts
   - Notes: viewport.ts: one `viewportRectForElement` and one `viewportSize`. dom.ts: `isContentEditableElement`, `dispatchNativeInputEvents`, `previousEditableSibling`/`nextEditableSibling`, `tagNameOf`, `pxToNumber`. text.ts: trim/preview/context-text helpers and one class-tokenization function.
   - Parallelizable: no
-- [ ] Unify `viewportSize` on the `visualViewport`-aware implementation (confirmed fix)
+- [x] Unify `viewportSize` on the `visualViewport`-aware implementation (confirmed fix)
   - Files/areas: src/content/editor-bridge/visual-targets.ts (~605, the visualViewport version — becomes canonical), src/content/editor-bridge/local-picker.ts (~190), src/content/editor-bridge/quick-action-toolbar.ts (~752)
   - Notes: This intentionally changes behavior under pinch-zoom for local-picker and quick-action-toolbar — the one approved inconsistency fix in this phase.
   - Parallelizable: no
-- [ ] Replace all duplicated helper copies with the lib versions
+- [x] Replace all duplicated helper copies with the lib versions
   - Files/areas: src/content/editor-bridge/{local-picker,visual-targets,quick-action-toolbar,visual-structure,visual-form-value,visual-content,fallback-target,layout-tree}.ts
   - Notes: 3× `viewportRectForElement`, 2× editable-sibling pair, 2× `isContentEditableElement`, 2× `dispatchNativeInputEvents`, class tokenizers (`getClassTokens`/`tokenizeClassName`/`classTokensForElement`), `directTextPreview` (fallback-target ~341 vs layout-tree ~149). Diff each pair before merging; where copies genuinely diverge (beyond viewportSize), keep behavior of each call site and note the divergence in a code comment only if load-bearing.
+  - Done: trim helpers genuinely diverge (ellipsis length, input placeholder fallback), so lib/text.ts exposes `normalizeWhitespace` + untrimmed `elementOwnText` and each site keeps its own trim; fallback-target keeps its clean/dedupe pipeline on top of the shared tokenizer.
   - Parallelizable: no
 - [ ] Unify the three "ai-id-or-fallback" target builders into one
   - Files/areas: src/content/editor-bridge/local-picker.ts (`targetForElement` ~89), src/content/editor-bridge/visual-structure.ts (`editorTargetForElement` ~704), src/content/editor-bridge/visual-targets.ts (`targetForResolvedElement` ~415)

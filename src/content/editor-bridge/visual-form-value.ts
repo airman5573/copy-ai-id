@@ -6,6 +6,10 @@ import {
   type VisualFormValueUpdatedMessage,
   type VisualMutationError,
 } from '../../shared/editor-messages';
+import {
+  dispatchNativeInputEvents,
+  isContentEditableElement,
+} from './lib/dom';
 import { type BridgePost } from './highlight';
 import {
   createVisualMutationResultBase,
@@ -195,19 +199,6 @@ function normalizeSelectedIndex(index: number, optionCount: number): number {
   }
 
   return Math.min(optionCount - 1, Math.max(-1, Math.trunc(index)));
-}
-
-function isContentEditableElement(element: Element): element is HTMLElement {
-  return element instanceof HTMLElement && (
-    element.isContentEditable
-    || element.getAttribute('contenteditable') === ''
-    || element.getAttribute('contenteditable')?.toLowerCase() === 'true'
-  );
-}
-
-function dispatchNativeInputEvents(element: HTMLElement): void {
-  element.dispatchEvent(new Event('input', { bubbles: true }));
-  element.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 function unsupportedFormValueError(detail: string): VisualMutationError {

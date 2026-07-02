@@ -7,12 +7,12 @@ import {
 } from '../../shared/editor-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import { resolveTreeNode } from './layout-tree';
+import { viewportSize } from './lib/viewport';
 import {
   connectedPickableElement,
   hasUsableAiId,
   resolveStrictPointHitFromMouseEvent,
   targetReferenceForElement,
-  viewportSize,
 } from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
 import {

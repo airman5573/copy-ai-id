@@ -3,6 +3,10 @@ import {
   isExtensionOwnedElement,
 } from '../../shared/config';
 import {
+  elementOwnText,
+  tokenizeClassValue,
+} from './lib/text';
+import {
   EDITOR_MESSAGE_TYPES,
   type LayoutTreeMessage,
   type LayoutTreeNode,
@@ -76,7 +80,7 @@ function buildNode(element: Element, nodeId: string): LayoutTreeNode {
   const instanceIndex = aiId ? registerAiIdInstance(aiId, element) : 0;
   const rect = element.getBoundingClientRect();
   const tagName = element.tagName.toLowerCase();
-  const classTokens = tokenizeClassName(element.getAttribute('class') ?? '');
+  const classTokens = tokenizeClassValue(element.getAttribute('class') ?? '');
   const textPreview = directTextPreview(element);
   const children: LayoutTreeNode[] = [];
 
@@ -138,23 +142,8 @@ function normalizeAiId(value: string | null): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function tokenizeClassName(value: string): string[] {
-  return value.split(/\s+/).map((token) => token.trim()).filter(Boolean);
-}
-
 function directTextPreview(element: Element): string {
-  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-    return trimPreview(element.value);
-  }
-
-  let text = '';
-  for (const node of Array.from(element.childNodes)) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      text += node.textContent ?? '';
-    }
-  }
-
-  return trimPreview(text);
+  return trimPreview(elementOwnText(element));
 }
 
 function trimPreview(value: string): string {
