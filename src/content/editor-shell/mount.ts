@@ -1,5 +1,5 @@
 import { mountCopyAiIdEditor, type MountedCopyAiIdEditor } from '../../editor/main';
-import { EDITOR_HOST_ATTR, OVERLAY_Z_INDEX } from '../../shared/config';
+import { EDITOR_HOST_ATTR, EDITOR_HOST_Z_INDEX } from '../../shared/config';
 
 export interface EditorShellControllerOptions {
   onRequestClose(): void;
@@ -30,7 +30,7 @@ export function createEditorShellController(
       inset: '0',
       width: '100vw',
       height: '100vh',
-      zIndex: String(OVERLAY_Z_INDEX - 1),
+      zIndex: String(EDITOR_HOST_Z_INDEX),
       pointerEvents: 'auto',
     });
 

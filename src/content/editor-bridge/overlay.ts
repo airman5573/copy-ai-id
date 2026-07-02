@@ -1,10 +1,13 @@
-import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
+import {
+  PREVIEW_DROP_INDICATOR_Z_INDEX,
+  PREVIEW_OUTLINE_OVERLAY_Z_INDEX,
+  PREVIEW_OVERLAY_ATTR,
+} from '../../shared/config';
 import type { VisualDropPosition } from '../../shared/domain/visual';
 import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
 
 type OverlayKind = 'hover';
 
-const OVERLAY_Z_INDEX = '2147483646';
 const REFERENCE_OVERLAY_ATTR = 'data-ai-editor-overlay';
 
 const STYLES: Record<OverlayKind, string> = {
@@ -109,7 +112,7 @@ function ensureBox(kind: OverlayKind): HTMLDivElement {
   box.setAttribute(PREVIEW_OVERLAY_ATTR, kind);
   box.setAttribute('data-ai-id', `ai-editor-preview-${kind}-overlay-box`);
   box.style.cssText =
-    `position: absolute; pointer-events: none; z-index: ${OVERLAY_Z_INDEX}; display: none; ${STYLES[kind]}`;
+    `position: absolute; pointer-events: none; z-index: ${PREVIEW_OUTLINE_OVERLAY_Z_INDEX}; display: none; ${STYLES[kind]}`;
   (document.body ?? document.documentElement).appendChild(box);
   boxes.set(kind, box);
   return box;
@@ -175,7 +178,7 @@ function ensureDropIndicatorBox(): HTMLDivElement {
   box.style.cssText = [
     'position: absolute',
     'pointer-events: none',
-    'z-index: 2147483647',
+    `z-index: ${PREVIEW_DROP_INDICATOR_Z_INDEX}`,
     'display: none',
     'box-sizing: border-box',
     'border-radius: 999px',

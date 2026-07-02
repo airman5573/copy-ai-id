@@ -1,5 +1,6 @@
 import {
   isExtensionOwnedElement,
+  PREVIEW_QUICK_ACTION_TOOLBAR_Z_INDEX,
   QUICK_ACTION_BAR_ATTR,
   QUICK_ACTION_STYLE_ATTR,
 } from '../../shared/config';
@@ -758,7 +759,7 @@ function toolbarCss(): string {
 [${QUICK_ACTION_BAR_ATTR}] {
   all: initial;
   position: fixed;
-  z-index: 2147483647;
+  z-index: ${PREVIEW_QUICK_ACTION_TOOLBAR_Z_INDEX};
   display: flex;
   box-sizing: border-box;
   max-width: calc(100vw - 24px);

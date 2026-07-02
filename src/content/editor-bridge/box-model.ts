@@ -1,4 +1,7 @@
-import { PREVIEW_OVERLAY_ATTR } from '../../shared/config';
+import { PREVIEW_OVERLAY_ATTR,
+  PREVIEW_BOX_MODEL_CONTROL_Z_INDEX,
+  PREVIEW_BOX_MODEL_HOVER_Z_INDEX,
+} from '../../shared/config';
 import type {
   VisualBoxEdge,
   VisualBoxRegion,
@@ -28,8 +31,8 @@ interface BoxModelRegionFilter {
 }
 
 const OVERLAY_Z_INDEX: Record<OverlayKind, string> = {
-  hover: '2147483645',
-  control: '2147483647',
+  hover: String(PREVIEW_BOX_MODEL_HOVER_Z_INDEX),
+  control: String(PREVIEW_BOX_MODEL_CONTROL_Z_INDEX),
 };
 
 // Chrome DevTools-style box-model colors.
