@@ -16,6 +16,11 @@ export const QUICK_ACTION_BAR_ATTR = 'data-copy-ai-id-quick-action-bar';
 
 export const QUICK_ACTION_STYLE_ATTR = 'data-copy-ai-id-quick-action-style';
 
+// Invariant: every runtime element this extension injects into the preview
+// page DOM must match this selector (directly or via an ancestor). Overlay
+// boxes, the drop indicator, and box-model layers all carry
+// PREVIEW_OVERLAY_ATTR; the quick-action toolbar carries
+// QUICK_ACTION_BAR_ATTR and its style tag QUICK_ACTION_STYLE_ATTR.
 export const EXTENSION_OWNED_DOM_SELECTOR = [
   `[${OVERLAY_HOST_ATTR}]`,
   `[${EDITOR_HOST_ATTR}]`,

@@ -178,27 +178,27 @@
   - Parallelizable: no
 
 ### Phase 7 - Re-layout and renames
-- [ ] Rename the content-bridge files that shadow `shared/` names, per a handler/resolver convention
+- [x] Rename the content-bridge files that shadow `shared/` names, per a handler/resolver convention
   - Files/areas: src/content/editor-bridge/visual-style.ts → visual-style-handler.ts; visual-attributes.ts → visual-attribute-handler.ts; visual-content.ts → visual-content-handler.ts; visual-form-value.ts → visual-form-value-handler.ts; visual-targets.ts → visual-target-resolver.ts; update importers
   - Notes: `shared/` keeps the plain names (catalogs/contracts); a grep for `visual-style` should now disambiguate by suffix.
   - Parallelizable: no
-- [ ] Relocate misplaced `shared/` modules to their owning layer
+- [x] Relocate misplaced `shared/` modules to their owning layer
   - Files/areas: src/shared/enabled-state.ts → src/content/bootstrap/enabled-state.ts (verify popup does not import it — popup goes through runtime messages); src/shared/notebook-notice.ts → src/editor/notebook/notebook-notice.ts; src/content/clipboard/clipboard.ts → src/editor/notebook/clipboard.ts (its only importer is `src/editor/notebook/copy.ts:1`; remove the now-empty src/content/clipboard/)
   - Notes: Grep importers for each before moving. `shared/visual-html.ts` stays in shared but gains a doc comment stating its DOM dependency (content/editor contexts only).
   - Parallelizable: no
-- [ ] Move the `SAFE_ATTRIBUTE_NAMES` allowlist into `shared/`
+- [x] Move the `SAFE_ATTRIBUTE_NAMES` allowlist into `shared/`
   - Files/areas: src/content/editor-bridge/visual-target-resolver.ts (~90-131) → src/shared/domain/ (or the visual-attributes catalog module)
   - Notes: It is contract data consumed by the snapshot serializer; pure move.
   - Parallelizable: yes
-- [ ] Centralize the z-index constants without changing any value
+- [x] Centralize the z-index constants without changing any value
   - Files/areas: src/shared/config.ts (~28), src/content/editor-bridge/overlay.ts (~7, inline ~182), src/content/editor-bridge/box-model.ts (~27-30), src/content/editor-bridge/quick-action-toolbar.ts (inline CSS ~791), src/content/editor-shell/mount.ts (~33)
   - Notes: Named constants per layer (editor host, overlay, drop indicator, box-model, toolbar) in shared config with a comment that top-frame and iframe values live in different stacking contexts. Values must remain byte-identical.
   - Parallelizable: yes
-- [ ] Audit and align the two "extension-owned DOM" lists
+- [x] Audit and align the two "extension-owned DOM" lists
   - Files/areas: src/shared/config.ts (`EXTENSION_OWNED_DOM_SELECTOR` ~19-33), src/content/editor-bridge/overlay.ts (`data-ai-editor-overlay` ~8), src/content/editor-bridge/runtime-artifacts.ts
-  - Notes: Add to the shared selector only attributes verified to mark extension-owned runtime DOM; for each addition, check layout-tree/navigation/picker behavior implications (an element newly excluded from the tree is a behavior change — only add attrs whose elements were already excluded by other means or are pure overlays).
+  - Notes: Audit found the lists already aligned: every injected preview element (overlay boxes, drop indicator, box-model layers) carries PREVIEW_OVERLAY_ATTR, which is in the shared selector; the secondary data-ai-editor-overlay/data-copy-ai-id-visual-overlay attrs are extra markers on those same elements. Invariant documented on EXTENSION_OWNED_DOM_SELECTOR; no selector additions needed.
   - Parallelizable: no
-- [ ] Phase gate: `npm run typecheck` and `npm run build`
+- [x] Phase gate: `npm run typecheck` and `npm run build`
   - Files/areas: repo root
   - Notes: —
   - Parallelizable: no
