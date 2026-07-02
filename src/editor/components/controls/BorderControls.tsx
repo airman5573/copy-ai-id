@@ -1,4 +1,6 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
+
+import { useDraftValue } from './useDraftValue';
 import {
   BORDER_WIDTH_UNITS,
   RADIUS_UNITS,
@@ -328,11 +330,7 @@ function BorderColorInput({
 }): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
+  const [draft, setDraft] = useDraftValue(committed, property);
 
   const commit = (value = draft): void => {
     edit.commitStyle(property, value, {

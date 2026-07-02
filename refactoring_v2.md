@@ -112,9 +112,9 @@
   - Files/areas: src/editor/components/controls/SizeControls.tsx, LayoutControls.tsx, styleControlHelpers.tsx
   - Notes: Local implementations replaced with one-line wrappers over `CssPresetSelect`/`CssTextInput` passing `category="size"`/`"layout"`; local groups replaced by canonical `StyleControlGroup` (Size/Layout groups now show the breakpoint badge like every other category — the missing badge was the inconsistency). ~250 duplicated lines removed.
   - Parallelizable: no
-- [ ] Extract a shared controlled-input hook for the draft/focus/blur/Enter/Escape pattern
+- [x] Extract a shared controlled-input hook for the draft/focus/blur/Enter/Escape pattern
   - Files/areas: new src/editor/components/controls/useDraftValue.ts (name to match repo style); the ~10 control files repeating `const [draft, setDraft] = useState` + commit-on-blur/Enter, revert-on-Escape
-  - Notes: Adopt file-by-file; keep each control's commit semantics identical (when it commits, what it normalizes).
+  - Notes: `useDraftValue(committed, resetKey?)` adopted in 6 sites (CssTextInput, CssTextarea, BorderColorField, ColorField, BackgroundImage, Opacity). ContentControls/FormValueControls use a different focus-guarded resync with `lastDispatchedRef` (live-edit semantics) and AttributeControls couples draft with error state — left explicit intentionally.
   - Parallelizable: no
 - [ ] Consolidate duplicated formatting helpers into one module
   - Files/areas: new src/editor/notebook/format-utils.ts (or extend existing format.ts); src/editor/notebook/lexical/chip-export.ts (`formatInlineCode` ~216), src/editor/notebook/visual-edits-export.ts (`formatInlineCode` ~640, `formatQuotedPreview` ~630), src/editor/visual/visualMutationClient.ts (`quotePreview` ~809, `cssPropertyLabel` ~801), src/editor/visual/useStyleEdit.ts (`cssPropertyLabel` ~213)

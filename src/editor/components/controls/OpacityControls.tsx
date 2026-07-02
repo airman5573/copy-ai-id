@@ -1,4 +1,6 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
+
+import { useDraftValue } from './useDraftValue';
 
 import { useStyleEdit } from '../../visual/useStyleEdit';
 import { selectTextInputValue } from '../visual/inputSelection';
@@ -13,11 +15,7 @@ export function OpacityControls({ disabled = false }: OpacityControlsProps): Rea
   const edit = useStyleEdit();
   const canEdit = edit.canEdit && !disabled;
   const committed = edit.valueOf('opacity');
-  const [draft, setDraft] = useState(() => opacityCssToPercent(committed));
-
-  useEffect(() => {
-    setDraft(opacityCssToPercent(committed));
-  }, [committed]);
+  const [draft, setDraft] = useDraftValue(opacityCssToPercent(committed));
 
   const commitPercent = (percent: string): void => {
     const normalizedPercent = clampPercent(percent);

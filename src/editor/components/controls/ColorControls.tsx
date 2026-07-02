@@ -1,4 +1,6 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
+
+import { useDraftValue } from './useDraftValue';
 
 import { useStyleEdit } from '../../visual/useStyleEdit';
 import { ColorInput, type ColorPresetOption } from '../visual/ColorInput';
@@ -63,11 +65,7 @@ function ColorStyleInput({
 }): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
+  const [draft, setDraft] = useDraftValue(committed, property);
 
   const commit = (value = draft): void => {
     edit.commitStyle(property, value, {

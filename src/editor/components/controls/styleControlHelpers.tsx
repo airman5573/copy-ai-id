@@ -1,11 +1,11 @@
 import {
-  useEffect,
   useMemo,
-  useState,
   type HTMLAttributes,
   type ReactElement,
   type ReactNode,
 } from 'react';
+
+import { useDraftValue } from './useDraftValue';
 
 import { breakpointById } from '../../../shared/breakpoints';
 import type { QuickActionCategory } from '../../../shared/editor-messages';
@@ -164,11 +164,7 @@ export function CssTextInput({
 }: CssTextInputProps): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
+  const [draft, setDraft] = useDraftValue(committed, property);
 
   const commitValue = (value: string): void => {
     const next = normalize(value);
@@ -266,11 +262,7 @@ export function CssTextarea({
 }: CssTextareaProps): ReactElement {
   const edit = useStyleEdit();
   const committed = edit.valueOf(property);
-  const [draft, setDraft] = useState(committed);
-
-  useEffect(() => {
-    setDraft(committed);
-  }, [committed, property]);
+  const [draft, setDraft] = useDraftValue(committed, property);
 
   const commitValue = (value: string): void => {
     const next = normalize(value);

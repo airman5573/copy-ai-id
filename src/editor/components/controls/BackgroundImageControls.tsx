@@ -1,4 +1,6 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
+
+import { useDraftValue } from './useDraftValue';
 
 import { useStyleEdit } from '../../visual/useStyleEdit';
 import { CssPresetSelect, CssTextInput, StyleControlGroup } from './styleControlHelpers';
@@ -39,11 +41,7 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
   const edit = useStyleEdit();
   const canEdit = edit.canEdit && !disabled;
   const committed = edit.valueOf('background-image');
-  const [draft, setDraft] = useState(() => backgroundImageToInputValue(committed));
-
-  useEffect(() => {
-    setDraft(backgroundImageToInputValue(committed));
-  }, [committed]);
+  const [draft, setDraft] = useDraftValue(backgroundImageToInputValue(committed));
 
   const commitBackgroundImage = (value: string): void => {
     const next = normalizeBackgroundImageInput(value);
