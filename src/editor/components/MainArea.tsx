@@ -40,13 +40,14 @@ interface PanelMaxWidthOptions {
 export interface MainAreaProps {
   previewStageRef?: RefObject<HTMLDivElement | null>;
   onFitZoom?: () => void;
+  onResetPreviewToStage?: () => void;
 }
 
 const LAYOUT_TREE_RAIL_WIDTH = 42;
 const PREVIEW_MIN_WIDTH = 360;
 const PANEL_RESIZE_KEY_STEP = 16;
 
-export function MainArea({ previewStageRef, onFitZoom }: MainAreaProps) {
+export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: MainAreaProps) {
   const messages = getCurrentMessages();
   const mainRef = useRef<HTMLElement | null>(null);
   const layoutTreeCollapsed = useEditorLayoutStore((state) => state.layoutTreeCollapsed);
@@ -63,13 +64,39 @@ export function MainArea({ previewStageRef, onFitZoom }: MainAreaProps) {
   const activePanelResizeRef = useRef<ActivePanelResize | null>(null);
   const fitZoomFrameRef = useRef<number | null>(null);
   const geometrySyncFrameRef = useRef<number | null>(null);
+  const initialViewportResetFrameRef = useRef<number | null>(null);
   const [resizingPanel, setResizingPanel] = useState<ResizablePanelSide | null>(null);
   const isDockedNotePanelVisible = !notePanelFloatingEnabled;
 
   useEffect(() => {
-    void hydrateLayoutTreeCollapsed();
-    void hydratePanelLayout();
-  }, [hydrateLayoutTreeCollapsed, hydratePanelLayout]);
+    let isActive = true;
+
+    void Promise.all([
+      hydrateLayoutTreeCollapsed(),
+      hydratePanelLayout(),
+    ]).then(() => {
+      if (!isActive || !onResetPreviewToStage) {
+        return;
+      }
+
+      initialViewportResetFrameRef.current = window.requestAnimationFrame(() => {
+        initialViewportResetFrameRef.current = null;
+        if (!isActive) {
+          return;
+        }
+
+        onResetPreviewToStage();
+      });
+    });
+
+    return () => {
+      isActive = false;
+      if (initialViewportResetFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialViewportResetFrameRef.current);
+        initialViewportResetFrameRef.current = null;
+      }
+    };
+  }, [hydrateLayoutTreeCollapsed, hydratePanelLayout, onResetPreviewToStage]);
 
   const scheduleFitZoom = useCallback(() => {
     if (fitZoomFrameRef.current !== null) {
@@ -110,6 +137,9 @@ export function MainArea({ previewStageRef, onFitZoom }: MainAreaProps) {
       }
       if (geometrySyncFrameRef.current !== null) {
         window.cancelAnimationFrame(geometrySyncFrameRef.current);
+      }
+      if (initialViewportResetFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialViewportResetFrameRef.current);
       }
     };
   }, []);

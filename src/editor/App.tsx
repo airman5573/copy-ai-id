@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { createPreviewUrl } from './bridge/bridgeClient';
 import { FloatingNotePanel } from './components/FloatingNotePanel';
@@ -26,7 +26,7 @@ export function App({ onRequestClose }: AppProps) {
   const setCurrentUrl = useRuntimeStore((state) => state.setCurrentUrl);
   const setPreviewUrl = useRuntimeStore((state) => state.setPreviewUrl);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
-  const hydratePreviewHeight = useBreakpointStore((state) => state.hydratePreviewHeight);
+  const resetPreviewToStage = useBreakpointStore((state) => state.resetPreviewToStage);
   const toastMessage = useToastStore((state) => state.message);
   const toastTone = useToastStore((state) => state.tone);
   const clearToast = useToastStore((state) => state.clearToast);
@@ -40,19 +40,18 @@ export function App({ onRequestClose }: AppProps) {
     setCurrentUrl(url);
     setPreviewUrl(createPreviewUrl(url));
     let isActive = true;
-    let hydrateFrameId: number | null = null;
-    void hydrateFloatingNotePanelEnabled();
-    void hydratePreviewHeight().then(() => {
+    let notePanelHydrateFrameId: number | null = null;
+    void hydrateFloatingNotePanelEnabled().then(() => {
       if (!isActive) {
         return;
       }
 
-      hydrateFrameId = window.requestAnimationFrame(() => {
+      notePanelHydrateFrameId = window.requestAnimationFrame(() => {
         if (!isActive) {
           return;
         }
 
-        fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
+        resetPreviewToStage(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
       });
     });
     void readNotebookTargetNotice().then((targetNotice) => {
@@ -73,8 +72,8 @@ export function App({ onRequestClose }: AppProps) {
 
     return () => {
       isActive = false;
-      if (hydrateFrameId !== null) {
-        window.cancelAnimationFrame(hydrateFrameId);
+      if (notePanelHydrateFrameId !== null) {
+        window.cancelAnimationFrame(notePanelHydrateFrameId);
       }
       cleanupKeyboard();
       cleanupKeyboardHoverGuard();
@@ -86,9 +85,8 @@ export function App({ onRequestClose }: AppProps) {
     };
   }, [
     clearToast,
-    fitZoom,
     hydrateFloatingNotePanelEnabled,
-    hydratePreviewHeight,
+    resetPreviewToStage,
     resetFloatingNotePanelRuntime,
     setCurrentUrl,
     setMounted,
@@ -96,23 +94,13 @@ export function App({ onRequestClose }: AppProps) {
     setSuffixSettings,
   ]);
 
-  useLayoutEffect(() => {
-    const fitToCurrentStage = (): void => {
-      fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
-    };
-
-    fitToCurrentStage();
-
-    const frameId = window.requestAnimationFrame(fitToCurrentStage);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [fitZoom]);
-
   const handleFitZoom = useCallback(() => {
     fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
   }, [fitZoom]);
+
+  const handleResetPreviewToStage = useCallback(() => {
+    resetPreviewToStage(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
+  }, [resetPreviewToStage]);
 
   return (
     <div className="copy-ai-id-editor-shell" data-ai-id="copy-ai-id-editor-shell">
@@ -120,7 +108,11 @@ export function App({ onRequestClose }: AppProps) {
         onRequestClose={onRequestClose}
         onFitZoom={handleFitZoom}
       />
-      <MainArea previewStageRef={previewStageRef} onFitZoom={handleFitZoom} />
+      <MainArea
+        previewStageRef={previewStageRef}
+        onFitZoom={handleFitZoom}
+        onResetPreviewToStage={handleResetPreviewToStage}
+      />
       <FloatingNotePanel />
       <FloatingVisualPanel />
       {toastMessage ? (

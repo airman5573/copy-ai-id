@@ -47,6 +47,7 @@ interface BreakpointStore {
   setZoom(zoom: number): void;
   stepZoom(step?: number): void;
   fitZoom(availableStageWidth?: number, availableStageHeight?: number): void;
+  resetPreviewToStage(availableStageWidth?: number, availableStageHeight?: number): void;
   hydratePreviewHeight(): Promise<void>;
   persistCustomPreviewWidth(width?: number): Promise<void>;
   persistPreviewHeight(height?: number): Promise<void>;
@@ -190,9 +191,54 @@ function getActivePreviewWidth(state: Pick<BreakpointStore, 'activeBreakpointId'
   return breakpointById(state.activeBreakpointId).width;
 }
 
+function getStageFillingPreviewWidth(availableStageWidth?: number): number {
+  if (!Number.isFinite(availableStageWidth)) {
+    return DEFAULT_PREVIEW_WIDTH;
+  }
+
+  return normalizePreviewWidth(
+    Math.max(
+      MIN_PREVIEW_WIDTH,
+      Math.floor(Number(availableStageWidth) - (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2)),
+    ),
+  );
+}
+
+function getStageFillingPreviewHeight(availableStageHeight?: number): number {
+  if (!Number.isFinite(availableStageHeight)) {
+    return DEFAULT_PREVIEW_HEIGHT;
+  }
+
+  return normalizePreviewHeight(
+    Math.max(
+      MIN_PREVIEW_HEIGHT,
+      Math.floor(Number(availableStageHeight) - PREVIEW_STAGE_VERTICAL_PADDING - PREVIEW_HEIGHT_RESIZE_HANDLE_OUTSET),
+    ),
+  );
+}
+
+function getStageResetZoom(
+  previewWidth: number,
+  previewHeight: number,
+  availableStageWidth?: number,
+  availableStageHeight?: number,
+): number {
+  if (!Number.isFinite(availableStageWidth) || !Number.isFinite(availableStageHeight)) {
+    return DEFAULT_ZOOM;
+  }
+
+  const visualWidth = previewWidth + (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2);
+  const visualHeight = previewHeight + PREVIEW_HEIGHT_RESIZE_HANDLE_OUTSET;
+  const availableWidth = Math.max(1, Number(availableStageWidth));
+  const availableHeight = Math.max(1, Number(availableStageHeight) - PREVIEW_STAGE_VERTICAL_PADDING);
+  const fitDownZoom = Math.min(DEFAULT_ZOOM, availableWidth / visualWidth, availableHeight / visualHeight);
+
+  return normalizeZoom(Math.floor(fitDownZoom * 100) / 100);
+}
+
 export const useBreakpointStore = create<BreakpointStore>((set, get) => ({
   activeBreakpointId: 'desktop',
-  viewportMode: 'breakpoint',
+  viewportMode: 'custom',
   customPreviewWidth: DEFAULT_PREVIEW_WIDTH,
   previewHeight: DEFAULT_PREVIEW_HEIGHT,
   zoomById: createZoomRecord(),
@@ -236,6 +282,21 @@ export const useBreakpointStore = create<BreakpointStore>((set, get) => ({
     const availableHeight = Math.max(1, stageHeight - PREVIEW_STAGE_VERTICAL_PADDING);
     const fitZoomValue = Math.min(availableWidth / visualWidth, availableHeight / visualHeight);
     state.setZoom(Math.floor(fitZoomValue * 100) / 100);
+  },
+  resetPreviewToStage: (availableStageWidth, availableStageHeight) => {
+    const previewWidth = getStageFillingPreviewWidth(availableStageWidth);
+    const previewHeight = getStageFillingPreviewHeight(availableStageHeight);
+    const zoom = getStageResetZoom(previewWidth, previewHeight, availableStageWidth, availableStageHeight);
+
+    set((state) => ({
+      viewportMode: 'custom',
+      customPreviewWidth: previewWidth,
+      previewHeight,
+      zoomById: {
+        ...state.zoomById,
+        [state.activeBreakpointId]: zoom,
+      },
+    }));
   },
   hydratePreviewHeight: async () => {
     const [previewHeight, previewViewport] = await Promise.all([
