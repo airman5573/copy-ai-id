@@ -6,7 +6,7 @@ import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 
 import { protectEditorInteractionFromHover } from '../../note-hover-guard';
 import { ChipNode } from './ChipNode';
-import { $initializeNotebookFromLegacyText } from './chip-import';
+import { $setNotebookPlainText } from './plain-text';
 import { NotebookEditorPlugins } from './NotebookEditorPlugins';
 
 interface NotebookLexicalEditorProps {
@@ -33,7 +33,7 @@ export function NotebookLexicalEditor({
       throw error;
     },
     editorState: initialEditorStateJsonRef.current ?? (() => {
-      $initializeNotebookFromLegacyText(initialDraftRef.current);
+      $setNotebookPlainText(initialDraftRef.current);
     }),
   }), []);
 

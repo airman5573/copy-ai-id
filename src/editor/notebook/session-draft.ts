@@ -1,5 +1,4 @@
 import {
-  FIRST_NOTEBOOK_CHIP_INDEX,
   getNotebookChipIndex,
   isNotebookChipId,
   normalizeNextNotebookChipIndex,
@@ -117,39 +116,29 @@ export function createNotebookDraftSessionPersistence(
   };
 }
 
-function normalizeNotebookDraftSessionValue(value: string): NotebookDraftSessionSnapshot {
+function normalizeNotebookDraftSessionValue(value: string): NotebookDraftSessionSnapshot | null {
   const parsedValue = parseJsonRecord(value);
 
-  if (isPersistedNotebookDraftSessionPayloadRecord(parsedValue)) {
-    const editorState = normalizeNotebookEditorStateJson(parsedValue.editorStateJson);
-    const minimumNextChipIndex = editorState.maxChipIndex + 1;
-
-    return {
-      draft: parsedValue.draft,
-      editorStateJson: editorState.editorStateJson,
-      nextChipIndex: Math.max(
-        normalizeNextNotebookChipIndex(parsedValue.nextChipIndex),
-        minimumNextChipIndex,
-      ),
-    };
+  if (!isPersistedNotebookDraftSessionPayloadRecord(parsedValue)) {
+    return null;
   }
 
-  if (parsedValue && isNotebookDraftSessionPayloadLike(parsedValue)) {
-    return createEmptyNotebookDraftSessionSnapshot();
+  const editorState = normalizeNotebookEditorStateJson(parsedValue.editorStateJson);
+  if (editorState.editorStateJson === null) {
+    // Only drafts with a valid serialized Lexical state are restored; a draft
+    // whose chip state failed validation would otherwise resurrect as raw text.
+    return null;
   }
 
-  return {
-    draft: value,
-    editorStateJson: null,
-    nextChipIndex: FIRST_NOTEBOOK_CHIP_INDEX,
-  };
-}
+  const minimumNextChipIndex = editorState.maxChipIndex + 1;
 
-function createEmptyNotebookDraftSessionSnapshot(): NotebookDraftSessionSnapshot {
   return {
-    draft: '',
-    editorStateJson: null,
-    nextChipIndex: FIRST_NOTEBOOK_CHIP_INDEX,
+    draft: parsedValue.draft,
+    editorStateJson: editorState.editorStateJson,
+    nextChipIndex: Math.max(
+      normalizeNextNotebookChipIndex(parsedValue.nextChipIndex),
+      minimumNextChipIndex,
+    ),
   };
 }
 
@@ -161,13 +150,6 @@ function isPersistedNotebookDraftSessionPayloadRecord(
     && value.version === NOTEBOOK_DRAFT_SESSION_VERSION
     && typeof value.draft === 'string',
   );
-}
-
-function isNotebookDraftSessionPayloadLike(value: Record<string, unknown>): boolean {
-  return value.version === NOTEBOOK_DRAFT_SESSION_VERSION
-    || 'draft' in value
-    || 'editorStateJson' in value
-    || 'nextChipIndex' in value;
 }
 
 function normalizeNotebookEditorStateJson(value: unknown): {

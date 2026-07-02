@@ -8,7 +8,7 @@ Planned module split:
 
 - `ChipNode.ts` — custom Lexical `TextNode` for stable `el-N` chips.
 - `chip-export.ts` — export Lexical editor state to copied note text, active chip targets, and fallback detection.
-- `chip-import.ts` — import legacy plain-text drafts and persisted Lexical JSON safely.
+- `plain-text.ts` — replace editor content with plain-text paragraphs when the store draft changes externally.
 - `NotebookLexicalEditor.tsx` — React editor surface that replaces the old textarea internals.
 - `NotebookEditorPlugins.tsx` — focused plugins for insertion, focus/hover protection, export sync, and chip clicks.
 

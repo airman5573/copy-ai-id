@@ -3,7 +3,6 @@ import type {
   EditorTarget,
   FallbackEditorTarget,
 } from './editor-messages';
-import { getCurrentMessages } from './i18n';
 
 export function isAiIdTarget(target: EditorTarget | null | undefined): target is AiIdEditorTarget {
   return target?.kind === 'ai-id';
@@ -38,26 +37,4 @@ export function hasSameEditorTarget(
   }
 
   return targetIdentityKey(first) === targetIdentityKey(second);
-}
-
-export function formatEditorTargetReference(target: EditorTarget): string {
-  // Legacy plain-text target format. New notebook insertions are represented as
-  // Lexical ChipNode instances; this formatter is intentionally kept only for
-  // old raw drafts that may still be loaded or copied as ordinary text.
-  if (isAiIdTarget(target)) {
-    return `\`[${target.aiId}]\``;
-  }
-
-  const messages = getCurrentMessages();
-  const lines = [
-    '[fallback target]',
-    `Element: ${target.label}`,
-    `Selector: ${target.selector}`,
-    `${messages.editor.fallbackSelectorType}: ${target.selectorKind}`,
-    `Path: ${target.path}`,
-    target.nearbyText || target.textPreview ? `Context: ${target.nearbyText || target.textPreview}` : '',
-    '[/fallback target]',
-  ].filter(Boolean);
-
-  return lines.join('\n');
 }

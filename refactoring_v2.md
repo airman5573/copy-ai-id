@@ -55,9 +55,9 @@
   - Files/areas: src/editor/note-hover-guard.ts (`protectNoteEditorFromHover` alias ~57-59), src/editor/stores/useVisualEditStore.ts (`selectHasCopyableVisualEdits` ~259-261 — inline its one behavior into callers of `selectHasVisualEdits` or vice versa; `hiddenPromptCount` duplicate of `exportableCount` ~280), src/editor/stores/useNotebookStore.ts (`appendTargetReference` stub ~158-167)
   - Notes: Alias callers rewired to `protectEditorInteractionFromHover`; `selectHasVisualEdits`/`exportableCount` now the single names. The `insertTargetReference == null` mount race IS reachable (floating-panel rAF insert), so the guard was inlined into `insertTargetReferenceIntoNotebook` as a `setFocusedTarget` call and the store stub deleted.
   - Parallelizable: yes
-- [ ] Remove legacy notebook-draft compatibility paths
+- [x] Remove legacy notebook-draft compatibility paths
   - Files/areas: src/editor/notebook/lexical/chip-import.ts (`$initializeNotebookFromLegacyText`, `isLegacyNotebookDraftValue`), src/editor/notebook/session-draft.ts (legacy plaintext fallback branch; keep v2 JSON as the only accepted format), src/shared/editor-targets.ts (`formatEditorTargetReference`, ~44-63)
-  - Notes: Old-format drafts stop restoring — accepted. After removal, simplify session-draft validation to the v2 path only; delete now-unused validators.
+  - Notes: `$initializeNotebookFromLegacyText` turned out to be the LIVE draft-sync mechanism (DraftSyncPlugin resets the editor from the store draft after copy/clear) — renamed to `$setNotebookPlainText` in new `plain-text.ts`; chip-import.ts deleted. session-draft now restores only v2 payloads with a valid serialized Lexical state (invalid chip state → no draft, not raw text). `formatEditorTargetReference` deleted.
   - Parallelizable: no
 - [ ] Remove the backwards-compatible alias in `runtime-messages.ts` if unreferenced
   - Files/areas: src/shared/runtime-messages.ts (~24-25)

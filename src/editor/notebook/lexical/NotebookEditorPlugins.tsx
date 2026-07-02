@@ -22,7 +22,7 @@ import { useNotebookStore } from '../../stores/useNotebookStore';
 import { showStaleFallbackTargetToast } from '../../toast';
 import { $createChipNode } from './ChipNode';
 import { $exportNotebookLexicalState, type ExportedChipTarget } from './chip-export';
-import { $initializeNotebookFromLegacyText } from './chip-import';
+import { $setNotebookPlainText } from './plain-text';
 
 interface NotebookEditorPluginsProps {
   draft: string;
@@ -81,7 +81,7 @@ function DraftSyncPlugin({ draft }: { draft: string }) {
     }
 
     editor.update(() => {
-      $initializeNotebookFromLegacyText(draft);
+      $setNotebookPlainText(draft);
     });
   }, [draft, editor]);
 
