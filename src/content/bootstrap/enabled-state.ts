@@ -1,5 +1,5 @@
-import { DEFAULT_ENABLED } from './config';
-import type { EnabledChangeListener, EnabledState } from './types';
+import { DEFAULT_ENABLED } from '../../shared/config';
+import type { EnabledChangeListener, EnabledState } from '../../shared/types';
 
 // Runtime-only state: values intentionally live in this JS context only and
 // reset to DEFAULT_ENABLED whenever the page/frame/extension context reloads.

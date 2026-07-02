@@ -55,7 +55,7 @@ import {
 import {
   resolveVisualTarget,
   type VisualTargetResolveSuccess,
-} from './visual-targets';
+} from './visual-target-resolver';
 
 const PROTECTED_STRUCTURE_TAGS = new Set(['html', 'head', 'body']);
 

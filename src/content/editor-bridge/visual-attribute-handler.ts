@@ -17,7 +17,7 @@ import {
 import {
   resolveVisualTarget,
   type VisualTargetResolveSuccess,
-} from './visual-targets';
+} from './visual-target-resolver';
 
 export function handleUpdateVisualAttribute(
   message: UpdateVisualAttributeMessage,

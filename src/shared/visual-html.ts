@@ -1,3 +1,8 @@
+/**
+ * DOMPurify-based HTML fragment sanitizer. DOM-dependent (uses
+ * document.createElement), so it is only valid in content-script and
+ * editor contexts — not a pure shared utility.
+ */
 import DOMPurify from 'dompurify';
 
 import { DATA_AI_ID_ATTRIBUTE } from './config';

@@ -9,7 +9,7 @@ import {
   type NotebookBreakpointScope,
 } from '../notebook/breakpoint-scope';
 import { getCurrentMessages } from '../../shared/i18n';
-import { writeNotebookTargetNotice } from '../../shared/notebook-notice';
+import { writeNotebookTargetNotice } from '../notebook/notebook-notice';
 import { clearNotebookCopyStatusReset, copyNotebookDraftFromStore } from '../notebook/copy';
 import {
   DEFAULT_NOTE_FONT_SIZE,

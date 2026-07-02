@@ -2,7 +2,7 @@ import {
   normalizeNotebookBreakpointScopes,
   type NotebookBreakpointScope,
 } from './breakpoint-scope';
-import { getDefaultNotebookTargetElementNotice } from '../../shared/notebook-notice';
+import { getDefaultNotebookTargetElementNotice } from './notebook-notice';
 
 export type NotebookBreakpointScopeSelectionMode = 'all' | 'manual';
 

@@ -8,7 +8,7 @@ import { TopToolbar } from './components/TopToolbar';
 import { installEditorKeyboard } from './keyboard';
 import { installKeyboardNavigationHoverGuard } from './keyboard-hover-guard';
 import { installVisualEditorFocusGuard } from './visual-focus-guard';
-import { readNotebookTargetNotice } from '../shared/notebook-notice';
+import { readNotebookTargetNotice } from './notebook/notebook-notice';
 import { clearEditorToastReset } from './toast';
 import { useBreakpointStore } from './stores/useBreakpointStore';
 import { useRuntimeStore } from './stores/useRuntimeStore';

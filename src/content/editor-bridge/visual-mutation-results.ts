@@ -30,7 +30,7 @@ import {
   resolveVisualTargetSnapshot,
   type VisualTargetResolveSuccess,
   type VisualTargetSnapshotOptions,
-} from './visual-targets';
+} from './visual-target-resolver';
 
 export type VisualMutationResultMessage =
   | VisualStyleUpdatedMessage

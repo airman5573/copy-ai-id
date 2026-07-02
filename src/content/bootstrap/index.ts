@@ -2,7 +2,7 @@ import {
   getEnabledState,
   onEnabledStateChange,
   setEnabledState,
-} from '../../shared/enabled-state';
+} from './enabled-state';
 import {
   EDITOR_HOST_ATTR,
   OVERLAY_HOST_ATTR,

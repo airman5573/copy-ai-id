@@ -1,4 +1,4 @@
-import { copyText } from '../../content/clipboard/clipboard';
+import { copyText } from './clipboard';
 import type { CopyStatus } from '../types';
 import {
   selectHasNotebookDraftForCopy,

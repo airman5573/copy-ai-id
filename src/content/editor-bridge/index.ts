@@ -18,13 +18,13 @@ import {
   setHoverHighlightSuppressed,
 } from './highlight';
 import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
-import { handleUpdateVisualStyle } from './visual-style';
+import { handleUpdateVisualStyle } from './visual-style-handler';
 import {
   handleUpdateVisualRichText,
   handleUpdateVisualText,
-} from './visual-content';
-import { handleUpdateVisualAttribute } from './visual-attributes';
-import { handleUpdateVisualFormValue } from './visual-form-value';
+} from './visual-content-handler';
+import { handleUpdateVisualAttribute } from './visual-attribute-handler';
+import { handleUpdateVisualFormValue } from './visual-form-value-handler';
 import {
   handleDeleteVisualElement,
   handleDuplicateVisualElement,

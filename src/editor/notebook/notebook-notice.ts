@@ -1,4 +1,4 @@
-import { getCurrentMessages } from './i18n';
+import { getCurrentMessages } from '../../shared/i18n';
 
 export function getDefaultNotebookTargetElementNotice(): string {
   return getCurrentMessages().notebook.defaultTargetNotice;

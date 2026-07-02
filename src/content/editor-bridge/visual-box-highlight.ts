@@ -1,6 +1,6 @@
 import type { HighlightVisualBoxRegionMessage } from '../../shared/protocol/editor-bridge-messages';
 import { hideBoxModel, showBoxModelRegion } from './box-model';
-import { resolveVisualTarget } from './visual-targets';
+import { resolveVisualTarget } from './visual-target-resolver';
 
 export function handleHighlightVisualBoxRegion(message: HighlightVisualBoxRegionMessage): void {
   const highlight = message.highlight;
