@@ -1,6 +1,7 @@
 import {
   PREVIEW_BOX_MODEL_CONTROL_Z_INDEX,
   PREVIEW_BOX_MODEL_HOVER_Z_INDEX,
+  PREVIEW_BOX_MODEL_SELECTION_Z_INDEX,
   PREVIEW_OVERLAY_ATTR,
 } from '../../shared/config';
 import {
@@ -15,7 +16,7 @@ import type {
   VisualBoxRegion,
 } from '../../shared/domain/visual';
 
-type OverlayKind = 'hover' | 'control';
+type OverlayKind = 'hover' | 'selection' | 'control';
 interface BoxModelRegionFilter {
   region: VisualBoxRegion;
   edge?: VisualBoxEdge;
@@ -23,6 +24,7 @@ interface BoxModelRegionFilter {
 
 const OVERLAY_Z_INDEX: Record<OverlayKind, string> = {
   hover: String(PREVIEW_BOX_MODEL_HOVER_Z_INDEX),
+  selection: String(PREVIEW_BOX_MODEL_SELECTION_Z_INDEX),
   control: String(PREVIEW_BOX_MODEL_CONTROL_Z_INDEX),
 };
 

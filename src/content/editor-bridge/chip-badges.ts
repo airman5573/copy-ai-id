@@ -12,8 +12,8 @@ import type { BridgePost } from './types';
 import { resolveVisualTarget } from './visual-target-resolver';
 
 const CHIP_BADGE_LAYER_MARKER = 'chip-badges';
-const CHIP_BADGE_HEIGHT_PX = 16;
-const CHIP_BADGE_STACK_GAP_PX = 3;
+const CHIP_BADGE_HEIGHT_PX = 24;
+const CHIP_BADGE_STACK_GAP_PX = 4.5;
 
 interface ChipBadgeEntry {
   descriptor: ChipBadgeDescriptor;
@@ -190,12 +190,12 @@ function createChipBadgeNode(descriptor: ChipBadgeDescriptor): HTMLElement {
     'align-items: center',
     'justify-content: center',
     `height: ${CHIP_BADGE_HEIGHT_PX}px`,
-    'min-width: 16px',
-    'padding: 0 4px',
-    'border-radius: 4px 4px 4px 0',
+    'min-width: 24px',
+    'padding: 0 6px',
+    'border-radius: 6px 6px 6px 0',
     'background: #2563eb',
     'color: #ffffff',
-    'font: 700 10px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    'font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     'letter-spacing: 0.02em',
     'box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.55)',
     'cursor: pointer',

@@ -8,6 +8,8 @@ import type {
 import { targetIdentityKey } from '../../../shared/editor-targets';
 import type { VisualEditSource } from '../../../shared/visual-edits';
 import {
+  setLengthValue,
+  setOpacityValue,
   stepLengthValue,
   stepOpacityValue,
   type StepperBaseState,
@@ -31,6 +33,11 @@ export interface ToolbarStepperApi {
   stepProperties(options: Omit<ToolbarStepOptions, 'property' | 'computedProperty'> & {
     properties: string[];
   }, direction: 1 | -1): void;
+  // Typed absolute value: px for lengths, percentage points for opacity.
+  setPropertyValue(options: ToolbarStepOptions, value: number): void;
+  setPropertiesValue(options: Omit<ToolbarStepOptions, 'property' | 'computedProperty'> & {
+    properties: string[];
+  }, value: number): void;
 }
 
 // Per-target stepper state: base values and cumulative percents keyed by CSS
@@ -77,6 +84,22 @@ export function useToolbarStepper(
       intent: result.intent ?? undefined,
     };
   }, [snapshot]);
+
+  const setDeclaration = useCallback((
+    options: ToolbarStepOptions,
+    value: number,
+  ): VisualStyleDeclarationMutationInput => {
+    const result = options.mode === 'opacity'
+      ? setOpacityValue(value)
+      : setLengthValue(value);
+
+    statesRef.current.set(options.property, result.state);
+    return {
+      property: options.property,
+      value: result.cssValue,
+      intent: result.intent ?? undefined,
+    };
+  }, []);
 
   const stepProperty = useCallback((options: ToolbarStepOptions, direction: 1 | -1): void => {
     if (!reference) {
@@ -129,7 +152,47 @@ export function useToolbarStepper(
     });
   }, [reference, snapshot, source, stepDeclaration]);
 
-  return { stepProperty, stepProperties };
+  const setPropertyValue = useCallback((options: ToolbarStepOptions, value: number): void => {
+    if (!reference || !snapshot) {
+      return;
+    }
+
+    dispatchVisualStyleMutation({
+      reference,
+      snapshot,
+      source,
+      category: options.category,
+      control: { id: `stepper:${options.property}` },
+      declarations: [setDeclaration(options, value)],
+      coalesce: true,
+    });
+  }, [reference, snapshot, source, setDeclaration]);
+
+  const setPropertiesValue = useCallback((options: Omit<ToolbarStepOptions, 'property' | 'computedProperty'> & {
+    properties: string[];
+  }, value: number): void => {
+    if (!reference || !snapshot || options.properties.length === 0) {
+      return;
+    }
+
+    const declarations = options.properties.map((property) => setDeclaration({
+      property,
+      category: options.category,
+      mode: options.mode,
+    }, value));
+
+    dispatchVisualStyleMutation({
+      reference,
+      snapshot,
+      source,
+      category: options.category,
+      control: { id: `stepper:${declarations.map((declaration) => declaration.property).join('+')}` },
+      declarations,
+      coalesce: true,
+    });
+  }, [reference, snapshot, source, setDeclaration]);
+
+  return { stepProperty, stepProperties, setPropertyValue, setPropertiesValue };
 }
 
 function stepperTargetKey(reference: EditorTargetReference): string {

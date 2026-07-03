@@ -15,8 +15,6 @@ export const DEFAULT_PREVIEW_HEIGHT = MAX_PREVIEW_HEIGHT;
 export const DEFAULT_PREVIEW_WIDTH = 1920;
 export const MIN_PREVIEW_WIDTH = 320;
 export const MAX_PREVIEW_WIDTH = 2560;
-const PREVIEW_STAGE_HORIZONTAL_PADDING = 64;
-const PREVIEW_STAGE_VERTICAL_PADDING = 64;
 export const PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET = 28;
 const PREVIEW_VIEWPORT_STORAGE_KEY = 'copy-ai-id:preview-viewport:v1';
 
@@ -32,6 +30,15 @@ export interface ActiveCanvasZoomState {
   zoomById: Record<BreakpointId, number>;
 }
 
+export interface FitZoomOptions {
+  /**
+   * Cap the fitted zoom at 100%. Viewport switches use this so narrow
+   * breakpoints render at natural size; the explicit Fit button omits it and
+   * may zoom in to fill the stage.
+   */
+  fitDownOnly?: boolean;
+}
+
 interface BreakpointStore {
   activeBreakpointId: BreakpointId;
   viewportMode: PreviewViewportMode;
@@ -42,7 +49,7 @@ interface BreakpointStore {
   setCustomPreviewWidth(width: number): void;
   setZoom(zoom: number): void;
   stepZoom(step?: number): void;
-  fitZoom(availableStageWidth?: number, availableStageHeight?: number): void;
+  fitZoom(availableStageWidth?: number, availableStageHeight?: number, options?: FitZoomOptions): void;
   resetPreviewToStage(availableStageWidth?: number, availableStageHeight?: number): void;
   hydratePreviewHeight(): Promise<void>;
   persistCustomPreviewWidth(width?: number): Promise<void>;
@@ -166,19 +173,17 @@ function getStageFillingPreviewWidth(availableStageWidth?: number): number {
 
 function getStageResetZoom(
   previewWidth: number,
-  previewHeight: number,
+  _previewHeight: number,
   availableStageWidth?: number,
-  availableStageHeight?: number,
+  _availableStageHeight?: number,
 ): number {
-  if (!Number.isFinite(availableStageWidth) || !Number.isFinite(availableStageHeight)) {
+  if (!Number.isFinite(availableStageWidth)) {
     return DEFAULT_ZOOM;
   }
 
   const visualWidth = previewWidth + (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2);
-  const visualHeight = normalizePreviewHeight(previewHeight);
   const availableWidth = Math.max(1, Number(availableStageWidth));
-  const availableHeight = Math.max(1, Number(availableStageHeight) - PREVIEW_STAGE_VERTICAL_PADDING);
-  const fitDownZoom = Math.min(DEFAULT_ZOOM, availableWidth / visualWidth, availableHeight / visualHeight);
+  const fitDownZoom = Math.min(DEFAULT_ZOOM, availableWidth / visualWidth);
 
   return normalizeZoom(Math.floor(fitDownZoom * 100) / 100);
 }
@@ -213,21 +218,21 @@ export const useBreakpointStore = create<BreakpointStore>((set, get) => ({
     const safeStep = Number.isFinite(step) ? step : CANVAS_ZOOM_STEP;
     state.setZoom(state.zoomById[state.activeBreakpointId] + safeStep);
   },
-  fitZoom: (availableStageWidth, availableStageHeight) => {
+  fitZoom: (availableStageWidth, _availableStageHeight, options) => {
     const state = get();
     const width = getActivePreviewWidth(state);
     const visualWidth = width + (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2);
-    const visualHeight = normalizePreviewHeight(state.previewHeight);
     const stageWidth = Number.isFinite(availableStageWidth)
       ? Number(availableStageWidth)
-      : visualWidth + PREVIEW_STAGE_HORIZONTAL_PADDING;
-    const stageHeight = Number.isFinite(availableStageHeight)
-      ? Number(availableStageHeight)
-      : visualHeight + PREVIEW_STAGE_VERTICAL_PADDING;
-    const availableWidth = Math.max(1, stageWidth - PREVIEW_STAGE_HORIZONTAL_PADDING);
-    const availableHeight = Math.max(1, stageHeight - PREVIEW_STAGE_VERTICAL_PADDING);
-    const fitZoomValue = Math.min(availableWidth / visualWidth, availableHeight / visualHeight);
-    state.setZoom(Math.floor(fitZoomValue * 100) / 100);
+      : visualWidth;
+    const availableWidth = Math.max(1, stageWidth);
+    // Fit by width only. Long previews should scroll vertically instead of
+    // forcing the entire fixed-height iframe to shrink.
+    const fitZoomValue = availableWidth / visualWidth;
+    const boundedFitZoom = options?.fitDownOnly
+      ? Math.min(DEFAULT_ZOOM, fitZoomValue)
+      : fitZoomValue;
+    state.setZoom(Math.floor(boundedFitZoom * 100) / 100);
   },
   resetPreviewToStage: (availableStageWidth, availableStageHeight) => {
     const previewWidth = getStageFillingPreviewWidth(availableStageWidth);

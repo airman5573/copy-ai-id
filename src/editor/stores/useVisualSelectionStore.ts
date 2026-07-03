@@ -103,6 +103,7 @@ interface VisualSelectionStore extends VisualSelectionStateSnapshot {
   setQuickActionAnchor(message: QuickActionAnchorChangedMessage, editorRect?: EditorViewportRect | null): void;
   clearQuickActionTargets(): void;
   clearQuickActionSelection(): void;
+  hideQuickActionToolbar(): void;
   openPanelForTarget(input: VisualPanelTargetInput): void;
   closePanel(): void;
   setSnapshotLoading(reference: EditorTargetReference): void;
@@ -220,6 +221,12 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
     activeToolbarTarget: null,
     quickActionDismissedAt: Date.now(),
     staleReason: 'cleared',
+  }),
+  // Hides the toolbar UI only: the bridge-side pinned selection stays alive,
+  // so no staleReason and no snapshot lifecycle change.
+  hideQuickActionToolbar: () => set({
+    activeToolbarTarget: null,
+    quickActionDismissedAt: Date.now(),
   }),
   openPanelForTarget: (input) => set((state) => {
     const now = Date.now();

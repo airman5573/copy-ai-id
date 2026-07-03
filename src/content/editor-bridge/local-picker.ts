@@ -4,7 +4,11 @@ import type {
   BridgeViewportSize,
 } from '../../shared/domain/geometry';
 import type { EditorTarget } from '../../shared/domain/targets';
-import { getComposedElementsFromPoint } from '../target/composed-dom';
+import {
+  closestComposedElementMatching,
+  getComposedChildElements,
+  getComposedElementsFromPoint,
+} from '../target/composed-dom';
 import { editorTargetForElement } from './editor-target';
 import {
   viewportRectForElement,
@@ -28,9 +32,14 @@ export interface LocalTargetReference {
   viewport: BridgeViewportSize;
 }
 
+// Pointer picks follow the Chrome DevTools Inspect policy: the raw hit under
+// the pointer promotes upward through the composed tree to the NEAREST
+// selectable element. Tagged (data-ai-id) elements always qualify; untagged
+// elements must pass a significance check so trivial wrappers, zero-size
+// nodes and SVG internals promote to a meaningful ancestor instead.
 export function resolveStrictPointHitFromMouseEvent(event: MouseEvent): LocalHitTestResult | null {
   const pointStack = getComposedElementsFromPoint(event.clientX, event.clientY);
-  const pointElement = firstPickableElement(pointStack);
+  const pointElement = closestSelectableElement(firstPickableElement(pointStack));
   if (pointElement) {
     return {
       element: pointElement,
@@ -39,7 +48,7 @@ export function resolveStrictPointHitFromMouseEvent(event: MouseEvent): LocalHit
     };
   }
 
-  const pathElement = firstElementFromComposedPath(event);
+  const pathElement = closestSelectableElement(firstElementFromComposedPath(event));
   if (pathElement) {
     return {
       element: pathElement,
@@ -49,7 +58,7 @@ export function resolveStrictPointHitFromMouseEvent(event: MouseEvent): LocalHit
   }
 
   const targetElement = event.target instanceof Element
-    ? connectedPickableElement(event.target)
+    ? closestSelectableElement(connectedPickableElement(event.target))
     : null;
   return targetElement
     ? {
@@ -90,6 +99,93 @@ export function targetReferenceForElement(element: Element): LocalTargetReferenc
 
 export function hasUsableAiId(element: Element): boolean {
   return (element.getAttribute(DATA_AI_ID_ATTRIBUTE)?.trim() ?? '').length > 0;
+}
+
+/** Tags that are never pointer-selectable, tagged or not. */
+const NEVER_SELECTABLE_TAGS = new Set([
+  'html',
+  'body',
+  'head',
+  'script',
+  'style',
+  'link',
+  'meta',
+  'template',
+  'noscript',
+  'br',
+  'wbr',
+]);
+
+/** SVG-internal tags are never candidates themselves — the upward walk promotes to the nearest svg ancestor. */
+const SVG_INTERNAL_TAGS = new Set(['path', 'g', 'rect', 'circle', 'line', 'polygon', 'polyline', 'use', 'defs']);
+
+/** Untagged elements of these tags are significant even without children/text. */
+const SIGNIFICANT_TAGS = new Set([
+  'img',
+  'picture',
+  'video',
+  'svg',
+  'button',
+  'a',
+  'input',
+  'select',
+  'textarea',
+  'ul',
+  'ol',
+  'li',
+  'table',
+  'section',
+  'article',
+  'header',
+  'footer',
+  'nav',
+  'aside',
+  'figure',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'p',
+  'blockquote',
+]);
+
+/**
+ * Relaxed eligibility for pointer picks and keyboard traversal: tagged
+ * (data-ai-id) elements always qualify; untagged elements additionally pass a
+ * significance check so trivial wrappers and zero-size nodes are skipped.
+ */
+export function isSelectableElement(element: Element): boolean {
+  if (!element.isConnected || isExtensionOwnedElement(element)) {
+    return false;
+  }
+
+  const tag = element.tagName.toLowerCase();
+  if (NEVER_SELECTABLE_TAGS.has(tag)) {
+    return false;
+  }
+
+  if (hasUsableAiId(element)) {
+    return true;
+  }
+
+  if (SVG_INTERNAL_TAGS.has(tag)) {
+    return false;
+  }
+
+  const rect = element.getBoundingClientRect();
+  if (rect.width * rect.height <= 1) {
+    return false;
+  }
+
+  return getComposedChildElements(element).length >= 1
+    || (element.textContent ?? '').trim().length >= 4
+    || SIGNIFICANT_TAGS.has(tag);
+}
+
+export function closestSelectableElement(element: Element | null): Element | null {
+  return element ? closestComposedElementMatching(element, isSelectableElement) : null;
 }
 
 function firstPickableElement(elements: Element[]): Element | null {

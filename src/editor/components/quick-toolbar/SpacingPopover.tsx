@@ -93,6 +93,7 @@ export function SpacingPopover({
                     disabled={disabled}
                     dataAiId={`${dataAiId}-${edge.suffix}-stepper`}
                     onStep={(direction) => stepper.stepProperty({ property, category }, direction)}
+                    onCommitValue={(value) => stepper.setPropertyValue({ property, category }, value)}
                   />
                 </div>
               );
@@ -112,6 +113,10 @@ export function SpacingPopover({
                 properties: spacingPropertiesForScope(group, activeScope),
                 category,
               }, direction)}
+              onCommitValue={(value) => stepper.setPropertiesValue({
+                properties: spacingPropertiesForScope(group, activeScope),
+                category,
+              }, value)}
             />
           </div>
         )}

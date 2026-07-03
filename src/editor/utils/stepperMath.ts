@@ -1,7 +1,9 @@
 // Percent-intent stepper math. One click = ±10% additive relative to the
 // base captured at the first step (base × (1 + percent/100), rounded to one
 // decimal, clamped at 0). Zero/none bases seed on the first `+` step;
-// opacity steps in percentage points instead of relative percent.
+// opacity steps in percentage points instead of relative percent. Typing a
+// value directly commits it as a concrete value (no percent intent) and
+// becomes the new base for subsequent steps.
 
 import type { VisualStyleValueIntent } from '../../shared/visual-edits';
 
@@ -100,6 +102,36 @@ export function stepOpacityValue(options: {
       base: formatOpacity(basePoints),
     },
   };
+}
+
+export function setLengthValue(value: number): StepperStepResult {
+  const px = Math.max(0, roundToOneDecimal(value));
+  return {
+    state: { base: px, percent: 0 },
+    cssValue: formatPx(px),
+    intent: null,
+  };
+}
+
+export function setOpacityValue(points: number): StepperStepResult {
+  const clamped = clampPercentagePoints(points);
+  return {
+    state: { base: clamped, percent: 0 },
+    cssValue: formatOpacity(clamped),
+    intent: null,
+  };
+}
+
+// Typed stepper input: bare number with an optional px/% unit. The unit is
+// ignored — the stepper's mode decides how the number is interpreted.
+export function parseStepperInputValue(raw: string): number | null {
+  const match = /^(-?\d+(?:\.\d+)?)\s*(?:px|%)?$/i.exec(raw.trim());
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number.parseFloat(match[1]);
+  return Number.isFinite(amount) ? amount : null;
 }
 
 export function formatStepperLengthDisplay(computedValue: string): string {

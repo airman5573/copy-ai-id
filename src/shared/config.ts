@@ -37,6 +37,9 @@ export const EXTENSION_OWNED_DOM_SELECTOR = [
 export const EDITOR_HOST_Z_INDEX = 2147483646;
 export const PREVIEW_DROP_INDICATOR_Z_INDEX = 2147483647;
 export const PREVIEW_BOX_MODEL_HOVER_Z_INDEX = 2147483645;
+// The pinned-selection layer shares the hover plane; the hover layer is hidden
+// while it targets the pinned element, so the two never stack on one element.
+export const PREVIEW_BOX_MODEL_SELECTION_Z_INDEX = 2147483645;
 export const PREVIEW_BOX_MODEL_CONTROL_Z_INDEX = 2147483647;
 export const PREVIEW_QUICK_ACTION_TOOLBAR_Z_INDEX = 2147483647;
 // Above the hover box-model, below the control/drop-indicator layers.

@@ -34,6 +34,7 @@ let highlightedNodeId: string | null = null;
 let highlightedTarget: EditorTarget | null = null;
 let highlightedOrigin: HighlightOrigin | null = null;
 let pinnedElement: Element | null = null;
+let quickActionToolbarHidden = false;
 let hoverHighlightSuppressed = false;
 let keyboardNavigationHoverSuppressed = false;
 let inlineTextEditSuppressed = false;
@@ -102,12 +103,14 @@ export function installHoverHighlight(post: BridgePost): () => void {
     }
 
     const element = resolvePreviewHighlightElement(event);
-    if (element && !isEmptyAreaElement(element)) {
+    if (element) {
       consumeMouseEvent(event);
       pinQuickActionToolbar(element, post);
       return;
     }
 
+    // A click that resolves to nothing (document background or an
+    // insignificant area) dismisses the pinned toolbar.
     if (pinnedElement) {
       consumeMouseEvent(event);
       clearQuickActionSelection(post);
@@ -127,7 +130,9 @@ export function installHoverHighlight(post: BridgePost): () => void {
     document.removeEventListener('click', handleClick, true);
     window.removeEventListener('blur', handleBlur);
     endPinnedAnchorTracking();
+    hideOverlay('selection');
     pinnedElement = null;
+    quickActionToolbarHidden = false;
     hoverHighlightSuppressed = false;
     keyboardNavigationHoverSuppressed = false;
     inlineTextEditSuppressed = false;
@@ -144,9 +149,19 @@ export function clearHighlightedElement(post: BridgePost): void {
   setHighlightedElement(null, post, 'preview');
 }
 
+// Hides the editor-side toolbar UI while keeping the pinned selection: the
+// pinned element, selection overlay, and anchor tracking stay alive, but
+// refresh/reposition syncs stop so the toolbar cannot resurface without a
+// new click pin (used when a notebook chip append takes over the screen).
+export function hideQuickActionToolbar(): void {
+  quickActionToolbarHidden = true;
+}
+
 export function clearQuickActionSelection(post: BridgePost): void {
   pinnedElement = null;
+  quickActionToolbarHidden = false;
   endPinnedAnchorTracking();
+  hideOverlay('selection');
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
     target: null,
@@ -261,6 +276,8 @@ function pinQuickActionToolbar(element: Element, post: BridgePost): void {
   }
 
   pinnedElement = reference.element;
+  quickActionToolbarHidden = false;
+  showOverlay('selection', reference.element);
   setHighlightedElement(reference.element, post, 'preview', { force: true });
   syncPinnedQuickActionToolbar(reference, post);
   beginPinnedAnchorTracking(post);
@@ -275,6 +292,10 @@ function refreshPinnedQuickActionToolbar(post: BridgePost): void {
   const reference = connected ? targetReferenceForElement(connected) : null;
   if (!reference?.target) {
     clearQuickActionSelection(post);
+    return;
+  }
+
+  if (quickActionToolbarHidden) {
     return;
   }
 
@@ -349,6 +370,10 @@ function postRepositionedAnchor(post: BridgePost): void {
     return;
   }
 
+  if (quickActionToolbarHidden) {
+    return;
+  }
+
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
     target: reference.target,
@@ -362,13 +387,6 @@ function postRepositionedAnchor(post: BridgePost): void {
 
 function resolvePreviewHighlightElement(event: MouseEvent): Element | null {
   return resolveStrictPointHitFromMouseEvent(event)?.element ?? null;
-}
-
-// A click that resolves to the document background dismisses the pinned
-// toolbar instead of pinning the whole page.
-function isEmptyAreaElement(element: Element): boolean {
-  return element === element.ownerDocument.documentElement
-    || element === element.ownerDocument.body;
 }
 
 function updateHoverOverlay(): void {

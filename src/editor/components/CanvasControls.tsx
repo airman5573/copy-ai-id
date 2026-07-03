@@ -11,11 +11,12 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
   useBreakpointStore,
+  type FitZoomOptions,
 } from '../stores/useBreakpointStore';
 import { ToolbarButton, ToolbarSegment } from './ui/builderChrome';
 
 export interface CanvasControlsProps {
-  onFitZoom?: () => void;
+  onFitZoom?: (options?: FitZoomOptions) => void;
 }
 
 export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
@@ -28,14 +29,11 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
   const setBreakpoint = useBreakpointStore((state) => state.setBreakpoint);
   const persistCustomPreviewWidth = useBreakpointStore((state) => state.persistCustomPreviewWidth);
   const stepZoom = useBreakpointStore((state) => state.stepZoom);
-  const resetZoom = useBreakpointStore((state) => state.resetZoom);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
   const activeBreakpoint = breakpointById(activeBreakpointId);
   const activePreviewWidth = viewportMode === 'custom' ? customPreviewWidth : activeBreakpoint.width;
 
-  const handleBreakpointChange = (breakpointId: BreakpointId): void => {
-    setBreakpoint(breakpointId);
-
+  const handleFitZoom = (): void => {
     if (onFitZoom) {
       onFitZoom();
       return;
@@ -44,15 +42,26 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
     fitZoom();
   };
 
+  const handleBreakpointChange = (breakpointId: BreakpointId): void => {
+    setBreakpoint(breakpointId);
+
+    if (onFitZoom) {
+      onFitZoom({ fitDownOnly: true });
+      return;
+    }
+
+    fitZoom(undefined, undefined, { fitDownOnly: true });
+  };
+
   const handleCustomViewportChange = (): void => {
     void persistCustomPreviewWidth(customPreviewWidth);
 
     if (onFitZoom) {
-      onFitZoom();
+      onFitZoom({ fitDownOnly: true });
       return;
     }
 
-    fitZoom();
+    fitZoom(undefined, undefined, { fitDownOnly: true });
   };
 
   return (
@@ -101,7 +110,7 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
         </ToolbarButton>
         <ToolbarButton
           data-ai-id="copy-ai-id-editor-zoom-reset-button"
-          onClick={resetZoom}
+          onClick={handleFitZoom}
           title={messages.editor.zoomReset}
           aria-label={messages.editor.zoomReset}
         >
@@ -119,13 +128,7 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
         </ToolbarButton>
         <ToolbarButton
           data-ai-id="copy-ai-id-editor-zoom-fit-button"
-          onClick={() => {
-            if (onFitZoom) {
-              onFitZoom();
-              return;
-            }
-            fitZoom();
-          }}
+          onClick={handleFitZoom}
           title={messages.editor.zoomFit}
           aria-label={messages.editor.zoomFit}
         >

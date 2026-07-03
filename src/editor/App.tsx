@@ -11,7 +11,7 @@ import { installKeyboardNavigationHoverGuard } from './keyboard-hover-guard';
 import { installVisualEditorFocusGuard } from './visual-focus-guard';
 import { readNotebookTargetNotice } from './notebook/notebook-notice';
 import { clearEditorToastReset } from './toast';
-import { useBreakpointStore } from './stores/useBreakpointStore';
+import { useBreakpointStore, type FitZoomOptions } from './stores/useBreakpointStore';
 import { useRuntimeStore } from './stores/useRuntimeStore';
 import { useNotebookStore } from './stores/useNotebookStore';
 import { useToastStore } from './stores/useToastStore';
@@ -94,8 +94,8 @@ export function App({ onRequestClose }: AppProps) {
     setSuffixSettings,
   ]);
 
-  const handleFitZoom = useCallback(() => {
-    fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
+  const handleFitZoom = useCallback((options?: FitZoomOptions) => {
+    fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight, options);
   }, [fitZoom]);
 
   return (

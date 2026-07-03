@@ -38,6 +38,7 @@ export const EDITOR_MESSAGE_TYPES = {
   revealTreeNode: 'copy-ai-id:reveal-tree-node',
   keyboardShortcut: 'copy-ai-id:keyboard-shortcut',
   clearQuickActionSelection: 'copy-ai-id:clear-quick-action-selection',
+  hideQuickActionToolbar: 'copy-ai-id:hide-quick-action-toolbar',
   setHoverHighlightSuppressed: 'copy-ai-id:set-hover-highlight-suppressed',
   setCanvasZoom: 'copy-ai-id:set-canvas-zoom',
   iframeStatus: 'copy-ai-id:iframe-status',
@@ -145,6 +146,13 @@ export interface KeyboardShortcutMessage {
 
 export interface ClearQuickActionSelectionMessage {
   type: typeof EDITOR_MESSAGE_TYPES.clearQuickActionSelection;
+}
+
+// Hides the quick toolbar UI without dropping the pinned selection: the
+// bridge keeps the pinned element + selection overlay but stops re-posting
+// anchor syncs until the next click pin re-shows the toolbar.
+export interface HideQuickActionToolbarMessage {
+  type: typeof EDITOR_MESSAGE_TYPES.hideQuickActionToolbar;
 }
 
 export interface SetHoverHighlightSuppressedMessage {
@@ -375,6 +383,7 @@ export type EditorToBridgeMessage =
   | RevealTreeNodeMessage
   | KeyboardShortcutMessage
   | ClearQuickActionSelectionMessage
+  | HideQuickActionToolbarMessage
   | SetHoverHighlightSuppressedMessage
   | SetCanvasZoomMessage
   | RequestVisualTargetSnapshotMessage

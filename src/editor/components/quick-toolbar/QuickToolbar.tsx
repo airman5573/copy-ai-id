@@ -491,6 +491,7 @@ function QuickToolbarControl({
             disabled={disabled}
             dataAiId="copy-ai-id-editor-quick-toolbar-radius-stepper"
             onStep={(direction) => stepper.stepProperty({ property: 'border-radius', category: 'border' }, direction)}
+            onCommitValue={(value) => stepper.setPropertyValue({ property: 'border-radius', category: 'border' }, value)}
           />
         </LabeledControl>
       );
@@ -503,6 +504,7 @@ function QuickToolbarControl({
             disabled={disabled}
             dataAiId="copy-ai-id-editor-quick-toolbar-font-size-stepper"
             onStep={(direction) => stepper.stepProperty({ property: 'font-size', category: 'style' }, direction)}
+            onCommitValue={(value) => stepper.setPropertyValue({ property: 'font-size', category: 'style' }, value)}
           />
         </LabeledControl>
       );

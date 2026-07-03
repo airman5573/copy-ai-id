@@ -85,8 +85,15 @@ export function postToBridge(message: EditorToBridgeMessage): void {
   getBridgeIframeElement()?.contentWindow?.postMessage(message, '*');
 }
 
-export function requestBridgeQuickActionSelectionClear(): void {
-  postToBridge({ type: EDITOR_MESSAGE_TYPES.clearQuickActionSelection });
+// Hides the quick toolbar when a notebook chip append/focus takes over,
+// keeping the pinned selection (element pin + selection overlay) alive.
+// The store write is synchronous on purpose: a round-trip through the bridge
+// would race the note-panel focus, whose hover protection swallows inbound
+// quickActionAnchorChanged messages. The bridge message only suppresses
+// later anchor re-syncs so the toolbar stays hidden until the next click pin.
+export function hideQuickActionToolbar(): void {
+  useVisualSelectionStore.getState().hideQuickActionToolbar();
+  postToBridge({ type: EDITOR_MESSAGE_TYPES.hideQuickActionToolbar });
 }
 
 export function postCurrentCanvasZoomToBridge(): void {
@@ -304,7 +311,7 @@ function handleTargetReferenceRequested(message: TargetReferenceRequestedMessage
   }, {
     elementRect: message.elementRect ?? null,
     viewport: message.viewport ?? null,
-    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+    hideQuickActionToolbar,
   });
 }
 
@@ -443,7 +450,7 @@ function handleChipBadgeClicked(message: ChipBadgeClickedMessage): void {
   focusNotebookChipFromBadge(message.chipId, {
     elementRect: message.elementRect ?? null,
     viewport: message.viewport ?? null,
-    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+    hideQuickActionToolbar,
   });
 }
 
@@ -461,7 +468,7 @@ function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {
   }
 
   handleEditorShortcutAction(message.shortcut, {
-    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+    hideQuickActionToolbar,
     postToBridge,
   });
 }

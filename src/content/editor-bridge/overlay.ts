@@ -6,7 +6,7 @@ import type { VisualDropPosition } from '../../shared/domain/visual';
 import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
 import { removeChipBadges, repositionChipBadges } from './chip-badges';
 
-type OverlayKind = 'hover';
+type OverlayKind = 'hover' | 'selection';
 
 const tracked = new Map<OverlayKind, Element>();
 
@@ -53,11 +53,17 @@ export function stopOverlayTracking(): void {
 export function showOverlay(kind: OverlayKind, element: Element): void {
   tracked.set(kind, element);
   reposition(kind);
+  if (kind === 'selection') {
+    reposition('hover');
+  }
 }
 
 export function hideOverlay(kind: OverlayKind): void {
   tracked.delete(kind);
   hideBoxModel(kind);
+  if (kind === 'selection') {
+    reposition('hover');
+  }
 }
 
 export function refreshOverlays(): void {
@@ -89,6 +95,7 @@ function scheduleUpdate(): void {
 
 function updateOverlays(): void {
   reposition('hover');
+  reposition('selection');
   repositionVisualDropIndicator();
   repositionChipBadges();
 }
@@ -97,6 +104,14 @@ function reposition(kind: OverlayKind): void {
   const element = tracked.get(kind);
   if (!element || !element.isConnected) {
     hideOverlay(kind);
+    return;
+  }
+
+  // The pinned element already shows the stronger selection layer — stacking
+  // the hover layer on top would darken it. Hover stays tracked so it comes
+  // back as soon as the selection moves elsewhere or clears.
+  if (kind === 'hover' && element === tracked.get('selection')) {
+    hideBoxModel('hover');
     return;
   }
 

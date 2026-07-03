@@ -259,6 +259,7 @@ export function SizeHybridControl({
             disabled={disabled || !snapshot}
             dataAiId={`${dataAiId}-stepper`}
             onStep={(direction) => stepper.stepProperty({ property: dimension, category }, direction)}
+            onCommitValue={(value) => stepper.setPropertyValue({ property: dimension, category }, value)}
           />
         </div>
       </div>

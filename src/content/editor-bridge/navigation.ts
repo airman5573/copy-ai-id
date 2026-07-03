@@ -1,4 +1,3 @@
-import { isExtensionOwnedElement } from '../../shared/config';
 import type { EditorKeyboardShortcut } from '../../shared/protocol/editor-bridge-messages';
 import {
   getComposedChildElements,
@@ -10,6 +9,7 @@ import {
   setHighlightedElement,
   suppressHoverHighlightUntilMouseMove,
 } from './highlight';
+import { isSelectableElement } from './local-picker';
 import type { BridgePost } from './types';
 
 type NavigationDirection =
@@ -24,17 +24,6 @@ const SHORTCUT_DIRECTIONS: Partial<Record<EditorKeyboardShortcut, NavigationDire
   'arrow-left': 'previous-sibling-or-parent-previous-last-child',
   'arrow-right': 'next-sibling-or-parent-next-first-child',
 };
-
-const SKIPPED_NAVIGATION_TAGS = new Set([
-  'html',
-  'head',
-  'script',
-  'style',
-  'link',
-  'meta',
-  'noscript',
-  'template',
-]);
 
 export function handleNavigationShortcut(
   shortcut: EditorKeyboardShortcut,
@@ -146,7 +135,8 @@ function findParentSiblingChildOrSelfLayoutElement(
   return findLastChildLayoutElement(sibling) ?? sibling;
 }
 
+// Keyboard traversal shares the pointer-pick eligibility rule so arrows land
+// on the same elements hover/click would.
 function isNavigableLayoutElement(element: Element): boolean {
-  const tagName = element.tagName.toLowerCase();
-  return !SKIPPED_NAVIGATION_TAGS.has(tagName) && !isExtensionOwnedElement(element);
+  return isSelectableElement(element);
 }

@@ -8,6 +8,7 @@ const EDITOR_TO_BRIDGE_MESSAGE_TYPES: ReadonlySet<string> = new Set<string>([
   EDITOR_MESSAGE_TYPES.revealTreeNode,
   EDITOR_MESSAGE_TYPES.keyboardShortcut,
   EDITOR_MESSAGE_TYPES.clearQuickActionSelection,
+  EDITOR_MESSAGE_TYPES.hideQuickActionToolbar,
   EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed,
   EDITOR_MESSAGE_TYPES.setCanvasZoom,
   EDITOR_MESSAGE_TYPES.requestVisualTargetSnapshot,

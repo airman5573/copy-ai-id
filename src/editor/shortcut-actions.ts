@@ -31,10 +31,12 @@ export interface AppendTargetReferenceOptions {
   elementRect?: BridgeViewportRect | null;
   editorRect?: EditorViewportRect | null;
   viewport?: BridgeViewportSize | null;
-  onFloatingNotePanelOpen?: () => void;
+  // Injected (instead of imported from bridgeClient) to avoid a module cycle;
+  // hides the quick toolbar UI while keeping the pinned selection alive.
+  hideQuickActionToolbar?: () => void;
 }
 
-export type EditorShortcutActionOptions = Pick<AppendTargetReferenceOptions, 'onFloatingNotePanelOpen'> & {
+export type EditorShortcutActionOptions = Pick<AppendTargetReferenceOptions, 'hideQuickActionToolbar'> & {
   postToBridge?: (message: EditorToBridgeMessage) => void;
 };
 
@@ -111,9 +113,11 @@ export function appendTargetReferenceToNotebook(
   const explicitGeometry = resolveTargetReferenceGeometry(options);
   const floatingNotePanel = useFloatingNotePanelStore.getState();
   if (floatingNotePanel.enabled) {
+    // Capture the anchor before hiding the toolbar — the pinned toolbar
+    // geometry is one of the anchor sources.
     const anchor = captureNotePanelAnchor(reference, explicitGeometry);
     floatingNotePanel.openNearTarget(anchor);
-    options.onFloatingNotePanelOpen?.();
+    options.hideQuickActionToolbar?.();
     window.requestAnimationFrame(() => {
       requestNotePanelFocus({
         afterFocus: () => insertTargetReferenceIntoNotebook(reference),
@@ -122,6 +126,8 @@ export function appendTargetReferenceToNotebook(
     return true;
   }
 
+  // Appending a chip always hides the quick toolbar, docked note panel too.
+  options.hideQuickActionToolbar?.();
   insertTargetReferenceIntoNotebook(reference);
   requestNotePanelFocus();
   return true;
@@ -147,7 +153,7 @@ export function focusNotebookChipFromBadge(
       resolveTargetReferenceGeometry(options),
     );
     floatingNotePanel.openNearTarget(anchor);
-    options.onFloatingNotePanelOpen?.();
+    options.hideQuickActionToolbar?.();
     window.requestAnimationFrame(() => {
       requestNotePanelFocus({ afterFocus: flashChip });
     });

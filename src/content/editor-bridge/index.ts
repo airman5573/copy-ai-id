@@ -12,6 +12,7 @@ import { refreshOverlays, startOverlayTracking } from './overlay';
 import { handleHighlightVisualBoxRegion } from './visual-box-highlight';
 import {
   clearQuickActionSelection,
+  hideQuickActionToolbar,
   installHoverHighlight,
   refreshHighlightedElement,
   revealTreeNode,
@@ -137,6 +138,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.clearQuickActionSelection:
       clearQuickActionSelection(post);
+      return;
+    case EDITOR_MESSAGE_TYPES.hideQuickActionToolbar:
+      hideQuickActionToolbar();
       return;
     case EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed:
       setHoverHighlightSuppressed(message.suppressed);

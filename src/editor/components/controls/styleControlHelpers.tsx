@@ -118,6 +118,12 @@ export function CssStepper({
           category,
           mode,
         }, direction)}
+        onCommitValue={(value) => stepper.setPropertyValue({
+          property,
+          computedProperty,
+          category,
+          mode,
+        }, value)}
       />
     </VisualControl>
   );
