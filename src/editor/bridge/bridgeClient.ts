@@ -321,6 +321,8 @@ function handleQuickActionAnchorChanged(message: QuickActionAnchorChangedMessage
     return;
   }
 
+  closeFloatingVisualPanelForNewPinnedTarget(message);
+
   useVisualSelectionStore.getState().setQuickActionAnchor(
     message,
     message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
@@ -335,6 +337,34 @@ function handleQuickActionAnchorChanged(message: QuickActionAnchorChangedMessage
       nodeId: message.nodeId,
     });
   }
+}
+
+// The floating visual panel follows the pinned selection: pinning a different
+// element closes it. Only click-pins count — 'repositioned' anchors, clearing
+// reasons, and same-element re-pins (bridge refreshes after mutations/tree
+// rebuilds also arrive as 'pinned') leave it open.
+function closeFloatingVisualPanelForNewPinnedTarget(message: QuickActionAnchorChangedMessage): void {
+  if (message.reason !== 'pinned' || !message.target) {
+    return;
+  }
+
+  if (!useFloatingVisualPanelStore.getState().isOpen) {
+    return;
+  }
+
+  const panelTarget = useVisualSelectionStore.getState().panelTarget;
+  if (!panelTarget) {
+    return;
+  }
+
+  const samePanelTarget = (panelTarget.nodeId && message.nodeId && panelTarget.nodeId === message.nodeId)
+    || hasSameEditorTarget(panelTarget.target, message.target);
+  if (samePanelTarget) {
+    return;
+  }
+
+  useFloatingVisualPanelStore.getState().closePanel();
+  useVisualSelectionStore.getState().closePanel();
 }
 
 function handleVisualTargetSnapshot(message: VisualTargetSnapshotMessage): void {

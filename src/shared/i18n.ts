@@ -42,7 +42,6 @@ export interface CopyAiIdMessages {
     zoomOut: string;
     zoomReset: string;
     customViewport: string;
-    resizePreviewHeight: string;
     resizePreviewWidth: string;
     resizeNotePanel: string;
   };
@@ -158,7 +157,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       zoomOut: 'Zoom out',
       zoomReset: 'Reset zoom',
       customViewport: 'Custom',
-      resizePreviewHeight: 'Resize preview height',
       resizePreviewWidth: 'Resize preview width',
       resizeNotePanel: 'Resize note panel',
     },
@@ -276,7 +274,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       zoomOut: '축소',
       zoomReset: '확대 초기화',
       customViewport: '사용자 지정',
-      resizePreviewHeight: '미리보기 높이 조절',
       resizePreviewWidth: '미리보기 너비 조절',
       resizeNotePanel: '노트 패널 너비 조절',
     },

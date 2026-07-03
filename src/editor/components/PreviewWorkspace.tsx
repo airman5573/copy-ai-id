@@ -21,11 +21,8 @@ import {
 import { registerPreviewWorkspaceGeometry } from '../bridge/geometry';
 import {
   getActiveCanvasZoom,
-  MAX_PREVIEW_HEIGHT,
   MAX_PREVIEW_WIDTH,
-  MIN_PREVIEW_HEIGHT,
   MIN_PREVIEW_WIDTH,
-  PREVIEW_HEIGHT_RESIZE_HANDLE_OUTSET,
   PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET,
   useBreakpointStore,
 } from '../stores/useBreakpointStore';
@@ -33,16 +30,8 @@ import { useBridgeStore } from '../stores/useBridgeStore';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
 
 const BRIDGE_READY_TIMEOUT_MS = 6000;
-const PREVIEW_HEIGHT_KEYBOARD_STEP = 20;
-const PREVIEW_HEIGHT_KEYBOARD_LARGE_STEP = 100;
 const PREVIEW_WIDTH_KEYBOARD_STEP = 20;
 const PREVIEW_WIDTH_KEYBOARD_LARGE_STEP = 100;
-
-interface PreviewHeightResizeState {
-  startHeight: number;
-  startY: number;
-  zoom: number;
-}
 
 interface PreviewWidthResizeState {
   startWidth: number;
@@ -81,8 +70,6 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
   const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
   const setCustomPreviewWidth = useBreakpointStore((state) => state.setCustomPreviewWidth);
   const persistCustomPreviewWidth = useBreakpointStore((state) => state.persistCustomPreviewWidth);
-  const setPreviewHeight = useBreakpointStore((state) => state.setPreviewHeight);
-  const persistPreviewHeight = useBreakpointStore((state) => state.persistPreviewHeight);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
   const bridgeStatus = useBridgeStore((state) => state.status);
   const iframeStatus = useBridgeStore((state) => state.iframeStatus);
@@ -92,9 +79,7 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
   const setPreviewUrl = useRuntimeStore((state) => state.setPreviewUrl);
   const breakpoint = breakpointById(activeBreakpointId);
   const previewWidth = viewportMode === 'custom' ? customPreviewWidth : breakpoint.width;
-  const resizeStateRef = useRef<PreviewHeightResizeState | null>(null);
   const widthResizeStateRef = useRef<PreviewWidthResizeState | null>(null);
-  const [isResizingPreviewHeight, setIsResizingPreviewHeight] = useState(false);
   const [isResizingPreviewWidth, setIsResizingPreviewWidth] = useState(false);
 
   const syncPreviewGeometryRefs = useCallback((): void => {
@@ -166,43 +151,6 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
   }, [activeBreakpointId, bridgeStatus, previewHeight, previewWidth, syncPreviewGeometryRefs, zoom]);
 
   useEffect(() => {
-    if (!isResizingPreviewHeight) {
-      return undefined;
-    }
-
-    const handlePointerMove = (event: PointerEvent): void => {
-      const resizeState = resizeStateRef.current;
-      if (!resizeState) {
-        return;
-      }
-
-      const safeZoom = resizeState.zoom > 0 ? resizeState.zoom : 1;
-      const deltaY = (event.clientY - resizeState.startY) / safeZoom;
-      setPreviewHeight(resizeState.startHeight + deltaY);
-    };
-
-    const finishResize = (): void => {
-      if (!resizeStateRef.current) {
-        return;
-      }
-
-      resizeStateRef.current = null;
-      setIsResizingPreviewHeight(false);
-      void persistPreviewHeight();
-    };
-
-    window.addEventListener('pointermove', handlePointerMove);
-    window.addEventListener('pointerup', finishResize);
-    window.addEventListener('pointercancel', finishResize);
-
-    return () => {
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', finishResize);
-      window.removeEventListener('pointercancel', finishResize);
-    };
-  }, [isResizingPreviewHeight, persistPreviewHeight, setPreviewHeight]);
-
-  useEffect(() => {
     if (!isResizingPreviewWidth) {
       return undefined;
     }
@@ -246,23 +194,6 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
     };
   }, [fitZoom, isResizingPreviewWidth, persistCustomPreviewWidth, setCustomPreviewWidth]);
 
-  const handleResizePointerDown = (event: ReactPointerEvent<HTMLButtonElement>): void => {
-    if (event.button !== 0) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    resizeStateRef.current = {
-      startHeight: previewHeight,
-      startY: event.clientY,
-      zoom,
-    };
-    setIsResizingPreviewHeight(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
   const handleWidthResizePointerDown = (event: ReactPointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) {
       return;
@@ -281,41 +212,9 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const commitPreviewHeight = (height: number): void => {
-    setPreviewHeight(height);
-    void persistPreviewHeight(height);
-  };
-
   const commitPreviewWidth = (width: number): void => {
     setCustomPreviewWidth(width);
     void persistCustomPreviewWidth(width);
-  };
-
-  const handleResizeKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>): void => {
-    const step = event.shiftKey ? PREVIEW_HEIGHT_KEYBOARD_LARGE_STEP : PREVIEW_HEIGHT_KEYBOARD_STEP;
-
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      commitPreviewHeight(previewHeight - step);
-      return;
-    }
-
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      commitPreviewHeight(previewHeight + step);
-      return;
-    }
-
-    if (event.key === 'Home') {
-      event.preventDefault();
-      commitPreviewHeight(MIN_PREVIEW_HEIGHT);
-      return;
-    }
-
-    if (event.key === 'End') {
-      event.preventDefault();
-      commitPreviewHeight(MAX_PREVIEW_HEIGHT);
-    }
   };
 
   const handleWidthResizeKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>): void => {
@@ -356,13 +255,12 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
 
   const canvasFrameStyle = {
     width: `${(previewWidth + (PREVIEW_WIDTH_RESIZE_HANDLE_OUTSET * 2)) * zoom}px`,
-    height: `${(previewHeight + PREVIEW_HEIGHT_RESIZE_HANDLE_OUTSET) * zoom}px`,
+    height: `${previewHeight * zoom}px`,
   };
 
   const canvasClassName = [
     'copy-ai-id-editor-preview-canvas',
-    isResizingPreviewHeight || isResizingPreviewWidth ? 'copy-ai-id-editor-preview-canvas--resizing' : '',
-    isResizingPreviewHeight ? 'copy-ai-id-editor-preview-canvas--resizing-height' : '',
+    isResizingPreviewWidth ? 'copy-ai-id-editor-preview-canvas--resizing' : '',
     isResizingPreviewWidth ? 'copy-ai-id-editor-preview-canvas--resizing-width' : '',
   ].filter(Boolean).join(' ');
 
@@ -396,23 +294,6 @@ export function PreviewWorkspace({ stageRef }: PreviewWorkspaceProps) {
                 }
               }}
             />
-            <button
-              type="button"
-              className="copy-ai-id-editor-preview-resize-handle copy-ai-id-editor-preview-resize-handle--height"
-              data-ai-id="copy-ai-id-editor-preview-height-resize-handle"
-              title={`${previewWidth} × ${previewHeight}px`}
-              aria-label={messages.editor.resizePreviewHeight}
-              aria-orientation="vertical"
-              role="slider"
-              aria-valuemin={MIN_PREVIEW_HEIGHT}
-              aria-valuemax={MAX_PREVIEW_HEIGHT}
-              aria-valuenow={previewHeight}
-              aria-valuetext={`${previewHeight}px`}
-              onPointerDown={handleResizePointerDown}
-              onKeyDown={handleResizeKeyDown}
-            >
-              <span aria-hidden="true" />
-            </button>
             <button
               type="button"
               className="copy-ai-id-editor-preview-resize-handle copy-ai-id-editor-preview-resize-handle--width"

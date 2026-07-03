@@ -19,7 +19,6 @@ const ARROW_SHORTCUTS: Record<string, EditorKeyboardShortcut> = {
 };
 const NOTEBOOK_LEXICAL_EDITOR_AI_ID = 'copy-ai-id-editor-note-lexical-editor';
 const RESIZE_HANDLE_AI_IDS = new Set([
-  'copy-ai-id-editor-preview-height-resize-handle',
   'copy-ai-id-editor-preview-width-resize-handle',
   'copy-ai-id-editor-note-panel-width-resize-handle',
 ]);
