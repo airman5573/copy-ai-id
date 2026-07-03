@@ -365,6 +365,16 @@ function handleQuickActionAnchorChanged(message: QuickActionAnchorChangedMessage
     message,
     message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
   );
+
+  // The pinned quick toolbar renders its controls straight from the target
+  // snapshot, so request it immediately on pin. Repositioned anchors only
+  // update geometry and must not re-request.
+  if (message.reason === 'pinned' && message.target) {
+    requestVisualTargetSnapshot({
+      target: message.target,
+      nodeId: message.nodeId,
+    });
+  }
 }
 
 function handleVisualTargetSnapshot(message: VisualTargetSnapshotMessage): void {

@@ -73,7 +73,7 @@
   - Parallelizable: yes
 
 ### Phase 3 - 에디터: React 퀵 툴바 구축·전환
-- [ ] 셀렉션 스토어에 intents 반영 + pin 즉시 스냅샷 요청
+- [x] 셀렉션 스토어에 intents 반영 + pin 즉시 스냅샷 요청
   - Files/areas: `src/editor/stores/useVisualSelectionStore.ts`, `src/editor/bridge/bridgeClient.ts`(`handleQuickActionAnchorChanged`)
   - Notes: `activeToolbarTarget`에 `intents` 저장. `reason:'pinned'` 수신 시 `requestVisualTargetSnapshot` 즉시 발신(현재는 category 클릭 후에만 요청). `reason:'repositioned'`는 elementRect/editorRect만 갱신(스냅샷 재요청 없음).
   - Parallelizable: no

@@ -4,6 +4,7 @@ import {
   type BridgeViewportRect,
   type BridgeViewportSize,
 } from '../../shared/domain/geometry';
+import { type ElementIntent } from '../../shared/domain/intent';
 import {
   type EditorTarget,
   type EditorTargetReference,
@@ -60,6 +61,7 @@ export interface VisualToolbarTargetState extends EditorTargetReference {
   editorRect: EditorViewportRect | null;
   viewport: BridgeViewportSize;
   availableCategories: QuickActionCategory[];
+  intents: ElementIntent[];
   reason: QuickActionAnchorChangedMessage['reason'];
   updatedAt: number;
 }
@@ -179,6 +181,25 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
       };
     }
 
+    // Repositioned anchors only track geometry for the already-pinned target;
+    // identity, intents, and snapshot lifecycle stay untouched.
+    if (message.reason === 'repositioned') {
+      if (!state.activeToolbarTarget) {
+        return {};
+      }
+
+      return {
+        activeToolbarTarget: {
+          ...state.activeToolbarTarget,
+          elementRect: message.elementRect,
+          editorRect,
+          viewport: message.viewport,
+          reason: message.reason,
+          updatedAt: Date.now(),
+        },
+      };
+    }
+
     return {
       activeToolbarTarget: {
         target: message.target,
@@ -187,6 +208,7 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
         editorRect,
         viewport: message.viewport,
         availableCategories: message.availableCategories,
+        intents: message.intents,
         reason: message.reason,
         updatedAt: Date.now(),
       },
