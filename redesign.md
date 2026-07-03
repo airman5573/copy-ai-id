@@ -177,7 +177,7 @@
   - Files/areas: `src/shared/i18n.ts`
   - Notes: 제거된 UI가 쓰던 verbose 키(categories.*.description/placeholder, panel.state 장문 등) 삭제, 신규 키(툴바 라벨·팝오버·스테퍼 aria·unitConversionSuffix 등) en+ko 동시 존재 확인.
   - Parallelizable: yes
-- [ ] README 문서 동기화
+- [x] README 문서 동기화
   - Files/areas: `README.md`, `README.ko.md`
   - Notes: 툴바/패널 동작 설명이 있는 부분만 새 UX(의도 기반 툴바, +/- 의도 편집, 더블클릭 텍스트 편집, '기타' 패널)로 갱신. 두 언어 동시 수정.
   - Parallelizable: yes

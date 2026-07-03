@@ -12,11 +12,11 @@ Copy AI ID는 렌더링된 페이지를 위한 `data-ai-id` 우선 Chrome 확장
 1. 렌더링된 페이지를 엽니다. 의미 있는 `data-ai-id`가 있으면 가장 안정적이지만, ID가 없거나 일부만 있는 페이지에서도 fallback 선택이 동작합니다.
 2. **Shift + Z + Space**를 누르거나 확장 프로그램 팝업에서 **켜기**를 클릭합니다.
 3. 현재 탭 위에 전체 화면 에디터가 열립니다.
-   - **미리보기:** 현재 URL에 `copy-ai-id-preview=1` 쿼리 마커를 붙인 iframe 미리보기와 breakpoint 버튼, 확대/축소, 맞춤/초기화 컨트롤, 클릭으로 고정하는 quick-action bar, floating visual control panel을 제공합니다.
+   - **미리보기:** 현재 URL에 `copy-ai-id-preview=1` 쿼리 마커를 붙인 iframe 미리보기와 breakpoint 버튼, 확대/축소, 맞춤/초기화 컨트롤, 클릭으로 고정하는 퀵 편집 툴바, floating visual panel을 제공합니다.
    - **노트 패널 — 도킹 또는 플로팅:** 선택한 안정적인 `data-ai-id` target 또는 생성된 fallback target에 대한 Lexical 기반 노트 draft를 작성합니다. Target은 compact한 `el-N` chip으로 표시됩니다. Preview-only visual edit 지시는 편집 중에는 숨겨지고 복사한 Markdown에만 포함됩니다.
 4. 미리보기 또는 키보드로 DOM 노드를 선택합니다.
 5. **Space**를 누르면 `el-1` 같은 notebook chip이 추가되고 노트 패널에 포커스됩니다. Copy AI ID는 chip target에 `data-ai-id`를 먼저 사용합니다. 선택한 노드에 사용할 수 있는 `data-ai-id`가 없으면 긴 selector/path/context 텍스트를 에디터에 노출하지 않고 fallback metadata를 chip에 저장합니다. 플로팅 NotePanel 모드에서는 **Space**를 누르는 순간 먼저 선택/hover된 요소 근처에 노트 패널을 열고, 패널에 포커스한 뒤 chip을 삽입합니다. Chip을 클릭하면 연결된 미리보기 요소가 다시 선택/강조됩니다. Chip 번호는 삭제 후에도 재번호 매김하지 않으므로 draft에 `el-1`, `el-3`, `el-4`가 함께 있을 수 있습니다.
-6. 필요하면 미리보기 요소를 클릭해서 quick-action bar를 그 요소에 고정합니다. Category 버튼은 콘텐츠, 레이아웃, 간격, 크기, 스타일, 선 floating visual panel을 열고, 구조 버튼은 preview 안에서 요소를 복제/위아래 이동/삭제/드래그 이동합니다. 이 변경은 preview-only mutation이며 AI가 이해하기 좋은 visual edit 지시로 기록됩니다.
+6. 필요하면 미리보기 요소를 클릭해서 퀵 편집 툴바를 그 요소에 고정합니다. 툴바 1행은 요소의 intent(image / text / container / link-button / form)에 맞춰 구성되고, 2행은 공통으로 패딩/마진/간격 스테퍼, 구조 버튼(복제·이동·삭제), 드래그 그립, floating visual panel을 여는 **기타** 버튼을 제공합니다. 수치 편집은 `+/-` 스테퍼로만 하며, preview에는 실제 px가 반영되고 export에는 "현재 값 대비 n% 증감" 의도로 기록됩니다. 텍스트 요소는 더블클릭으로 인라인 편집할 수 있습니다. 이 변경은 preview-only mutation이며 AI가 이해하기 좋은 visual edit 지시로 기록됩니다.
 7. **Shift + Enter**를 누르거나 **복사** 버튼을 클릭하면 `## Requests`, `## Targets`, `## Rules`, 필요한 경우 `## Visual edits` 섹션으로 정리된 AI 친화적 Markdown이 클립보드에 복사됩니다. Inline chip은 읽기 쉬운 `@el-N` mention으로 표시되고, fallback target은 selector/path/context 정보를 함께 제공하며, visual edit은 사람이 읽는 요약과 machine-readable JSON diff를 함께 포함합니다.
 8. 툴바 닫기 버튼, **Esc**, 또는 **Shift + Z + Space**로 에디터를 끕니다.
 
@@ -35,9 +35,12 @@ Copy AI ID는 렌더링된 페이지를 위한 `data-ai-id` 우선 Chrome 확장
 
 Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI와 사용자 사이에서 정확한 구현 prompt를 만드는 인터페이스입니다. Inspect 중인 페이지, 프로젝트 source, CMS, 원격 서비스에는 저장하지 않습니다.
 
-- 미리보기 요소를 클릭하면 quick-action bar가 그 요소에 고정됩니다. 다른 요소를 클릭하면 bar가 옮겨가고, 페이지 배경을 클릭하거나 **Esc**를 누르면 닫힙니다. Hover는 요소 하이라이트만 하며 bar를 열지 않습니다.
-- Category 버튼을 누르면 floating visual panel이 열립니다. Desktop에서는 선택 요소/toolbar를 따라가고, mobile/tablet breakpoint에서는 preview iframe 옆에 배치됩니다.
-- 첫 지원 category는 **콘텐츠**, **레이아웃**, **간격**, **크기**, **스타일**, **선**입니다. 콘텐츠 컨트롤은 텍스트, rich HTML fragment, 안전한 링크/속성, form value를 수정할 수 있고, 스타일 컨트롤은 preview에서 즉시 보이도록 DOM/inline style을 바꿉니다.
+- 미리보기 요소를 클릭하면 퀵 편집 툴바가 그 요소에 고정됩니다. 다른 요소를 클릭하면 툴바가 옮겨가고, 페이지 배경을 클릭하거나 **Esc**를 누르면 닫힙니다. Hover는 요소 하이라이트만 하며 툴바를 열지 않습니다.
+- 툴바와 floating visual panel은 모두 에디터 Shadow DOM에 있습니다. preview bridge는 고정 중에 anchor 좌표와 요소 intent만 스트리밍합니다.
+- 툴바 1행은 요소 intent에 맞춰 구성됩니다 — 이미지는 교체/크기/object-fit/라운드, 텍스트는 글자 크기/굵기/색/정렬, 컨테이너는 간격/flex/배경 컨트롤을 얻습니다. 2행은 공통: 패딩/마진/간격 스코프 팝오버, 복제/이동/삭제, 드래그 그립, **기타** 버튼.
+- 수치 속성은 `+/-` 스테퍼로만 편집합니다(첫 스텝 시점 값 기준 클릭당 ±10%). preview에는 실제 px가 반영되고, export에는 기준값과 함께 % 의도가 기록되어 source가 쓰는 단위(rem, px, % 등)로 환산해 적용할 수 있습니다.
+- preview의 텍스트 요소를 더블클릭하면 인라인으로 텍스트를 편집합니다. **Enter**/blur는 정규 text mutation 파이프라인으로 커밋하고 **Esc**는 취소합니다.
+- **기타** 버튼은 floating visual panel을 엽니다. 접이식 섹션 단일 스크롤(이미지 intent 요소는 이미지 섹션이 최상단)로 툴바가 다루지 않는 나머지 — 레이아웃, 크기 제약, 타이포 확장, 효과(opacity/shadow/filter/transform 프리셋), 테두리 상세, 콘텐츠/속성/폼 값 — 를 다룹니다. Desktop에서는 선택 요소를 따라가고, mobile/tablet breakpoint에서는 preview iframe 옆에 배치됩니다.
 - 구조 컨트롤은 preview DOM 안에서 복제, 위/아래 이동, 삭제, 드래그 이동을 수행합니다. 이것도 모두 preview-only 작업입니다.
 - `data-ai-id`가 없는 요소도 fallback target metadata로 visual editing 할 수 있습니다. 복사 결과에는 이 target이 덜 안정적이라는 안내와 selector/path/context가 포함되어, AI나 개발자가 source에서 다시 식별할 수 있습니다.
 - Visual edit prompt text는 편집 중 화면에 직접 표시하지 않습니다. 노트 패널에는 상태/개수만 보이고, **복사**할 때 `## Visual edits` 섹션에 사람이 읽는 요약과 fenced JSON diff가 붙습니다.
