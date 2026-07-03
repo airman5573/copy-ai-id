@@ -795,6 +795,19 @@ textarea,
   color: #991b1b;
 }
 
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-note-controls .copy-ai-id-editor-toolbar-button {
+  flex: 0 0 auto;
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-copy-shortcut {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.copy-ai-id-editor-floating-note-panel .copy-ai-id-editor-copy-shortcut kbd {
+  background: rgba(148, 163, 184, 0.16);
+}
+
 .copy-ai-id-editor-floating-visual-panel__header {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }

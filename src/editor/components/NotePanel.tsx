@@ -300,7 +300,37 @@ export function NotePanel({
           <span>{messages.notebook.tailwind}</span>
         </label>
 
-        {isFloating ? copyButton : null}
+        {isFloating ? (
+          <>
+            <ToolbarButton
+              data-ai-id="copy-ai-id-editor-note-notice-button"
+              title={messages.notebook.noticeDialogTitle}
+              aria-label={messages.notebook.noticeDialogTitle}
+              aria-haspopup="dialog"
+              aria-expanded={isNoticeEditorOpen}
+              onClick={openNoticeEditor}
+            >
+              {messages.notebook.noticeButton}
+            </ToolbarButton>
+            <ToolbarButton
+              data-ai-id="copy-ai-id-editor-note-reset-button"
+              disabled={isNotebookEmpty && !hasVisualEditState}
+              title={messages.notebook.reset}
+              aria-label={messages.notebook.reset}
+              onClick={handleReset}
+            >
+              {messages.notebook.reset}
+            </ToolbarButton>
+            <span
+              className="copy-ai-id-editor-copy-shortcut"
+              data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
+              title={messages.notebook.copyShortcutLabel}
+            >
+              <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
+            </span>
+            {copyButton}
+          </>
+        ) : null}
       </div>
 
       {!isFloating ? (
