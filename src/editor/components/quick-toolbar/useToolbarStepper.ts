@@ -3,7 +3,6 @@ import { useCallback, useRef } from 'react';
 import type { EditorTargetReference } from '../../../shared/domain/targets';
 import type {
   QuickActionCategory,
-  VisualStyleDeclarationMutation,
   VisualTargetSnapshot,
 } from '../../../shared/domain/visual';
 import { targetIdentityKey } from '../../../shared/editor-targets';
@@ -12,7 +11,10 @@ import {
   stepOpacityValue,
   type StepperBaseState,
 } from '../../utils/stepperMath';
-import { dispatchVisualStyleMutation } from '../../visual/visualMutationClient';
+import {
+  dispatchVisualStyleMutation,
+  type VisualStyleDeclarationMutationInput,
+} from '../../visual/visualMutationClient';
 
 export interface ToolbarStepOptions {
   property: string;
@@ -49,7 +51,7 @@ export function useToolbarStepper(
   const stepDeclaration = useCallback((
     options: ToolbarStepOptions,
     direction: 1 | -1,
-  ): VisualStyleDeclarationMutation | null => {
+  ): VisualStyleDeclarationMutationInput | null => {
     if (!snapshot) {
       return null;
     }
@@ -68,6 +70,7 @@ export function useToolbarStepper(
     return {
       property: options.property,
       value: result.cssValue,
+      intent: result.intent ?? undefined,
     };
   }, [snapshot]);
 
@@ -86,7 +89,9 @@ export function useToolbarStepper(
       snapshot,
       source: 'quick-action-bar',
       category: options.category,
+      control: { id: `stepper:${options.property}` },
       declarations: [declaration],
+      coalesce: true,
     });
   }, [reference, snapshot, stepDeclaration]);
 
@@ -103,7 +108,7 @@ export function useToolbarStepper(
         category: options.category,
         mode: options.mode,
       }, direction))
-      .filter((declaration): declaration is VisualStyleDeclarationMutation => declaration !== null);
+      .filter((declaration): declaration is VisualStyleDeclarationMutationInput => declaration !== null);
 
     if (declarations.length === 0) {
       return;
@@ -114,7 +119,9 @@ export function useToolbarStepper(
       snapshot,
       source: 'quick-action-bar',
       category: options.category,
+      control: { id: `stepper:${declarations.map((declaration) => declaration.property).join('+')}` },
       declarations,
+      coalesce: true,
     });
   }, [reference, snapshot, stepDeclaration]);
 

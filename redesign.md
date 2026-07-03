@@ -115,11 +115,11 @@
   - Parallelizable: no
 
 ### Phase 4 - 스테퍼 % 의도 기록·코얼레싱·export
-- [ ] 스테퍼 편집 디스패치에 intent 메타데이터 전달
+- [x] 스테퍼 편집 디스패치에 intent 메타데이터 전달
   - Files/areas: `src/editor/components/visual/visualMutationClient.ts`, `src/editor/components/visual/useStyleEdit.ts`
   - Notes: `dispatchVisualStyleMutation` 입력에 `intent?: {percent, base}` 추가 → declaration diff/state에 채움. 프리뷰 적용값은 계산된 concrete px로 `updateVisualStyle` 발신(브리지 변경 불필요).
   - Parallelizable: no
-- [ ] 동일 target+property 스테퍼 연타 코얼레싱
+- [x] 동일 target+property 스테퍼 연타 코얼레싱
   - Files/areas: `src/editor/stores/useVisualEditStore.ts`, `visualMutationClient.ts`
   - Notes: 최신 record가 같은 target(aiId/nodeId)+property+스테퍼 편집이고 status pending|applied면 신규 record 대신 기존 record 갱신(기존 `upsertRecord` 활용): `after`/`intent.percent` 누적, `before`·`intent.base`는 최초값 유지, humanSummary 재생성. undo(역방향 메시지)가 최초 before로 복원됨을 로직상 보장.
   - Parallelizable: no

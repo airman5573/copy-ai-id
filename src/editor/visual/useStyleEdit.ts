@@ -11,13 +11,18 @@ import {
   normalizeVisualStyleValue,
   type VisualStyleCategory,
 } from '../../shared/visual-style';
-import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
+import type {
+  VisualEditControlDescriptor,
+  VisualEditSource,
+  VisualStyleValueIntent,
+} from '../../shared/visual-edits';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 import { useSelectedTargetReference } from './useSelectedTargetReference';
 import {
   dispatchVisualStyleMutation,
   type VisualMutationDispatchResult,
+  type VisualStyleDeclarationMutationInput,
 } from './visualMutationClient';
 import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 
@@ -27,11 +32,14 @@ export interface CommitStyleOptions {
   category?: QuickActionCategory | null;
   control?: Partial<VisualEditControlDescriptor>;
   skipIfUnchanged?: boolean;
+  // Stepper edits: coalesce consecutive clicks into one record.
+  coalesce?: boolean;
 }
 
 export interface CommitStyleInput extends CommitStyleOptions {
   propertyId: string;
   value: string;
+  intent?: VisualStyleValueIntent;
 }
 
 export interface StyleEditApi {
@@ -80,7 +88,7 @@ export function useStyleEdit(): StyleEditApi {
 
     const declarations = edits
       .map((edit) => normalizeCommitStyleInput(edit, options))
-      .filter((declaration): declaration is VisualStyleDeclarationMutation => {
+      .filter((declaration): declaration is VisualStyleDeclarationMutationInput => {
         if (!declaration) {
           return false;
         }
@@ -107,6 +115,7 @@ export function useStyleEdit(): StyleEditApi {
       breakpointId: activeBreakpointId,
       control,
       declarations,
+      coalesce: options.coalesce,
     });
   }, [activeBreakpointId, inlineValueOf, panelTarget?.category, snapshot, target, valueOf]);
 
@@ -133,7 +142,7 @@ export function useStyleEdit(): StyleEditApi {
 function normalizeCommitStyleInput(
   input: CommitStyleInput,
   defaults: CommitStyleOptions,
-): VisualStyleDeclarationMutation | null {
+): VisualStyleDeclarationMutationInput | null {
   const property = input.propertyId.trim();
   if (!property) {
     return null;
@@ -143,6 +152,7 @@ function normalizeCommitStyleInput(
     property,
     value: normalizeVisualStyleValue(input.value),
     priority: input.priority ?? defaults.priority ?? '',
+    intent: input.intent,
   };
 }
 

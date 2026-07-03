@@ -59,6 +59,8 @@ import type {
   VisualEditTargetDescriptor,
   VisualEditTargetSnapshotSummary,
   VisualEditWarning,
+  VisualStyleDeclarationDiff,
+  VisualStyleValueIntent,
 } from '../../shared/visual-edits';
 import { postToBridge } from '../bridge/bridgeClient';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
@@ -84,8 +86,17 @@ export interface VisualMutationDispatchContext {
   warnings?: VisualEditWarning[];
 }
 
+// Stepper edits attach percent-intent metadata per declaration; the preview
+// still receives the concrete computed value (the wire message strips intent).
+export interface VisualStyleDeclarationMutationInput extends VisualStyleDeclarationMutation {
+  intent?: VisualStyleValueIntent;
+}
+
 export interface DispatchVisualStyleMutationOptions extends VisualMutationDispatchContext {
-  declarations: VisualStyleDeclarationMutation[];
+  declarations: VisualStyleDeclarationMutationInput[];
+  // Merge consecutive stepper clicks on the same target+properties into one
+  // record (before/intent.base keep their first values so one undo restores).
+  coalesce?: boolean;
 }
 
 export interface DispatchVisualTextMutationOptions extends VisualMutationDispatchContext {
@@ -147,7 +158,10 @@ export function dispatchVisualStyleMutation(
   const mutationId = getNextVisualMutationId();
   const category = resolveStyleCategory(options, context);
   const declarations = options.declarations.map((declaration) => ({ ...declaration }));
-  const diffs = declarations.map((declaration) => {
+  const wireDeclarations: VisualStyleDeclarationMutation[] = declarations.map(
+    ({ intent: _intent, ...declaration }) => declaration,
+  );
+  const diffs: VisualStyleDeclarationDiff[] = declarations.map((declaration) => {
     const before = resolveStyleBeforeValue(declaration, context.snapshot);
     const after = declaration.value === '' ? null : declaration.value;
 
@@ -157,8 +171,22 @@ export function dispatchVisualStyleMutation(
       after,
       priority: declaration.priority,
       source: before.source,
+      intent: declaration.intent,
     };
   });
+  const message: UpdateVisualStyleMessage = {
+    type: EDITOR_MESSAGE_TYPES.updateVisualStyle,
+    ...visualMutationMessageBase(context, mutationId),
+    declarations: wireDeclarations,
+  };
+
+  if (options.coalesce) {
+    const coalescedRecord = coalesceStepperStyleRecord(recordContext, diffs, mutationId);
+    if (coalescedRecord) {
+      return finishVisualMutationDispatch(context, mutationId, coalescedRecord, message);
+    }
+  }
+
   const control = createControlDescriptor(options, {
     category,
     kind: visualControlKindForCategory(category),
@@ -192,17 +220,98 @@ export function dispatchVisualStyleMutation(
         value: diff.after,
         priority: diff.priority,
         source: 'inline',
+        intent: diff.intent,
       })),
     },
     humanSummary,
   });
-  const message: UpdateVisualStyleMessage = {
-    type: EDITOR_MESSAGE_TYPES.updateVisualStyle,
-    ...visualMutationMessageBase(context, mutationId),
-    declarations,
-  };
 
   return finishVisualMutationDispatch(context, mutationId, record, message);
+}
+
+// A stepper record is recognizable by its 'stepper:' control id. Coalescing
+// keeps the first before/intent.base (one undo restores the original) while
+// after/intent.percent track the latest click.
+function coalesceStepperStyleRecord(
+  context: ResolvedVisualMutationContext,
+  diffs: VisualStyleDeclarationDiff[],
+  mutationId: number,
+): VisualEditRecord<'style'> | null {
+  const store = useVisualEditStore.getState();
+  const latest = store.records[store.records.length - 1];
+  if (
+    !latest
+    || latest.kind !== 'style'
+    || latest.payload.kind !== 'style'
+    || (latest.status !== 'pending' && latest.status !== 'applied')
+    || !latest.control.id.startsWith('stepper:')
+    || !visualEditRecordMatchesReference(latest, context.reference)
+  ) {
+    return null;
+  }
+
+  const previousByProperty = new Map(
+    latest.payload.declarations.map((declaration) => [declaration.property, declaration]),
+  );
+  if (
+    previousByProperty.size !== diffs.length
+    || diffs.some((diff) => !previousByProperty.has(diff.property))
+  ) {
+    return null;
+  }
+
+  const mergedDiffs: VisualStyleDeclarationDiff[] = diffs.map((diff) => {
+    const previous = previousByProperty.get(diff.property);
+    if (!previous) {
+      return diff;
+    }
+
+    return {
+      ...diff,
+      before: previous.before,
+      source: previous.source,
+      // A record that started concrete (zero-base seed) stays concrete.
+      intent: previous.intent && diff.intent
+        ? { percent: diff.intent.percent, base: previous.intent.base }
+        : undefined,
+    };
+  });
+
+  const updatedRecord: VisualEditRecord<'style'> = {
+    ...(latest as VisualEditRecord<'style'>),
+    status: 'pending',
+    error: undefined,
+    payload: {
+      kind: 'style',
+      declarations: mergedDiffs,
+    },
+    after: {
+      kind: 'style',
+      declarations: mergedDiffs.map((diff) => ({
+        property: diff.property,
+        value: diff.after,
+        priority: diff.priority,
+        source: 'inline',
+        intent: diff.intent,
+      })),
+    },
+    humanSummary: summarizeStyleEdit(mergedDiffs, context.targetLabel),
+  };
+
+  store.upsertRecord(updatedRecord as VisualEditRecord, { mutationId });
+  return updatedRecord;
+}
+
+function visualEditRecordMatchesReference(
+  record: VisualEditRecord,
+  reference: EditorTargetReference,
+): boolean {
+  const recordNodeId = record.target.nodeId ?? null;
+  if (recordNodeId && reference.nodeId) {
+    return recordNodeId === reference.nodeId;
+  }
+
+  return hasSameEditorTarget(record.target.target, reference.target);
 }
 
 function addStyleBreakpointIntentWarning(context: ResolvedVisualMutationContext): ResolvedVisualMutationContext {
@@ -698,15 +807,49 @@ function resolveStyleBeforeValue(
 }
 
 function summarizeStyleEdit(
-  diffs: Array<{ property: string; after: string | null }>,
+  diffs: VisualStyleDeclarationDiff[],
   targetLabel: string,
 ): string {
+  const intentSummary = summarizeIntentStyleEdit(diffs, targetLabel);
+  if (intentSummary) {
+    return intentSummary;
+  }
+
   if (diffs.length === 1) {
     const diff = diffs[0];
     return `Set ${cssPropertyLabel(diff.property)} on ${targetLabel} to ${quotePreview(diff.after ?? 'removed')}.`;
   }
 
   return `Update ${diffs.length} style declarations on ${targetLabel}: ${diffs.map((diff) => cssPropertyLabel(diff.property)).join(', ')}.`;
+}
+
+// Percent-intent phrasing: "Increase font-size on X by 20% (base 16px)."
+// Opacity steps are percentage points, not relative percent.
+function summarizeIntentStyleEdit(
+  diffs: VisualStyleDeclarationDiff[],
+  targetLabel: string,
+): string | null {
+  if (diffs.length === 0 || diffs.some((diff) => !diff.intent)) {
+    return null;
+  }
+
+  const percent = diffs[0].intent?.percent ?? 0;
+  if (percent === 0 || diffs.some((diff) => diff.intent?.percent !== percent)) {
+    return null;
+  }
+
+  const direction = percent > 0 ? 'Increase' : 'Decrease';
+  const unit = diffs.every((diff) => diff.property === 'opacity') ? '%p' : '%';
+
+  if (diffs.length === 1) {
+    const diff = diffs[0];
+    return `${direction} ${cssPropertyLabel(diff.property)} on ${targetLabel} by ${Math.abs(percent)}${unit} (base ${diff.intent?.base}).`;
+  }
+
+  const parts = diffs
+    .map((diff) => `${cssPropertyLabel(diff.property)} (base ${diff.intent?.base})`)
+    .join(', ');
+  return `${direction} ${parts} on ${targetLabel} by ${Math.abs(percent)}${unit}.`;
 }
 
 function formValueAfterState(formValue: VisualFormValueMutation): VisualFormValueSnapshot {
