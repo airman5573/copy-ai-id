@@ -12,9 +12,9 @@ import type {
 // Machine-readable compact JSON export of visual-edit records. The human
 // Markdown formatter lives in visual-edits-export.ts.
 export interface CompactVisualEditsExportDocument {
-  version: 1;
+  version: 2;
   generatedAt: string;
-  format: 'compact-visual-edits-v1';
+  format: 'compact-visual-edits-v2';
   edits: CompactVisualEditDiff[];
 }
 
@@ -56,9 +56,9 @@ export interface CompactStructurePosition {
 
 export function createCompactVisualEditsExportDocument(records: readonly VisualEditRecord[]): CompactVisualEditsExportDocument {
   return {
-    version: 1,
+    version: 2,
     generatedAt: new Date().toISOString(),
-    format: 'compact-visual-edits-v1',
+    format: 'compact-visual-edits-v2',
     edits: records.map(compactVisualEditDiffForRecord),
   };
 }
@@ -132,6 +132,8 @@ function compactChangeForRecord(record: VisualEditRecord): unknown {
           after: declaration.after,
           priority: declaration.priority,
           source: declaration.source,
+          // Percent intent for stepper edits; before/after px stay as reference.
+          intent: declaration.intent,
         })),
       };
     case 'attribute':

@@ -265,7 +265,17 @@ function formatPayloadSummary(record: VisualEditRecord): string {
   switch (record.payload.kind) {
     case 'style':
       return record.payload.declarations
-        .map((declaration) => `${declaration.property}: ${formatNullableValue(declaration.before)} → ${formatNullableValue(declaration.after)}`)
+        .map((declaration) => {
+          const base = `${declaration.property}: ${formatNullableValue(declaration.before)} → ${formatNullableValue(declaration.after)}`;
+          if (!declaration.intent) {
+            return base;
+          }
+
+          const { percent } = declaration.intent;
+          const unit = declaration.property === 'opacity' ? '%p' : '%';
+          const direction = percent >= 0 ? 'Increase' : 'Decrease';
+          return `${base} (${direction} by ${Math.abs(percent)}${unit}, base ${declaration.intent.base})`;
+        })
         .join('; ');
     case 'attribute':
       return record.payload.attributes

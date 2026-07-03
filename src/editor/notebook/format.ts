@@ -18,6 +18,7 @@ export function appendNotebookSuffixes(
     getViewportScopeSuffix(suffixSettings),
     suffixSettings.tailwindEnabled ? messages.notebook.tailwindSuffix : '',
     getVisualEditNoticeSuffix(value, context),
+    getUnitConversionSuffix(value, context),
     getTargetNoticeSuffix(value, suffixSettings, context),
   ].filter((line) => line.trim().length > 0);
 
@@ -74,6 +75,20 @@ function getVisualEditNoticeSuffix(
   }
 
   return getCurrentMessages().notebook.visualEditNotice.trimEnd();
+}
+
+// Stepper edits export % intents instead of absolute values; tell the
+// receiving AI to convert them into whatever units the source already uses.
+function getUnitConversionSuffix(
+  value: string,
+  context: NotebookSuffixContext,
+): string {
+  const hasVisualEdits = context.hasVisualEdits || hasVisualEditsSection(value);
+  if (!hasVisualEdits) {
+    return '';
+  }
+
+  return getCurrentMessages().notebook.unitConversionSuffix.trimEnd();
 }
 
 function hasStableDataAiIdReference(value: string): boolean {

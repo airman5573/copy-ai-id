@@ -86,6 +86,7 @@ export interface CopyAiIdMessages {
     defaultTargetNotice: string;
     fallbackTargetNotice: string;
     visualEditNotice: string;
+    unitConversionSuffix: string;
     breakpointScope: {
       label: string;
       all: string;
@@ -284,6 +285,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
 1. Visual edits are preview-derived implementation instructions; they are not source changes already saved in the project.
 2. Apply each visual edit to the referenced target in the actual source markup, CSS, or component code.
 3. Do not remove, rename, or overwrite existing data-ai-id attributes while applying visual edits.`,
+      unitConversionSuffix:
+        'Numeric changes are expressed as % intents relative to current values — apply them using the units already used in the source code (rem, px, %, …).',
       breakpointScope: {
         label: 'Edit scope',
         all: 'Base',
@@ -544,6 +547,8 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
 1. visual edit은 preview에서 만든 구현 지시이며, 프로젝트 source에 이미 저장된 변경이 아닙니다.
 2. 각 visual edit을 실제 source markup, CSS, component code의 참조 target에 적용하세요.
 3. visual edit을 적용할 때 기존 data-ai-id attribute를 제거하거나 이름을 바꾸거나 덮어쓰지 마세요.`,
+      unitConversionSuffix:
+        '수치 변경은 현재 값 대비 % 의도로 표현되어 있습니다 — 소스 코드에서 이미 사용 중인 단위(rem, px, % 등)로 환산해 적용하세요.',
       breakpointScope: {
         label: '수정 범위',
         all: '기본',

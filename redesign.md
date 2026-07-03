@@ -123,11 +123,11 @@
   - Files/areas: `src/editor/stores/useVisualEditStore.ts`, `visualMutationClient.ts`
   - Notes: 최신 record가 같은 target(aiId/nodeId)+property+스테퍼 편집이고 status pending|applied면 신규 record 대신 기존 record 갱신(기존 `upsertRecord` 활용): `after`/`intent.percent` 누적, `before`·`intent.base`는 최초값 유지, humanSummary 재생성. undo(역방향 메시지)가 최초 before로 복원됨을 로직상 보장.
   - Parallelizable: no
-- [ ] export에 % 의도 반영
+- [x] export에 % 의도 반영
   - Files/areas: `src/editor/notebook/visual-edits-export.ts`, `src/editor/notebook/visual-edits-compact.ts`
   - Notes: intent 있는 declaration의 humanSummary/Diff 라인을 `Increase font-size by 20% (base 16px)` 형태로. compact JSON `format`을 `compact-visual-edits-v2`로, `change.declarations[]`에 `intent` 포함(참고용 before/after px는 유지). intent 없는 편집(색상/세그먼트/attribute)은 기존 포맷 유지.
   - Parallelizable: yes
-- [ ] `## Rules`에 단위 환산 지시문 추가
+- [x] `## Rules`에 단위 환산 지시문 추가
   - Files/areas: `src/editor/notebook/format.ts`(suffixLines), `src/shared/i18n.ts`
   - Notes: 신규 키 `notebook.unitConversionSuffix`(en: "Numeric changes are expressed as % intents relative to current values — apply them using the units already used in the source code (rem, px, %, …)." / ko 동등 문구). visual edits 섹션이 존재할 때만 삽입.
   - Parallelizable: yes
