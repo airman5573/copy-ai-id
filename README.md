@@ -5,19 +5,18 @@
 
 [한국어](README.ko.md)
 
-Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a layout tree, responsive iframe preview, preview-only visual editing controls, and a docked-or-floating note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
+Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a responsive iframe preview, preview-only visual editing controls, and a docked-or-floating note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
 
 ## Editor workflow
 
 1. Open a rendered page. Pages with semantic `data-ai-id` attributes work best, but fallback selection also works on no-ID or mixed pages.
 2. Press **Shift + Z + Space**, or open the extension popup and click **Turn ON**.
 3. Copy AI ID opens a full-screen editor over the current tab:
-   - **Left — Layout tree:** full DOM hierarchy for structure; every DOM row is keyboard-navigable/selectable. Rows with `data-ai-id` insert stable chip targets, and no-ID rows insert fallback chip targets when fallback metadata is available.
-   - **Center — Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, hover quick-action bar, and floating visual control panel.
+   - **Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, click-to-pin quick-action bar, and floating visual control panel.
    - **Note panel — Docked or floating:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
-4. Highlight DOM nodes from the preview, the layout tree, or the keyboard.
+4. Highlight DOM nodes from the preview or the keyboard.
 5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. In floating NotePanel mode, **Space** first opens the note panel near the highlighted/hovered element, focuses it, then inserts the chip. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
-6. Optionally hover a preview element to show the quick-action bar. Category buttons open the floating visual panel for content, layout, spacing, size, style, and border edits; structure buttons duplicate, move, delete, or drag elements in the preview. These mutations are preview-only and are recorded as AI-readable visual edit instructions.
+6. Optionally click a preview element to pin the quick-action bar to it. Category buttons open the floating visual panel for content, layout, spacing, size, style, and border edits; structure buttons duplicate, move, delete, or drag elements in the preview. These mutations are preview-only and are recorded as AI-readable visual edit instructions.
 7. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, `## Rules`, and, when applicable, `## Visual edits` sections. Inline chips are rendered as readable `@el-N` mentions, fallback targets include selector/path/context details, and visual edits include human summaries plus machine-readable JSON diffs.
 8. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
 
@@ -36,7 +35,7 @@ The top toolbar includes a persisted **Floating note** toggle:
 
 Visual editing is an interface for creating precise implementation prompts. It does not save changes back to the inspected page, project source, CMS, or remote service.
 
-- Hover an element in the preview to show the quick-action bar. The toolbar stays usable while the pointer moves from the element to the toolbar.
+- Click an element in the preview to pin the quick-action bar to it. Clicking another element moves the bar; clicking the page background or pressing **Esc** dismisses it. Hovering only highlights elements and never opens the bar.
 - The quick-action bar is runtime-owned DOM inside the preview iframe; the floating visual panel remains in the editor Shadow DOM.
 - Category buttons open the floating visual panel. Desktop placement follows the selected element; mobile and tablet breakpoints place the panel beside the preview iframe.
 - The first supported categories are **Content**, **Layout**, **Spacing**, **Size**, **Style**, and **Border**. Content controls can edit text, rich HTML fragments, safe links/attributes, and form values. Style controls apply preview-only DOM/inline-style changes for immediate feedback.
@@ -50,7 +49,7 @@ Visual editing is an interface for creating precise implementation prompts. It d
 | Shortcut | Action |
 | --- | --- |
 | **Shift + Z + Space** | Toggle Copy AI ID editor on/off |
-| **ArrowUp** | Move to the previous/left layout-tree sibling; if none, move to the parent |
+| **ArrowUp** | Move to the previous/left DOM sibling; if none, move to the parent |
 | **ArrowRight** | Move to the next/right sibling; if none, climb to an ancestor's next/right sibling and enter its first child |
 | **ArrowLeft** | Move to the previous/left sibling; if none, climb to an ancestor's previous/left sibling and enter its deepest last descendant |
 | **ArrowDown** | Move to the first child; if none, move to the next/right sibling or the nearest ancestor's next/right sibling |
@@ -58,7 +57,7 @@ Visual editing is an interface for creating precise implementation prompts. It d
 | **Shift + Enter** | Copy the current notebook text with suffixes |
 | **Esc** | Clear selection or close/off the editor where applicable |
 
-Keyboard traversal moves through every layout-tree DOM node, not only nodes with `data-ai-id`. **Space** remains `data-ai-id`-first, while no-ID nodes use fallback chips as a less-stable bridge.
+Keyboard traversal moves through every preview DOM node, not only nodes with `data-ai-id`. **Space** remains `data-ai-id`-first, while no-ID nodes use fallback chips as a less-stable bridge.
 
 Shortcuts are ignored while typing in editable fields or during IME composition, except **Shift + Enter** inside the notebook copies the current notebook.
 

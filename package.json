@@ -1,12 +1,13 @@
 {
   "name": "copy-ai-id",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy-to-chrome-extension-store": "node scripts/deploy-to-chrome-extension-store.mjs"
   },
   "dependencies": {
     "@lexical/react": "0.45.0",

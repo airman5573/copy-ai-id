@@ -26,7 +26,6 @@ export function App({ onRequestClose }: AppProps) {
   const setCurrentUrl = useRuntimeStore((state) => state.setCurrentUrl);
   const setPreviewUrl = useRuntimeStore((state) => state.setPreviewUrl);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
-  const resetPreviewToStage = useBreakpointStore((state) => state.resetPreviewToStage);
   const toastMessage = useToastStore((state) => state.message);
   const toastTone = useToastStore((state) => state.tone);
   const clearToast = useToastStore((state) => state.clearToast);
@@ -51,7 +50,7 @@ export function App({ onRequestClose }: AppProps) {
           return;
         }
 
-        resetPreviewToStage(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
+        fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
       });
     });
     void readNotebookTargetNotice().then((targetNotice) => {
@@ -85,8 +84,8 @@ export function App({ onRequestClose }: AppProps) {
     };
   }, [
     clearToast,
+    fitZoom,
     hydrateFloatingNotePanelEnabled,
-    resetPreviewToStage,
     resetFloatingNotePanelRuntime,
     setCurrentUrl,
     setMounted,
@@ -98,10 +97,6 @@ export function App({ onRequestClose }: AppProps) {
     fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
   }, [fitZoom]);
 
-  const handleResetPreviewToStage = useCallback(() => {
-    resetPreviewToStage(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
-  }, [resetPreviewToStage]);
-
   return (
     <div className="copy-ai-id-editor-shell" data-ai-id="copy-ai-id-editor-shell">
       <TopToolbar
@@ -111,7 +106,6 @@ export function App({ onRequestClose }: AppProps) {
       <MainArea
         previewStageRef={previewStageRef}
         onFitZoom={handleFitZoom}
-        onResetPreviewToStage={handleResetPreviewToStage}
       />
       <FloatingNotePanel />
       <FloatingVisualPanel />

@@ -5,8 +5,6 @@ import type {
 
 export const QUICK_ACTION_BAR_GAP = 8;
 export const QUICK_ACTION_BAR_PADDING = 12;
-export const QUICK_ACTION_TRANSITION_CORRIDOR_PADDING = 10;
-export const QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION = 80;
 export const DEFAULT_QUICK_ACTION_BAR_SIZE = { width: 520, height: 40 };
 
 export interface OverlaySize {

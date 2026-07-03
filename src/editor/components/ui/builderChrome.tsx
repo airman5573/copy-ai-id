@@ -17,7 +17,7 @@ export function ToolbarSegment({ children }: PropsWithChildren) {
 }
 
 interface PanelChromeProps extends HTMLAttributes<HTMLElement> {
-  side: 'left' | 'right';
+  side: 'right';
   dataAiId: string;
   'data-ai-editor-note-panel-variant'?: string;
 }

@@ -21,7 +21,6 @@ const NOTEBOOK_LEXICAL_EDITOR_AI_ID = 'copy-ai-id-editor-note-lexical-editor';
 const RESIZE_HANDLE_AI_IDS = new Set([
   'copy-ai-id-editor-preview-height-resize-handle',
   'copy-ai-id-editor-preview-width-resize-handle',
-  'copy-ai-id-editor-layout-tree-panel-width-resize-handle',
   'copy-ai-id-editor-note-panel-width-resize-handle',
 ]);
 
@@ -53,10 +52,6 @@ export function installEditorKeyboard(): () => void {
     if (isUndoShortcut(event)) {
       consumeKeyboardEvent(event);
       handleEditorShortcutAction('undo', { postToBridge });
-      return;
-    }
-
-    if (shouldLetLayoutTreeHandleEvent(event)) {
       return;
     }
 
@@ -145,25 +140,6 @@ function consumeKeyboardEvent(event: KeyboardEvent): void {
   event.preventDefault();
   event.stopPropagation();
   event.stopImmediatePropagation();
-}
-
-function shouldLetLayoutTreeHandleEvent(event: KeyboardEvent): boolean {
-  if (!isLayoutTreeEventTarget(event) || !hasNoModifier(event)) {
-    return false;
-  }
-
-  return Boolean(ARROW_SHORTCUTS[event.key])
-    || event.key === 'Enter'
-    || event.code === 'Space';
-}
-
-function isLayoutTreeEventTarget(event: Event): boolean {
-  return event.composedPath().some((target) => {
-    return target instanceof HTMLElement
-      && (target.dataset.aiId === 'copy-ai-id-editor-layout-tree'
-        || target.dataset.aiId === 'copy-ai-id-editor-layout-tree-node-row'
-        || target.hasAttribute('data-copy-ai-id-tree-node-id'));
-  });
 }
 
 function isResizeHandleEventTarget(event: Event): boolean {

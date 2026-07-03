@@ -1,6 +1,5 @@
 import {
   PREVIEW_DROP_INDICATOR_Z_INDEX,
-  PREVIEW_OUTLINE_OVERLAY_Z_INDEX,
   PREVIEW_OVERLAY_ATTR,
 } from '../../shared/config';
 import type { VisualDropPosition } from '../../shared/domain/visual';
@@ -8,32 +7,12 @@ import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
 
 type OverlayKind = 'hover';
 
-const REFERENCE_OVERLAY_ATTR = 'data-ai-editor-overlay';
-
-const STYLES: Record<OverlayKind, string> = {
-  hover: 'outline: 2px dashed #3b82f6; background: rgba(59,130,246,0.06);',
-};
-
-const boxes = new Map<OverlayKind, HTMLDivElement>();
 const tracked = new Map<OverlayKind, Element>();
 
 let tracking = false;
 let rafId: number | null = null;
-let boxModelMode = false;
 let dropIndicatorBox: HTMLDivElement | null = null;
 let dropIndicatorState: { element: Element; position: VisualDropPosition } | null = null;
-
-export function setBoxModelMode(enabled: boolean): void {
-  if (boxModelMode === enabled) {
-    return;
-  }
-
-  boxModelMode = enabled;
-  if (!enabled) {
-    hideBoxModel('hover');
-  }
-  scheduleUpdate();
-}
 
 export function startOverlayTracking(): () => void {
   if (tracking) {
@@ -63,14 +42,9 @@ export function stopOverlayTracking(): void {
   }
 
   tracked.clear();
-  for (const box of boxes.values()) {
-    box.remove();
-  }
-  boxes.clear();
   hideVisualDropIndicator();
   dropIndicatorBox?.remove();
   dropIndicatorBox = null;
-  boxModelMode = false;
   removeBoxModelLayers();
 }
 
@@ -82,7 +56,6 @@ export function showOverlay(kind: OverlayKind, element: Element): void {
 export function hideOverlay(kind: OverlayKind): void {
   tracked.delete(kind);
   hideBoxModel(kind);
-  hideOutlineBox(kind);
 }
 
 export function refreshOverlays(): void {
@@ -98,30 +71,6 @@ export function hideVisualDropIndicator(): void {
   dropIndicatorState = null;
   if (dropIndicatorBox) {
     dropIndicatorBox.style.display = 'none';
-  }
-}
-
-function ensureBox(kind: OverlayKind): HTMLDivElement {
-  const existing = boxes.get(kind);
-  if (existing) {
-    return existing;
-  }
-
-  const box = document.createElement('div');
-  box.setAttribute(REFERENCE_OVERLAY_ATTR, kind);
-  box.setAttribute(PREVIEW_OVERLAY_ATTR, kind);
-  box.setAttribute('data-ai-id', `ai-editor-preview-${kind}-overlay-box`);
-  box.style.cssText =
-    `position: absolute; pointer-events: none; z-index: ${PREVIEW_OUTLINE_OVERLAY_Z_INDEX}; display: none; ${STYLES[kind]}`;
-  (document.body ?? document.documentElement).appendChild(box);
-  boxes.set(kind, box);
-  return box;
-}
-
-function hideOutlineBox(kind: OverlayKind): void {
-  const box = boxes.get(kind);
-  if (box) {
-    box.style.display = 'none';
   }
 }
 
@@ -148,22 +97,7 @@ function reposition(kind: OverlayKind): void {
     return;
   }
 
-  if (boxModelMode) {
-    hideOutlineBox(kind);
-    showBoxModel(kind, element);
-    return;
-  }
-
-  hideBoxModel(kind);
-
-  const rect = element.getBoundingClientRect();
-  const box = ensureBox(kind);
-
-  box.style.display = 'block';
-  box.style.left = `${rect.left + window.scrollX}px`;
-  box.style.top = `${rect.top + window.scrollY}px`;
-  box.style.width = `${rect.width}px`;
-  box.style.height = `${rect.height}px`;
+  showBoxModel(kind, element);
 }
 
 function ensureDropIndicatorBox(): HTMLDivElement {

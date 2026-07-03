@@ -11,21 +11,19 @@ import { viewportSize } from './lib/viewport';
 import {
   connectedPickableElement,
   hasUsableAiId,
+  type LocalTargetReference,
   resolveStrictPointHitFromMouseEvent,
   targetReferenceForElement,
 } from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
 import {
   hideQuickActionToolbar,
-  isPointInQuickActionToolbarTransitionCorridor,
   isQuickActionToolbarElement,
-  requestQuickActionToolbarHide,
   showQuickActionToolbar,
 } from './quick-action-toolbar';
 
 interface HighlightRefreshOptions {
   force?: boolean;
-  bypassPin?: boolean;
 }
 
 interface MousePosition {
@@ -56,11 +54,7 @@ const DEFAULT_QUICK_ACTION_CATEGORIES: QuickActionCategory[] = [
 
 export function installHoverHighlight(post: BridgePost): () => void {
   const handleMouseOver = (event: MouseEvent): void => {
-    if (isHoverHighlightSuppressed()) {
-      return;
-    }
-
-    if (isQuickActionToolbarEvent(event)) {
+    if (isHoverHighlightSuppressed() || isQuickActionToolbarElement(event.target)) {
       return;
     }
 
@@ -68,11 +62,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
   };
 
   const handleMouseOut = (event: MouseEvent): void => {
-    if (isHoverHighlightSuppressed()) {
-      return;
-    }
-
-    if (isQuickActionToolbarEvent(event)) {
+    if (isHoverHighlightSuppressed() || isQuickActionToolbarElement(event.target)) {
       return;
     }
 
@@ -95,7 +85,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
     lastMousePosition = position;
 
-    if (isQuickActionToolbarEvent(event)) {
+    if (isQuickActionToolbarElement(event.target)) {
       return;
     }
 
@@ -120,12 +110,16 @@ export function installHoverHighlight(post: BridgePost): () => void {
     }
 
     const element = resolvePreviewHighlightElement(event);
-    if (!element) {
+    if (element && !isEmptyAreaElement(element)) {
+      consumeMouseEvent(event);
+      pinQuickActionToolbar(element, post);
       return;
     }
 
-    consumeMouseEvent(event);
-    pinQuickActionToolbar(element, post);
+    if (pinnedElement) {
+      consumeMouseEvent(event);
+      clearQuickActionSelection(post);
+    }
   };
 
   document.addEventListener('mouseover', handleMouseOver, { capture: true, passive: true });
@@ -153,8 +147,7 @@ export function getHighlightedElement(): Element | null {
 }
 
 export function clearHighlightedElement(post: BridgePost): void {
-  pinnedElement = null;
-  setHighlightedElement(null, post, 'preview', { bypassPin: true });
+  setHighlightedElement(null, post, 'preview');
 }
 
 export function clearQuickActionSelection(post: BridgePost): void {
@@ -182,16 +175,7 @@ export function suppressHoverHighlightUntilMouseMove(): void {
 
 export function refreshHighlightedElement(post: BridgePost, options: HighlightRefreshOptions = {}): void {
   setHighlightedElement(getHighlightedElement(), post, highlightedOrigin ?? 'preview', options);
-}
-
-export function handleHoverTreeNode(nodeId: string | null, post: BridgePost): void {
-  if (!nodeId) {
-    setHighlightedElement(null, post, 'layout-tree');
-    return;
-  }
-
-  const element = resolveTreeNode(nodeId);
-  setHighlightedElement(element, post, 'layout-tree');
+  refreshPinnedQuickActionToolbar(post);
 }
 
 export function revealTreeNode(nodeId: string, post: BridgePost): void {
@@ -240,11 +224,6 @@ export function setHighlightedElement(
   options: HighlightRefreshOptions = {},
 ): void {
   const nextElement = connectedPickableElement(element);
-  const activePinnedElement = getPinnedElement();
-  const shouldSyncQuickActionAnchor = !activePinnedElement
-    || options.bypassPin
-    || nextElement === activePinnedElement;
-
   const nextReference = nextElement ? targetReferenceForElement(nextElement) : null;
   const nextNodeId = nextReference?.nodeId ?? null;
   const nextTarget = nextReference?.target ?? null;
@@ -263,81 +242,78 @@ export function setHighlightedElement(
   highlightedTarget = nextTarget;
   highlightedOrigin = origin;
   updateHoverOverlay();
-  const elementRect = nextReference?.elementRect ?? null;
-  const viewport = nextReference?.viewport ?? viewportSize();
 
   post({
     type: EDITOR_MESSAGE_TYPES.targetHighlighted,
     target: nextTarget,
     nodeId: nextNodeId,
     origin,
-    elementRect,
-    viewport,
+    elementRect: nextReference?.elementRect ?? null,
+    viewport: nextReference?.viewport ?? viewportSize(),
   });
+}
 
-  if (!shouldSyncQuickActionAnchor) {
+// The quick-action toolbar is pinned by click only; hover just highlights.
+function pinQuickActionToolbar(element: Element, post: BridgePost): void {
+  const reference = targetReferenceForElement(element);
+  if (!reference?.target) {
+    return;
+  }
+
+  pinnedElement = reference.element;
+  setHighlightedElement(reference.element, post, 'preview', { force: true });
+  syncPinnedQuickActionToolbar(reference, post);
+}
+
+function refreshPinnedQuickActionToolbar(post: BridgePost): void {
+  if (!pinnedElement) {
+    return;
+  }
+
+  const connected = connectedPickableElement(pinnedElement);
+  const reference = connected ? targetReferenceForElement(connected) : null;
+  if (!reference?.target) {
+    clearQuickActionSelection(post);
+    return;
+  }
+
+  syncPinnedQuickActionToolbar(reference, post);
+}
+
+function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: BridgePost): void {
+  const target = reference.target;
+  if (!target) {
     return;
   }
 
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
-    target: nextTarget,
-    nodeId: nextNodeId,
-    elementRect,
-    viewport,
+    target,
+    nodeId: reference.nodeId,
+    elementRect: reference.elementRect,
+    viewport: reference.viewport,
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
-    reason: quickActionAnchorReason(nextElement, origin),
+    reason: 'pinned',
   });
 
-  if (nextElement && nextTarget) {
-    showQuickActionToolbar({
-      target: nextTarget,
-      nodeId: nextNodeId,
-      element: nextElement,
-      availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
-      post,
-    });
-    return;
-  }
-
-  requestQuickActionToolbarHide();
-}
-
-function pinQuickActionToolbar(element: Element, post: BridgePost): void {
-  const nextElement = connectedPickableElement(element);
-  const nextReference = nextElement ? targetReferenceForElement(nextElement) : null;
-  if (!nextElement || !nextReference?.target) {
-    return;
-  }
-
-  pinnedElement = nextElement;
-  setHighlightedElement(nextElement, post, 'preview', {
-    bypassPin: true,
-    force: true,
+  showQuickActionToolbar({
+    target,
+    nodeId: reference.nodeId,
+    element: reference.element,
+    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    post,
   });
-}
-
-function getPinnedElement(): Element | null {
-  const connected = connectedPickableElement(pinnedElement);
-  if (connected !== pinnedElement) {
-    pinnedElement = null;
-  }
-
-  return connected;
 }
 
 function resolvePreviewHighlightElement(event: MouseEvent): Element | null {
-  if (isQuickActionToolbarEvent(event)) {
-    return getHighlightedElement();
-  }
-
   return resolveStrictPointHitFromMouseEvent(event)?.element ?? null;
 }
 
-function isQuickActionToolbarEvent(event: MouseEvent): boolean {
-  return isQuickActionToolbarElement(event.target)
-    || isQuickActionToolbarElement(event.relatedTarget)
-    || isPointInQuickActionToolbarTransitionCorridor(event.clientX, event.clientY);
+// A click that resolves to the document background dismisses the pinned
+// toolbar instead of pinning the whole page.
+function isEmptyAreaElement(element: Element): boolean {
+  return element === element.ownerDocument.documentElement
+    || element === element.ownerDocument.body;
 }
 
 function updateHoverOverlay(): void {
@@ -348,17 +324,6 @@ function updateHoverOverlay(): void {
   }
 
   showOverlay('hover', element);
-}
-
-function quickActionAnchorReason(
-  element: Element | null,
-  origin: HighlightOrigin,
-): 'hover' | 'tree-hover' | 'cleared' {
-  if (!element) {
-    return 'cleared';
-  }
-
-  return origin === 'layout-tree' ? 'tree-hover' : 'hover';
 }
 
 function isHoverHighlightSuppressed(): boolean {

@@ -36,13 +36,11 @@ export const EDITOR_MESSAGE_TYPES = {
   targetHighlighted: 'copy-ai-id:target-highlighted',
   targetReferenceRequested: 'copy-ai-id:target-reference-requested',
   targetReferenceRejected: 'copy-ai-id:target-reference-rejected',
-  hoverTreeNode: 'copy-ai-id:hover-tree-node',
   revealTreeNode: 'copy-ai-id:reveal-tree-node',
   keyboardShortcut: 'copy-ai-id:keyboard-shortcut',
   clearQuickActionSelection: 'copy-ai-id:clear-quick-action-selection',
   setHoverHighlightSuppressed: 'copy-ai-id:set-hover-highlight-suppressed',
   setCanvasZoom: 'copy-ai-id:set-canvas-zoom',
-  setBoxModelMode: 'copy-ai-id:set-box-model-mode',
   iframeStatus: 'copy-ai-id:iframe-status',
   quickActionAnchorChanged: 'copy-ai-id:quick-action-anchor-changed',
   quickActionCategoryRequested: 'copy-ai-id:quick-action-category-requested',
@@ -139,11 +137,6 @@ export interface TargetReferenceRejectedMessage {
   reason: 'missing-data-ai-id' | 'stale-fallback-target';
 }
 
-export interface HoverTreeNodeMessage {
-  type: typeof EDITOR_MESSAGE_TYPES.hoverTreeNode;
-  nodeId: string | null;
-}
-
 export interface RevealTreeNodeMessage {
   type: typeof EDITOR_MESSAGE_TYPES.revealTreeNode;
   nodeId: string;
@@ -169,11 +162,6 @@ export interface SetCanvasZoomMessage {
   breakpointId?: BreakpointId;
 }
 
-export interface SetBoxModelModeMessage {
-  type: typeof EDITOR_MESSAGE_TYPES.setBoxModelMode;
-  enabled: boolean;
-}
-
 export interface IframeStatusMessage {
   type: typeof EDITOR_MESSAGE_TYPES.iframeStatus;
   status: IframeStatus;
@@ -188,7 +176,7 @@ export interface QuickActionAnchorChangedMessage {
   elementRect: BridgeViewportRect | null;
   viewport: BridgeViewportSize;
   availableCategories: QuickActionCategory[];
-  reason?: 'hover' | 'tree-hover' | 'hidden' | 'disconnected' | 'protected-target' | 'stale-target' | 'cleared';
+  reason?: 'pinned' | 'hidden' | 'disconnected' | 'protected-target' | 'stale-target' | 'cleared';
 }
 
 export interface QuickActionCategorySelectedMessage extends EditorTargetReference {
@@ -390,13 +378,11 @@ export interface HighlightVisualBoxRegionMessage {
 }
 
 export type EditorToBridgeMessage =
-  | HoverTreeNodeMessage
   | RevealTreeNodeMessage
   | KeyboardShortcutMessage
   | ClearQuickActionSelectionMessage
   | SetHoverHighlightSuppressedMessage
   | SetCanvasZoomMessage
-  | SetBoxModelModeMessage
   | QuickActionCategorySelectedMessage
   | RequestVisualTargetSnapshotMessage
   | UpdateVisualStyleMessage

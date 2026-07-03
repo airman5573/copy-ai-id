@@ -5,13 +5,7 @@ import {
 } from '../../shared/config';
 import {
   calculateToolbarPlacement,
-  DEFAULT_QUICK_ACTION_BAR_SIZE,
-  isUsableRect,
   measureToolbar,
-  QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION,
-  QUICK_ACTION_TRANSITION_CORRIDOR_PADDING,
-  type OverlaySize,
-  type ToolbarPlacement,
 } from './toolbar-geometry';
 import {
   QUICK_ACTION_BAR_BUTTON_CLASS,
@@ -92,9 +86,6 @@ let renderState: QuickActionToolbarState | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let placementFrameId: number | null = null;
 let dragState: QuickActionDragState | null = null;
-let isToolbarHovered = false;
-let isToolbarFocusWithin = false;
-let pendingHide = false;
 let viewportListenersInstalled = false;
 
 export function showQuickActionToolbar(input: QuickActionToolbarTarget): void {
@@ -118,7 +109,6 @@ export function showQuickActionToolbar(input: QuickActionToolbarTarget): void {
     viewport: viewportSize(),
     updatedAt: Date.now(),
   };
-  pendingHide = false;
 
   renderToolbarContents();
 
@@ -131,17 +121,7 @@ export function showQuickActionToolbar(input: QuickActionToolbarTarget): void {
   schedulePlacementRefresh();
 }
 
-export function requestQuickActionToolbarHide(): void {
-  if (hasActiveToolbarInteraction()) {
-    pendingHide = true;
-    return;
-  }
-
-  hideQuickActionToolbar();
-}
-
 export function hideQuickActionToolbar(): void {
-  pendingHide = false;
   renderState = null;
   dragState = null;
   setToolbarDragging(false);
@@ -163,70 +143,11 @@ export function destroyQuickActionToolbar(): void {
   toolbarRoot = null;
   styleElement?.remove();
   styleElement = null;
-  isToolbarHovered = false;
-  isToolbarFocusWithin = false;
 }
 
 export function isQuickActionToolbarElement(target: EventTarget | null): boolean {
   const element = elementFromEventTarget(target);
   return Boolean(element?.closest(`[${QUICK_ACTION_BAR_ATTR}]`));
-}
-
-export function isPointInQuickActionToolbarTransitionCorridor(clientX: number, clientY: number): boolean {
-  if (!Number.isFinite(clientX) || !Number.isFinite(clientY) || !toolbarRoot || !renderState) {
-    return false;
-  }
-
-  if (!toolbarRoot.isConnected || !renderState.element.isConnected) {
-    return false;
-  }
-
-  if (toolbarRoot.style.display === 'none' || toolbarRoot.style.visibility === 'hidden') {
-    return false;
-  }
-
-  const toolbarRect = toolbarRoot.getBoundingClientRect();
-  const anchorRect = renderState.element.getBoundingClientRect();
-  if (!isUsableRect(toolbarRect) || !isUsableRect(anchorRect)) {
-    return false;
-  }
-
-  const padding = QUICK_ACTION_TRANSITION_CORRIDOR_PADDING;
-  const toolbarAboveAnchor = toolbarRect.bottom <= anchorRect.top;
-  const toolbarBelowAnchor = anchorRect.bottom <= toolbarRect.top;
-  let top: number;
-  let bottom: number;
-
-  if (toolbarAboveAnchor) {
-    top = toolbarRect.bottom - padding;
-    bottom = anchorRect.top + padding;
-  } else if (toolbarBelowAnchor) {
-    top = anchorRect.bottom - padding;
-    bottom = toolbarRect.top + padding;
-  } else {
-    return false;
-  }
-
-  const anchorCenterX = anchorRect.left + (anchorRect.width / 2);
-  let left = toolbarRect.left - padding;
-  let right = toolbarRect.right + padding;
-
-  if (anchorCenterX < toolbarRect.left) {
-    left = Math.max(
-      anchorCenterX - padding,
-      toolbarRect.left - QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION,
-    );
-  } else if (anchorCenterX > toolbarRect.right) {
-    right = Math.min(
-      anchorCenterX + padding,
-      toolbarRect.right + QUICK_ACTION_TRANSITION_CORRIDOR_MAX_HORIZONTAL_EXTENSION,
-    );
-  }
-
-  return clientX >= left
-    && clientX <= right
-    && clientY >= top
-    && clientY <= bottom;
 }
 
 function ensureToolbarRoot(): HTMLDivElement {
@@ -242,10 +163,6 @@ function ensureToolbarRoot(): HTMLDivElement {
   toolbarRoot.setAttribute('role', 'toolbar');
   toolbarRoot.style.display = 'none';
   toolbarRoot.style.visibility = 'hidden';
-  toolbarRoot.addEventListener('pointerenter', handleToolbarPointerEnter);
-  toolbarRoot.addEventListener('pointerleave', handleToolbarPointerLeave);
-  toolbarRoot.addEventListener('focusin', handleToolbarFocusIn);
-  toolbarRoot.addEventListener('focusout', handleToolbarFocusOut);
   (document.body ?? document.documentElement).appendChild(toolbarRoot);
 
   installResizeObserver(toolbarRoot);
@@ -549,8 +466,6 @@ function finishDragGrip(event: PointerEvent, commit: boolean): void {
       y: completedDragState.latestY,
     });
   }
-
-  flushPendingHideIfReady();
 }
 
 function handleDragGripLostPointerCapture(): void {
@@ -561,7 +476,6 @@ function handleDragGripLostPointerCapture(): void {
   dragState = null;
   setToolbarDragging(false);
   postDragClearRequest();
-  flushPendingHideIfReady();
 }
 
 function setToolbarDragging(dragging: boolean): void {
@@ -645,40 +559,6 @@ function updateToolbarPlacement(): void {
   toolbarRoot.style.left = `${placement.left}px`;
   toolbarRoot.style.top = `${placement.top}px`;
   toolbarRoot.style.visibility = 'visible';
-}
-
-function handleToolbarPointerEnter(): void {
-  isToolbarHovered = true;
-  pendingHide = false;
-}
-
-function handleToolbarPointerLeave(): void {
-  isToolbarHovered = false;
-  flushPendingHideIfReady();
-}
-
-function handleToolbarFocusIn(): void {
-  isToolbarFocusWithin = true;
-  pendingHide = false;
-}
-
-function handleToolbarFocusOut(event: FocusEvent): void {
-  if (toolbarRoot?.contains(event.relatedTarget as Node | null)) {
-    return;
-  }
-
-  isToolbarFocusWithin = false;
-  flushPendingHideIfReady();
-}
-
-function flushPendingHideIfReady(): void {
-  if (pendingHide && !hasActiveToolbarInteraction()) {
-    hideQuickActionToolbar();
-  }
-}
-
-function hasActiveToolbarInteraction(): boolean {
-  return isToolbarHovered || isToolbarFocusWithin || Boolean(dragState);
 }
 
 function getVisibleCategories(categories: readonly QuickActionCategory[]): Set<QuickActionCategory> {

@@ -168,7 +168,7 @@ textarea,
   display: grid;
   flex: 1;
   min-height: 0;
-  grid-template-columns: 300px minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 
 .copy-ai-id-editor-panel {
@@ -177,10 +177,6 @@ textarea,
   min-height: 0;
   flex-direction: column;
   background: var(--editor-surface);
-}
-
-.copy-ai-id-editor-panel--left {
-  border-right: 1px solid var(--editor-border-subtle);
 }
 
 .copy-ai-id-editor-panel--right {
@@ -467,10 +463,6 @@ textarea,
   white-space: nowrap;
 }
 
-.copy-ai-id-editor-main--tree-hidden {
-  grid-template-columns: 42px minmax(0, 1fr) 360px;
-}
-
 .copy-ai-id-editor-main--panel-resizing,
 .copy-ai-id-editor-main--panel-resizing * {
   cursor: col-resize !important;
@@ -570,23 +562,6 @@ textarea,
 .copy-ai-id-editor-panel-resize-handle:focus-visible .copy-ai-id-editor-panel-resize-handle__grip span,
 .copy-ai-id-editor-panel-resize-handle.is-active .copy-ai-id-editor-panel-resize-handle__grip span {
   background: var(--copy-ai-id-resize-track-active);
-}
-
-.copy-ai-id-editor-layout-tree-rail {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  align-items: flex-start;
-  justify-content: center;
-  border-right: 1px solid var(--editor-border-subtle);
-  background: var(--editor-surface);
-  padding: 8px 5px;
-}
-
-.copy-ai-id-editor-layout-tree-rail__button {
-  width: 30px;
-  min-height: 30px;
-  padding: 7px;
 }
 
 .copy-ai-id-editor-preview-stage {
@@ -1120,126 +1095,3 @@ textarea,
   background: #0284c7;
 }
 
-.copy-ai-id-editor-panel__count {
-  display: inline-flex;
-  min-width: 20px;
-  height: 20px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--editor-accent-soft);
-  color: var(--editor-accent-text);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 0 6px;
-}
-
-.copy-ai-id-editor-tree {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 8px 0;
-}
-
-.copy-ai-id-editor-tree-row {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  border-left: 2px solid transparent;
-  color: var(--editor-text);
-  cursor: pointer;
-  font-size: 12px;
-  padding-bottom: 3px;
-  padding-right: 8px;
-  padding-top: 3px;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.copy-ai-id-editor-tree-row:hover {
-  background: var(--editor-surface-hover);
-}
-
-.copy-ai-id-editor-tree-row:focus-visible {
-  outline: 2px solid var(--editor-accent);
-  outline-offset: -2px;
-  background: rgba(59, 130, 246, 0.14);
-}
-
-.copy-ai-id-editor-tree-row.is-highlighted {
-  border-left-color: var(--editor-accent);
-  background: var(--editor-accent-soft);
-}
-
-.copy-ai-id-editor-tree-row__twisty {
-  display: inline-flex;
-  width: 16px;
-  height: 18px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: var(--editor-text-faint);
-  cursor: pointer;
-  padding: 0;
-}
-
-.copy-ai-id-editor-tree-row__twisty svg {
-  transition: transform 120ms ease;
-}
-
-.copy-ai-id-editor-tree-row__twisty svg.is-expanded {
-  transform: rotate(90deg);
-}
-
-.copy-ai-id-editor-tree-row__tag {
-  flex: 0 0 auto;
-  color: var(--editor-accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.copy-ai-id-editor-tree-row__ai-id {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--editor-text-strong);
-  font-weight: 750;
-  text-overflow: ellipsis;
-}
-
-.copy-ai-id-editor-tree-row__wrapper {
-  color: var(--editor-text-faint);
-  font-size: 11px;
-  font-style: italic;
-}
-
-.copy-ai-id-editor-tree-row__duplicate {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 3px;
-  border: 1px solid rgba(251, 191, 36, 0.38);
-  border-radius: 999px;
-  background: rgba(245, 158, 11, 0.16);
-  color: #fde68a;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 5px;
-}
-
-.copy-ai-id-editor-tree-row__hidden {
-  flex: 0 0 auto;
-  color: var(--editor-text-faint);
-}
-
-.copy-ai-id-editor-tree-row__text {
-  min-width: 40px;
-  overflow: hidden;
-  color: var(--editor-text-faint);
-  font-size: 11px;
-  text-overflow: ellipsis;
-}

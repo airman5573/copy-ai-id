@@ -26,11 +26,9 @@ import {
   registerBridgeIframeElement,
 } from './geometry';
 import { useBridgeStore } from '../stores/useBridgeStore';
-import { useBoxModelStore } from '../stores/useBoxModelStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { useFloatingVisualPanelStore } from '../stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
-import { useLayoutTreeStore } from '../stores/useLayoutTreeStore';
 import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useVisualSelectionStore, type VisualMutationResultMessage } from '../stores/useVisualSelectionStore';
@@ -232,15 +230,15 @@ export function installBridgeClient(): () => void {
 }
 
 // Thin routing table: every multi-statement branch delegates to a named
-// per-domain handler below. Ordering caveat: bridgeReady resets stores and
-// must complete before the following layoutTree message populates the tree.
+// per-domain handler below.
 function routeBridgeMessage(message: BridgeToEditorMessage): void {
   switch (message.type) {
     case EDITOR_MESSAGE_TYPES.bridgeReady:
       handleBridgeReady(message);
       return;
+    // The bridge posts layoutTree after every registry rebuild; it doubles as
+    // the "mutation settled" signal for pending snapshot refreshes.
     case EDITOR_MESSAGE_TYPES.layoutTree:
-      useLayoutTreeStore.getState().setTree(message.root, message.url);
       flushPendingPostMutationSnapshotRefresh();
       return;
     case EDITOR_MESSAGE_TYPES.targetHighlighted:
@@ -322,9 +320,6 @@ function handleBridgeReady(message: BridgeReadyMessage): void {
   useBridgeStore.getState().markReady(message.url, message.aiIdCount);
   useRuntimeStore.getState().setPreviewUrl(message.url);
   postCurrentCanvasZoomToBridge();
-  if (useBoxModelStore.getState().enabled) {
-    postToBridge({ type: EDITOR_MESSAGE_TYPES.setBoxModelMode, enabled: true });
-  }
   if (isNoteEditorHoverProtected()) {
     postToBridge({ type: EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed, suppressed: true });
   }

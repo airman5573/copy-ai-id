@@ -10,11 +10,8 @@ import {
   type RefObject,
 } from 'react';
 import {
-  MAX_LAYOUT_TREE_PANEL_WIDTH,
   MAX_NOTE_PANEL_WIDTH,
-  MIN_LAYOUT_TREE_PANEL_WIDTH,
   MIN_NOTE_PANEL_WIDTH,
-  normalizeLayoutTreePanelWidth,
   normalizeNotePanelWidth,
   useEditorLayoutStore,
 } from '../stores/useEditorLayoutStore';
@@ -23,80 +20,62 @@ import { getCurrentMessages } from '../../shared/i18n';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { NotePanel } from './NotePanel';
 import { PreviewWorkspace } from './PreviewWorkspace';
-import { LayoutTreePanel, LayoutTreePanelRail } from './tree/LayoutTreePanel';
-
-type ResizablePanelSide = 'layout-tree' | 'note';
 
 interface ActivePanelResize {
-  side: ResizablePanelSide;
   startX: number;
   startPanelWidth: number;
-}
-
-interface PanelMaxWidthOptions {
-  notePanelVisible: boolean;
 }
 
 export interface MainAreaProps {
   previewStageRef?: RefObject<HTMLDivElement | null>;
   onFitZoom?: () => void;
-  onResetPreviewToStage?: () => void;
 }
 
-const LAYOUT_TREE_RAIL_WIDTH = 42;
 const PREVIEW_MIN_WIDTH = 360;
 const PANEL_RESIZE_KEY_STEP = 16;
 
-export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: MainAreaProps) {
+export function MainArea({ previewStageRef, onFitZoom }: MainAreaProps) {
   const messages = getCurrentMessages();
   const mainRef = useRef<HTMLElement | null>(null);
-  const layoutTreeCollapsed = useEditorLayoutStore((state) => state.layoutTreeCollapsed);
-  const layoutTreePanelWidth = useEditorLayoutStore((state) => state.layoutTreePanelWidth);
   const notePanelWidth = useEditorLayoutStore((state) => state.notePanelWidth);
   const notePanelFloatingEnabled = useFloatingNotePanelStore((state) => state.enabled);
-  const hydrateLayoutTreeCollapsed = useEditorLayoutStore((state) => state.hydrateLayoutTreeCollapsed);
   const hydratePanelLayout = useEditorLayoutStore((state) => state.hydratePanelLayout);
-  const setLayoutTreeCollapsed = useEditorLayoutStore((state) => state.setLayoutTreeCollapsed);
-  const setLayoutTreePanelWidth = useEditorLayoutStore((state) => state.setLayoutTreePanelWidth);
   const setNotePanelWidth = useEditorLayoutStore((state) => state.setNotePanelWidth);
   const persistPanelLayout = useEditorLayoutStore((state) => state.persistPanelLayout);
-  const previousResponsiveLayoutRef = useRef({ layoutTreeCollapsed, notePanelFloatingEnabled });
+  const previousNotePanelFloatingRef = useRef(notePanelFloatingEnabled);
   const activePanelResizeRef = useRef<ActivePanelResize | null>(null);
   const fitZoomFrameRef = useRef<number | null>(null);
   const geometrySyncFrameRef = useRef<number | null>(null);
-  const initialViewportResetFrameRef = useRef<number | null>(null);
-  const [resizingPanel, setResizingPanel] = useState<ResizablePanelSide | null>(null);
+  const initialViewportFitFrameRef = useRef<number | null>(null);
+  const [resizingPanel, setResizingPanel] = useState(false);
   const isDockedNotePanelVisible = !notePanelFloatingEnabled;
 
   useEffect(() => {
     let isActive = true;
 
-    void Promise.all([
-      hydrateLayoutTreeCollapsed(),
-      hydratePanelLayout(),
-    ]).then(() => {
-      if (!isActive || !onResetPreviewToStage) {
+    void hydratePanelLayout().then(() => {
+      if (!isActive || !onFitZoom) {
         return;
       }
 
-      initialViewportResetFrameRef.current = window.requestAnimationFrame(() => {
-        initialViewportResetFrameRef.current = null;
+      initialViewportFitFrameRef.current = window.requestAnimationFrame(() => {
+        initialViewportFitFrameRef.current = null;
         if (!isActive) {
           return;
         }
 
-        onResetPreviewToStage();
+        onFitZoom();
       });
     });
 
     return () => {
       isActive = false;
-      if (initialViewportResetFrameRef.current !== null) {
-        window.cancelAnimationFrame(initialViewportResetFrameRef.current);
-        initialViewportResetFrameRef.current = null;
+      if (initialViewportFitFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialViewportFitFrameRef.current);
+        initialViewportFitFrameRef.current = null;
       }
     };
-  }, [hydrateLayoutTreeCollapsed, hydratePanelLayout, onResetPreviewToStage]);
+  }, [hydratePanelLayout, onFitZoom]);
 
   const scheduleFitZoom = useCallback(() => {
     if (fitZoomFrameRef.current !== null) {
@@ -118,17 +97,13 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
   }, [onFitZoom]);
 
   useLayoutEffect(() => {
-    const previousResponsiveLayout = previousResponsiveLayoutRef.current;
-    if (
-      previousResponsiveLayout.layoutTreeCollapsed === layoutTreeCollapsed
-      && previousResponsiveLayout.notePanelFloatingEnabled === notePanelFloatingEnabled
-    ) {
+    if (previousNotePanelFloatingRef.current === notePanelFloatingEnabled) {
       return;
     }
 
-    previousResponsiveLayoutRef.current = { layoutTreeCollapsed, notePanelFloatingEnabled };
+    previousNotePanelFloatingRef.current = notePanelFloatingEnabled;
     scheduleFitZoom();
-  }, [layoutTreeCollapsed, notePanelFloatingEnabled, scheduleFitZoom]);
+  }, [notePanelFloatingEnabled, scheduleFitZoom]);
 
   useEffect(() => {
     return () => {
@@ -138,44 +113,34 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
       if (geometrySyncFrameRef.current !== null) {
         window.cancelAnimationFrame(geometrySyncFrameRef.current);
       }
-      if (initialViewportResetFrameRef.current !== null) {
-        window.cancelAnimationFrame(initialViewportResetFrameRef.current);
+      if (initialViewportFitFrameRef.current !== null) {
+        window.cancelAnimationFrame(initialViewportFitFrameRef.current);
       }
     };
   }, []);
 
-  const resizePanel = useCallback((side: ResizablePanelSide, width: number): number => {
-    const normalizedWidth = resizePanelWidth(side, width, mainRef.current, {
-      notePanelVisible: isDockedNotePanelVisible,
-    });
-
-    if (side === 'layout-tree') {
-      setLayoutTreePanelWidth(normalizedWidth);
-    } else {
-      setNotePanelWidth(normalizedWidth);
-    }
-
+  const resizePanel = useCallback((width: number): number => {
+    const normalizedWidth = resizeNotePanelWidth(width, mainRef.current);
+    setNotePanelWidth(normalizedWidth);
     scheduleFitZoom();
     return normalizedWidth;
-  }, [isDockedNotePanelVisible, scheduleFitZoom, setLayoutTreePanelWidth, setNotePanelWidth]);
+  }, [scheduleFitZoom, setNotePanelWidth]);
 
   const finishActivePanelResize = useCallback((restoreStartWidth: boolean): void => {
     const activePanelResize = activePanelResizeRef.current;
     activePanelResizeRef.current = null;
-    setResizingPanel(null);
+    setResizingPanel(false);
 
     if (!activePanelResize) {
       return;
     }
 
     if (restoreStartWidth) {
-      resizePanel(activePanelResize.side, activePanelResize.startPanelWidth);
+      resizePanel(activePanelResize.startPanelWidth);
     }
 
-    const state = useEditorLayoutStore.getState();
     void persistPanelLayout({
-      layoutTreePanelWidth: state.layoutTreePanelWidth,
-      notePanelWidth: state.notePanelWidth,
+      notePanelWidth: useEditorLayoutStore.getState().notePanelWidth,
     });
     scheduleFitZoom();
   }, [persistPanelLayout, resizePanel, scheduleFitZoom]);
@@ -185,12 +150,12 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
       return;
     }
 
-    if (activePanelResizeRef.current?.side === 'note') {
+    if (activePanelResizeRef.current) {
       finishActivePanelResize(false);
       return;
     }
 
-    setResizingPanel((currentPanel) => currentPanel === 'note' ? null : currentPanel);
+    setResizingPanel(false);
   }, [finishActivePanelResize, notePanelFloatingEnabled]);
 
   useEffect(() => {
@@ -204,11 +169,7 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
         return;
       }
 
-      const nextWidth = activePanelResize.side === 'layout-tree'
-        ? activePanelResize.startPanelWidth + (event.clientX - activePanelResize.startX)
-        : activePanelResize.startPanelWidth + (activePanelResize.startX - event.clientX);
-
-      resizePanel(activePanelResize.side, nextWidth);
+      resizePanel(activePanelResize.startPanelWidth + (activePanelResize.startX - event.clientX));
     };
 
     const handlePointerUp = (): void => {
@@ -238,10 +199,7 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
     };
   }, [finishActivePanelResize, resizePanel, resizingPanel]);
 
-  const startPanelResize = useCallback((
-    side: ResizablePanelSide,
-    event: ReactPointerEvent<HTMLButtonElement>,
-  ): void => {
+  const startPanelResize = useCallback((event: ReactPointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) {
       return;
     }
@@ -250,21 +208,14 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
 
-    const state = useEditorLayoutStore.getState();
     activePanelResizeRef.current = {
-      side,
       startX: event.clientX,
-      startPanelWidth: side === 'layout-tree'
-        ? state.layoutTreePanelWidth
-        : state.notePanelWidth,
+      startPanelWidth: useEditorLayoutStore.getState().notePanelWidth,
     };
-    setResizingPanel(side);
+    setResizingPanel(true);
   }, []);
 
-  const resizePanelWithKeyboard = useCallback((
-    side: ResizablePanelSide,
-    event: ReactKeyboardEvent<HTMLButtonElement>,
-  ): void => {
+  const resizePanelWithKeyboard = useCallback((event: ReactKeyboardEvent<HTMLButtonElement>): void => {
     if (!isPanelResizeKey(event.key)) {
       return;
     }
@@ -272,30 +223,22 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
     event.preventDefault();
     event.stopPropagation();
 
-    const currentWidth = side === 'layout-tree'
-      ? useEditorLayoutStore.getState().layoutTreePanelWidth
-      : useEditorLayoutStore.getState().notePanelWidth;
-    const nextWidth = panelResizeKeyboardWidth(side, currentWidth, event.key, mainRef.current, {
-      notePanelVisible: isDockedNotePanelVisible,
-    });
-    const normalizedWidth = resizePanel(side, nextWidth);
+    const currentWidth = useEditorLayoutStore.getState().notePanelWidth;
+    const nextWidth = panelResizeKeyboardWidth(currentWidth, event.key, mainRef.current);
+    const normalizedWidth = resizePanel(nextWidth);
 
-    void persistPanelLayout(side === 'layout-tree'
-      ? { layoutTreePanelWidth: normalizedWidth }
-      : { notePanelWidth: normalizedWidth });
-  }, [isDockedNotePanelVisible, persistPanelLayout, resizePanel]);
+    void persistPanelLayout({ notePanelWidth: normalizedWidth });
+  }, [persistPanelLayout, resizePanel]);
 
-  const leftColumnWidth = layoutTreeCollapsed ? LAYOUT_TREE_RAIL_WIDTH : layoutTreePanelWidth;
   const mainClassName = [
     'copy-ai-id-editor-main',
-    layoutTreeCollapsed ? 'copy-ai-id-editor-main--tree-hidden' : '',
     notePanelFloatingEnabled ? 'copy-ai-id-editor-main--note-panel-floating' : '',
     resizingPanel ? 'copy-ai-id-editor-main--panel-resizing' : '',
   ].filter(Boolean).join(' ');
   const mainStyle: CSSProperties = {
     gridTemplateColumns: isDockedNotePanelVisible
-      ? `${leftColumnWidth}px minmax(0, 1fr) ${notePanelWidth}px`
-      : `${leftColumnWidth}px minmax(0, 1fr)`,
+      ? `minmax(0, 1fr) ${notePanelWidth}px`
+      : 'minmax(0, 1fr)',
   };
 
   return (
@@ -304,46 +247,21 @@ export function MainArea({ previewStageRef, onFitZoom, onResetPreviewToStage }: 
       className={mainClassName}
       style={mainStyle}
       data-ai-id="copy-ai-id-editor-main"
-      data-ai-editor-layout-tree-collapsed={layoutTreeCollapsed ? 'true' : 'false'}
-      data-ai-editor-layout-tree-width={layoutTreePanelWidth}
       data-ai-editor-note-panel-floating={notePanelFloatingEnabled ? 'true' : 'false'}
       data-ai-editor-note-panel-width={notePanelWidth}
       data-ai-editor-panel-resize={resizingPanel ? 'true' : 'false'}
     >
-      {layoutTreeCollapsed ? (
-        <LayoutTreePanelRail onExpand={() => setLayoutTreeCollapsed(false)} />
-      ) : (
-        <LayoutTreePanel onCollapse={() => setLayoutTreeCollapsed(true)} />
-      )}
-
       <PreviewWorkspace stageRef={previewStageRef} />
       {isDockedNotePanelVisible ? <NotePanel /> : null}
-      {!layoutTreeCollapsed ? (
-        <PanelResizeHandle
-          side="layout-tree"
-          active={resizingPanel === 'layout-tree'}
-          label={messages.editor.resizeLayoutTreePanel}
-          value={layoutTreePanelWidth}
-          min={MIN_LAYOUT_TREE_PANEL_WIDTH}
-          max={getAvailablePanelMaxWidth('layout-tree', mainRef.current, {
-            notePanelVisible: isDockedNotePanelVisible,
-          })}
-          onPointerDown={(event) => startPanelResize('layout-tree', event)}
-          onKeyDown={(event) => resizePanelWithKeyboard('layout-tree', event)}
-        />
-      ) : null}
       {isDockedNotePanelVisible ? (
         <PanelResizeHandle
-          side="note"
-          active={resizingPanel === 'note'}
+          active={resizingPanel}
           label={messages.editor.resizeNotePanel}
           value={notePanelWidth}
           min={MIN_NOTE_PANEL_WIDTH}
-          max={getAvailablePanelMaxWidth('note', mainRef.current, {
-            notePanelVisible: isDockedNotePanelVisible,
-          })}
-          onPointerDown={(event) => startPanelResize('note', event)}
-          onKeyDown={(event) => resizePanelWithKeyboard('note', event)}
+          max={getAvailableNotePanelMaxWidth(mainRef.current)}
+          onPointerDown={startPanelResize}
+          onKeyDown={resizePanelWithKeyboard}
         />
       ) : null}
       {resizingPanel ? (
@@ -364,7 +282,6 @@ function PanelResizeHandle({
   min,
   onKeyDown,
   onPointerDown,
-  side,
   value,
 }: {
   active: boolean;
@@ -373,26 +290,21 @@ function PanelResizeHandle({
   min: number;
   onKeyDown: (event: ReactKeyboardEvent<HTMLButtonElement>) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
-  side: ResizablePanelSide;
   value: number;
 }) {
-  const boundaryStyle = side === 'layout-tree'
-    ? { left: `${value}px` }
-    : { right: `${value}px` };
-
   return (
     <div
-      className={`copy-ai-id-editor-panel-resize-boundary copy-ai-id-editor-panel-resize-boundary--${side}`}
-      data-ai-id={`copy-ai-id-editor-${side}-panel-resize-boundary`}
-      data-ai-editor-panel-side={side}
+      className="copy-ai-id-editor-panel-resize-boundary copy-ai-id-editor-panel-resize-boundary--note"
+      data-ai-id="copy-ai-id-editor-note-panel-resize-boundary"
+      data-ai-editor-panel-side="note"
       data-ai-editor-panel-resize-active={active ? 'true' : 'false'}
-      style={boundaryStyle}
+      style={{ right: `${value}px` }}
     >
       <button
         type="button"
         role="separator"
         className={`copy-ai-id-editor-panel-resize-handle${active ? ' is-active' : ''}`}
-        data-ai-id={`copy-ai-id-editor-${side}-panel-width-resize-handle`}
+        data-ai-id="copy-ai-id-editor-note-panel-width-resize-handle"
         aria-label={label}
         aria-orientation="vertical"
         aria-valuemin={min}
@@ -404,12 +316,12 @@ function PanelResizeHandle({
       >
         <span
           className="copy-ai-id-editor-panel-resize-handle__track"
-          data-ai-id={`copy-ai-id-editor-${side}-panel-width-resize-track`}
+          data-ai-id="copy-ai-id-editor-note-panel-width-resize-track"
           aria-hidden="true"
         />
         <span
           className="copy-ai-id-editor-panel-resize-handle__grip"
-          data-ai-id={`copy-ai-id-editor-${side}-panel-width-resize-grip`}
+          data-ai-id="copy-ai-id-editor-note-panel-width-resize-grip"
           aria-hidden="true"
         >
           <span />
@@ -420,38 +332,14 @@ function PanelResizeHandle({
   );
 }
 
-function resizePanelWidth(
-  side: ResizablePanelSide,
-  width: number,
-  main: HTMLElement | null,
-  options: PanelMaxWidthOptions,
-): number {
-  const minWidth = side === 'layout-tree' ? MIN_LAYOUT_TREE_PANEL_WIDTH : MIN_NOTE_PANEL_WIDTH;
-  const maxWidth = getAvailablePanelMaxWidth(side, main, options);
-  const normalizedWidth = side === 'layout-tree'
-    ? normalizeLayoutTreePanelWidth(width)
-    : normalizeNotePanelWidth(width);
-
-  return Math.min(maxWidth, Math.max(minWidth, normalizedWidth));
+function resizeNotePanelWidth(width: number, main: HTMLElement | null): number {
+  const maxWidth = getAvailableNotePanelMaxWidth(main);
+  return Math.min(maxWidth, Math.max(MIN_NOTE_PANEL_WIDTH, normalizeNotePanelWidth(width)));
 }
 
-function getAvailablePanelMaxWidth(
-  side: ResizablePanelSide,
-  main: HTMLElement | null,
-  options: PanelMaxWidthOptions,
-): number {
-  const minWidth = side === 'layout-tree' ? MIN_LAYOUT_TREE_PANEL_WIDTH : MIN_NOTE_PANEL_WIDTH;
-  const staticMaxWidth = side === 'layout-tree' ? MAX_LAYOUT_TREE_PANEL_WIDTH : MAX_NOTE_PANEL_WIDTH;
-  const state = useEditorLayoutStore.getState();
-  const oppositePanelWidth = side === 'layout-tree'
-    ? (options.notePanelVisible ? state.notePanelWidth : 0)
-    : state.layoutTreeCollapsed
-      ? LAYOUT_TREE_RAIL_WIDTH
-      : state.layoutTreePanelWidth;
-  const availableWidth = getAvailableMainAreaWidth(main);
-  const availableMaxWidth = availableWidth - PREVIEW_MIN_WIDTH - oppositePanelWidth;
-
-  return Math.max(minWidth, Math.min(staticMaxWidth, availableMaxWidth));
+function getAvailableNotePanelMaxWidth(main: HTMLElement | null): number {
+  const availableMaxWidth = getAvailableMainAreaWidth(main) - PREVIEW_MIN_WIDTH;
+  return Math.max(MIN_NOTE_PANEL_WIDTH, Math.min(MAX_NOTE_PANEL_WIDTH, availableMaxWidth));
 }
 
 function getAvailableMainAreaWidth(main: HTMLElement | null): number {
@@ -466,25 +354,13 @@ function isPanelResizeKey(key: string): boolean {
   return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Home' || key === 'End';
 }
 
-function panelResizeKeyboardWidth(
-  side: ResizablePanelSide,
-  width: number,
-  key: string,
-  main: HTMLElement | null,
-  options: PanelMaxWidthOptions,
-): number {
+function panelResizeKeyboardWidth(width: number, key: string, main: HTMLElement | null): number {
   if (key === 'Home') {
-    return side === 'layout-tree' ? MIN_LAYOUT_TREE_PANEL_WIDTH : MIN_NOTE_PANEL_WIDTH;
+    return MIN_NOTE_PANEL_WIDTH;
   }
 
   if (key === 'End') {
-    return getAvailablePanelMaxWidth(side, main, options);
-  }
-
-  if (side === 'layout-tree') {
-    return key === 'ArrowRight'
-      ? width + PANEL_RESIZE_KEY_STEP
-      : width - PANEL_RESIZE_KEY_STEP;
+    return getAvailableNotePanelMaxWidth(main);
   }
 
   return key === 'ArrowLeft'

@@ -1,4 +1,4 @@
-import { Maximize2, Minus, Plus, RotateCcw, SquareSquare } from 'lucide-react';
+import { Maximize2, Minus, Plus, RotateCcw } from 'lucide-react';
 
 import {
   BREAKPOINTS,
@@ -12,7 +12,6 @@ import {
   MIN_ZOOM,
   useBreakpointStore,
 } from '../stores/useBreakpointStore';
-import { useBoxModelStore } from '../stores/useBoxModelStore';
 import { ToolbarButton, ToolbarSegment } from './ui/builderChrome';
 
 export interface CanvasControlsProps {
@@ -31,8 +30,6 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
   const stepZoom = useBreakpointStore((state) => state.stepZoom);
   const resetZoom = useBreakpointStore((state) => state.resetZoom);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
-  const boxModelEnabled = useBoxModelStore((state) => state.enabled);
-  const setBoxModelEnabled = useBoxModelStore((state) => state.setEnabled);
   const activeBreakpoint = breakpointById(activeBreakpointId);
   const activePreviewWidth = viewportMode === 'custom' ? customPreviewWidth : activeBreakpoint.width;
 
@@ -134,16 +131,6 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
         >
           <Maximize2 size={14} aria-hidden="true" />
           <span>{messages.editor.zoomFit}</span>
-        </ToolbarButton>
-        <ToolbarButton
-          className={boxModelEnabled ? 'is-active' : ''}
-          data-ai-id="copy-ai-id-editor-box-model-toggle-button"
-          onClick={() => setBoxModelEnabled(!boxModelEnabled)}
-          title={boxModelEnabled ? messages.editor.boxModelDisableTitle : messages.editor.boxModelEnableTitle}
-          aria-label={messages.editor.boxModelToggle}
-          aria-pressed={boxModelEnabled}
-        >
-          <SquareSquare size={14} aria-hidden="true" />
         </ToolbarButton>
       </ToolbarSegment>
     </div>

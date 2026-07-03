@@ -11,7 +11,7 @@ export const MIN_ZOOM = 0.25;
 export const MAX_ZOOM = 2;
 export const DEFAULT_ZOOM = 1;
 export const DEFAULT_PREVIEW_HEIGHT = 720;
-export const DEFAULT_PREVIEW_WIDTH = 1024;
+export const DEFAULT_PREVIEW_WIDTH = 1920;
 export const MIN_PREVIEW_HEIGHT = 720;
 export const MAX_PREVIEW_HEIGHT = 2000;
 export const MIN_PREVIEW_WIDTH = 320;
@@ -237,8 +237,8 @@ function getStageResetZoom(
 }
 
 export const useBreakpointStore = create<BreakpointStore>((set, get) => ({
-  activeBreakpointId: 'desktop',
-  viewportMode: 'custom',
+  activeBreakpointId: 'desktop1920',
+  viewportMode: 'breakpoint',
   customPreviewWidth: DEFAULT_PREVIEW_WIDTH,
   previewHeight: DEFAULT_PREVIEW_HEIGHT,
   zoomById: createZoomRecord(),

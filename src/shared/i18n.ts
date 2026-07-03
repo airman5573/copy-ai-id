@@ -33,10 +33,6 @@ export interface CopyAiIdMessages {
   editor: {
     title: string;
     subtitle: string;
-    layoutTree: string;
-    layoutTreeExpand: string;
-    layoutTreeCollapse: string;
-    layoutTreePending: string;
     notePanel: string;
     notePanelFloatingToggle: string;
     notePanelFloatingEnableTitle: string;
@@ -62,11 +58,7 @@ export interface CopyAiIdMessages {
     customViewport: string;
     resizePreviewHeight: string;
     resizePreviewWidth: string;
-    resizeLayoutTreePanel: string;
     resizeNotePanel: string;
-    boxModelToggle: string;
-    boxModelEnableTitle: string;
-    boxModelDisableTitle: string;
   };
   notebook: {
     title: string;
@@ -173,10 +165,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
     editor: {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id editor',
-      layoutTree: 'Layout tree',
-      layoutTreeExpand: 'Expand layout tree',
-      layoutTreeCollapse: 'Collapse layout tree',
-      layoutTreePending: 'The DOM tree will appear after the preview bridge connects.',
       notePanel: 'Note panel',
       notePanelFloatingToggle: 'Floating note',
       notePanelFloatingEnableTitle: 'Open the Note panel near hovered or selected elements.',
@@ -206,11 +194,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       customViewport: 'Custom',
       resizePreviewHeight: 'Resize preview height',
       resizePreviewWidth: 'Resize preview width',
-      resizeLayoutTreePanel: 'Resize layout tree panel',
       resizeNotePanel: 'Resize note panel',
-      boxModelToggle: 'Box model',
-      boxModelEnableTitle: 'Show margin, padding, content, and gap regions for the highlighted element.',
-      boxModelDisableTitle: 'Hide box-model regions.',
     },
     notebook: {
       title: 'Notebook',
@@ -386,10 +370,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
     editor: {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id 에디터',
-      layoutTree: '레이아웃 트리',
-      layoutTreeExpand: '레이아웃 트리 펼치기',
-      layoutTreeCollapse: '레이아웃 트리 접기',
-      layoutTreePending: '미리보기 브리지가 연결되면 DOM tree가 표시됩니다.',
       notePanel: '노트 패널',
       notePanelFloatingToggle: '노트 플로팅',
       notePanelFloatingEnableTitle: '노트 패널을 hover 또는 선택한 요소 근처에 띄웁니다.',
@@ -419,11 +399,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       customViewport: '사용자 지정',
       resizePreviewHeight: '미리보기 높이 조절',
       resizePreviewWidth: '미리보기 너비 조절',
-      resizeLayoutTreePanel: '레이아웃 트리 패널 너비 조절',
       resizeNotePanel: '노트 패널 너비 조절',
-      boxModelToggle: '박스모델',
-      boxModelEnableTitle: '선택/호버한 요소의 margin·padding·content·gap 영역을 색상으로 표시합니다.',
-      boxModelDisableTitle: '박스모델 표시를 끕니다.',
     },
     notebook: {
       title: '노트북',

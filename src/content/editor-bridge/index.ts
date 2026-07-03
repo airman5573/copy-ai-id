@@ -7,10 +7,9 @@ import {
 import { isEditorToBridgeMessage } from '../../shared/protocol/guards';
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
-import { refreshOverlays, setBoxModelMode, startOverlayTracking } from './overlay';
+import { refreshOverlays, startOverlayTracking } from './overlay';
 import { handleHighlightVisualBoxRegion } from './visual-box-highlight';
 import {
-  handleHoverTreeNode,
   clearQuickActionSelection,
   installHoverHighlight,
   refreshHighlightedElement,
@@ -128,9 +127,6 @@ export function startPreviewBridge(): PreviewBridgeController {
 
 function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMessage) => void): void {
   switch (message.type) {
-    case EDITOR_MESSAGE_TYPES.hoverTreeNode:
-      handleHoverTreeNode(message.nodeId, post);
-      return;
     case EDITOR_MESSAGE_TYPES.revealTreeNode:
       revealTreeNode(message.nodeId, post);
       return;
@@ -145,9 +141,6 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.setCanvasZoom:
       handleSetCanvasZoom(message, post);
-      return;
-    case EDITOR_MESSAGE_TYPES.setBoxModelMode:
-      setBoxModelMode(message.enabled);
       return;
     case EDITOR_MESSAGE_TYPES.highlightVisualBoxRegion:
       handleHighlightVisualBoxRegion(message);
