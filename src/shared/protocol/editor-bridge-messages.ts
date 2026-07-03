@@ -7,6 +7,7 @@ import type {
   BridgeViewportRect,
   BridgeViewportSize,
 } from '../domain/geometry';
+import type { ElementIntent } from '../domain/intent';
 import type {
   EditorTarget,
   EditorTargetReference,
@@ -75,6 +76,7 @@ export const EDITOR_MESSAGE_TYPES = {
   visualDragMoveCompleted: 'copy-ai-id:visual-drag-move-completed',
   visualMutationError: 'copy-ai-id:visual-mutation-error',
   highlightVisualBoxRegion: 'copy-ai-id:highlight-visual-box-region',
+  inlineTextEditCommitted: 'copy-ai-id:inline-text-edit-committed',
 } as const;
 
 export type EditorMessageType = typeof EDITOR_MESSAGE_TYPES[keyof typeof EDITOR_MESSAGE_TYPES];
@@ -176,7 +178,8 @@ export interface QuickActionAnchorChangedMessage {
   elementRect: BridgeViewportRect | null;
   viewport: BridgeViewportSize;
   availableCategories: QuickActionCategory[];
-  reason?: 'pinned' | 'hidden' | 'disconnected' | 'protected-target' | 'stale-target' | 'cleared';
+  intents: ElementIntent[];
+  reason?: 'pinned' | 'repositioned' | 'hidden' | 'disconnected' | 'protected-target' | 'stale-target' | 'cleared';
 }
 
 export interface QuickActionCategorySelectedMessage extends EditorTargetReference {
@@ -377,6 +380,16 @@ export interface HighlightVisualBoxRegionMessage {
   highlight: VisualBoxRegionHighlight | null;
 }
 
+// Emitted by the bridge when a preview inline text edit (dblclick
+// contenteditable) is committed. The bridge reverts the element to
+// previousValue before posting; the editor re-applies the edit through the
+// regular updateVisualText mutation path so record/undo stay consistent.
+export interface InlineTextEditCommittedMessage extends EditorTargetReference {
+  type: typeof EDITOR_MESSAGE_TYPES.inlineTextEditCommitted;
+  value: string;
+  previousValue: string;
+}
+
 export type EditorToBridgeMessage =
   | RevealTreeNodeMessage
   | KeyboardShortcutMessage
@@ -424,4 +437,5 @@ export type BridgeToEditorMessage =
   | VisualElementDeletedMessage
   | VisualElementRestoredMessage
   | VisualDragMoveCompletedMessage
-  | VisualMutationErrorMessage;
+  | VisualMutationErrorMessage
+  | InlineTextEditCommittedMessage;

@@ -56,6 +56,7 @@ export function createVisualTargetSnapshot(
     nodeId,
     tagName: tagNameOf(element),
     label: labelForElement(element, target, fallback),
+    intents: [],
     classTokens: sanitizeClassTokens(classTokensForElement(element)),
     attributes: safeAttributeMapForElement(element),
     inlineStyle: inlineStyleMapForElement(element),

@@ -160,6 +160,7 @@ export function clearQuickActionSelection(post: BridgePost): void {
     elementRect: null,
     viewport: viewportSize(),
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    intents: [],
     reason: 'cleared',
   });
 }
@@ -293,6 +294,7 @@ function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: Bri
     elementRect: reference.elementRect,
     viewport: reference.viewport,
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    intents: [],
     reason: 'pinned',
   });
 

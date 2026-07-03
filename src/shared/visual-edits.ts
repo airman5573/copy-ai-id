@@ -15,7 +15,7 @@ import type {
   VisualTargetSnapshot,
 } from './domain/visual';
 
-export const VISUAL_EDITS_EXPORT_VERSION = 1 as const;
+export const VISUAL_EDITS_EXPORT_VERSION = 2 as const;
 
 export type VisualEditsExportVersion = typeof VISUAL_EDITS_EXPORT_VERSION;
 
@@ -111,12 +111,21 @@ export interface VisualEditControlDescriptor {
   property?: string;
 }
 
+// Percent-intent metadata for stepper edits: the preview applies a concrete
+// px value, but the export records "change by n% relative to base" so the
+// source change can be expressed in whatever unit the code already uses.
+export interface VisualStyleValueIntent {
+  percent: number;
+  base: string;
+}
+
 export interface VisualStyleDeclarationDiff {
   property: string;
   before: string | null;
   after: string | null;
   priority?: '' | 'important';
   source?: 'inline' | 'computed' | 'unknown';
+  intent?: VisualStyleValueIntent;
 }
 
 export interface VisualAttributeDiff {
@@ -164,6 +173,7 @@ export interface VisualStyleDeclarationState {
   value: string | null;
   priority?: '' | 'important';
   source?: 'inline' | 'computed' | 'unknown';
+  intent?: VisualStyleValueIntent;
 }
 
 export interface VisualAttributeState {

@@ -37,19 +37,19 @@
 ## Checklist
 
 ### Phase 1 - Shared 도메인·프로토콜 기반 작업
-- [ ] `ElementIntent` 타입과 판별 규칙 상수 추가
+- [x] `ElementIntent` 타입과 판별 규칙 상수 추가
   - Files/areas: `src/shared/domain/targets.ts`(또는 신규 `src/shared/domain/intent.ts`)
   - Notes: `'image'|'text'|'container'|'link-button'|'form'` 유니온 + 우선순위 배열 `INTENT_PRIORITY`. 판별 규칙(문서화): image=`img|svg|picture`+computed background-image≠none / text=제목·p·span·a 등 텍스트 태그 또는 직접 텍스트 노드 보유 / container=display flex|grid 또는 자식 요소 보유 블록 / link-button=`a[href]|button|[role=button]|input[type=button|submit|reset]` / form=`input|textarea|select|[contenteditable]`. 복수 보유 허용.
   - Parallelizable: yes
-- [ ] 프로토콜 확장: 앵커 메시지에 intent·재배치 사유 추가, 인라인 텍스트 편집 커밋 메시지 신설
+- [x] 프로토콜 확장: 앵커 메시지에 intent·재배치 사유 추가, 인라인 텍스트 편집 커밋 메시지 신설
   - Files/areas: `src/shared/protocol/editor-bridge-messages.ts`, `src/shared/protocol/guards.ts`
   - Notes: `QuickActionAnchorChangedMessage`에 `intents: ElementIntent[]` 필드와 `reason: 'repositioned'` 추가. 신규 Bridge→Editor `inlineTextEditCommitted`(`copy-ai-id:inline-text-edit-committed`, payload `{target, nodeId, value, previousValue}`). guards의 direction별 type 집합에 반영. 기존 category/드래그 trio 메시지는 이 단계에서 **삭제하지 않는다**(Phase 7에서 일괄 제거).
   - Parallelizable: yes
-- [ ] `VisualTargetSnapshot`에 `intents` 필드 추가 + 스테퍼용 computed 속성 커버리지 확인
+- [x] `VisualTargetSnapshot`에 `intents` 필드 추가 + 스테퍼용 computed 속성 커버리지 확인
   - Files/areas: `src/shared/domain/visual.ts`, `src/shared/visual-style.ts`(`VISUAL_STYLE_COMPUTED_PROPERTIES`)
   - Notes: 툴바가 쓰는 font-size/weight/align/color/background-color/padding·margin 4방향/gap/border-radius/width/height/object-fit/opacity가 computed 서브셋에 포함되는지 확인하고 누락분 추가.
   - Parallelizable: yes
-- [ ] visual-edits 데이터 모델에 % 의도(intent) 확장 + export 버전 승격
+- [x] visual-edits 데이터 모델에 % 의도(intent) 확장 + export 버전 승격
   - Files/areas: `src/shared/visual-edits.ts`
   - Notes: `VisualStyleDeclarationDiff`/`VisualStyleDeclarationState`에 선택 필드 `intent?: { percent: number; base: string }` 추가(스테퍼 편집에만 채움). `VISUAL_EDITS_EXPORT_VERSION`을 `2`로 승격. 색상/세그먼트/attribute 편집은 기존 구체값 기록 유지.
   - Parallelizable: yes

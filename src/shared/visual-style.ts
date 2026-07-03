@@ -376,9 +376,14 @@ export const VISUAL_STYLE_PROPERTY_GROUPS = [
   { id: 'outline', category: 'border', label: 'Outline', properties: ['outline-width', 'outline-style', 'outline-color', 'outline-offset'] },
 ] as const satisfies readonly VisualStylePropertyGroupDefinition[];
 
-export const VISUAL_STYLE_COMPUTED_PROPERTIES = VISUAL_STYLE_PROPERTY_DEFINITIONS.map(
-  (definition) => definition.property,
-) as VisualCssPropertyId[];
+// Computed properties without a panel control of their own but read by the
+// quick toolbar (e.g. the radius stepper reads the shorthand value).
+const ADDITIONAL_COMPUTED_STYLE_PROPERTIES = ['border-radius'] as const;
+
+export const VISUAL_STYLE_COMPUTED_PROPERTIES: readonly string[] = [
+  ...VISUAL_STYLE_PROPERTY_DEFINITIONS.map((definition) => definition.property),
+  ...ADDITIONAL_COMPUTED_STYLE_PROPERTIES,
+];
 
 export function isVisualCssPropertyId(property: string): property is VisualCssPropertyId {
   return Object.prototype.hasOwnProperty.call(VISUAL_STYLE_PROPERTY_BY_ID, property);

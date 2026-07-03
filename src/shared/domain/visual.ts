@@ -5,6 +5,7 @@ import type {
   BridgeViewportRect,
   BridgeViewportSize,
 } from './geometry';
+import type { ElementIntent } from './intent';
 import type {
   EditorTarget,
   FallbackTargetMetadata,
@@ -88,6 +89,7 @@ export interface VisualTargetSnapshot {
   nodeId: string | null;
   tagName: string;
   label: string;
+  intents: ElementIntent[];
   classTokens: string[];
   attributes: Record<string, string>;
   inlineStyle: Record<string, string>;
