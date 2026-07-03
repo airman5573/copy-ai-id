@@ -421,6 +421,14 @@ textarea,
   flex: 0 0 auto;
 }
 
+.copy-ai-id-editor-copy-button--toolbar {
+  min-height: 30px;
+  gap: 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  padding: 5px 12px;
+}
+
 .copy-ai-id-editor-canvas-controls {
   flex: 1;
   justify-content: center;

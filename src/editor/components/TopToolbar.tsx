@@ -1,8 +1,17 @@
-import { NotebookText, X } from 'lucide-react';
+import { Copy, NotebookText, X } from 'lucide-react';
 
 import { getCurrentMessages } from '../../shared/i18n';
+import { copyNotebookDraftFromStore } from '../notebook/copy';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { type FitZoomOptions } from '../stores/useBreakpointStore';
+import {
+  selectHasNotebookDraftForCopy,
+  useNotebookStore,
+} from '../stores/useNotebookStore';
+import {
+  selectHasVisualEdits,
+  useVisualEditStore,
+} from '../stores/useVisualEditStore';
 import { CanvasControls } from './CanvasControls';
 import { ToolbarButton } from './ui/builderChrome';
 
@@ -23,6 +32,17 @@ export function TopToolbar({
   const notePanelFloatingTitle = notePanelFloatingEnabled
     ? messages.editor.notePanelFloatingDisableTitle
     : messages.editor.notePanelFloatingEnableTitle;
+  const copyStatus = useNotebookStore((state) => state.copyStatus);
+  const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
+  const hasCopyableVisualEdits = useVisualEditStore(selectHasVisualEdits);
+  const canCopyNotebook = hasNotebookDraftForCopy || hasCopyableVisualEdits;
+  const copyButtonLabel = copyStatus === 'copied'
+    ? messages.editor.copySuccess
+    : copyStatus === 'failed'
+      ? messages.editor.copyFailed
+      : copyStatus === 'empty'
+      ? messages.notebook.empty
+      : messages.notebook.save;
 
   return (
     <header className="copy-ai-id-editor-toolbar" data-ai-id="copy-ai-id-editor-toolbar">
@@ -60,6 +80,19 @@ export function TopToolbar({
           <span>{messages.editor.notePanelFloatingToggle}</span>
         </ToolbarButton>
 
+        <button
+          type="button"
+          className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--toolbar copy-ai-id-editor-copy-button--${copyStatus}`}
+          data-ai-id="copy-ai-id-editor-toolbar-copy-button"
+          data-ai-editor-copy-eligible={canCopyNotebook ? 'true' : 'false'}
+          title={`${messages.notebook.save} (Shift + Enter)`}
+          onClick={() => {
+            void copyNotebookDraftFromStore();
+          }}
+        >
+          <Copy size={14} aria-hidden="true" />
+          <span>{copyButtonLabel}</span>
+        </button>
       </div>
     </header>
   );
