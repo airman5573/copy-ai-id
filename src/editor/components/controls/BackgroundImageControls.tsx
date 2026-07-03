@@ -55,14 +55,12 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
   return (
     <StyleControlGroup
       title="Background image"
-      description="배경 이미지 URL과 size, position, repeat 속성을 조정합니다."
       dataAiId="copy-ai-id-editor-style-background-image-group"
     >
       <VisualControl
         label="Image URL / CSS image"
         dataAiId="copy-ai-id-editor-visual-background-image-field"
         disabled={!canEdit}
-        helperText="URL을 입력하면 url(...)로 적용하고, linear-gradient(...) 같은 CSS image 값은 그대로 적용합니다."
         actions={
           <VisualResetButton
             dataAiId="copy-ai-id-editor-visual-background-image-reset-button"

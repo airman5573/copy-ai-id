@@ -133,27 +133,27 @@
   - Parallelizable: yes
 
 ### Phase 5 - FloatingVisualPanel 재구성('기타' 모음집)
-- [ ] 패널 골격 개편: 탭 제거·단일 스크롤·intent 기반 섹션 목록
+- [x] 패널 골격 개편: 탭 제거·단일 스크롤·intent 기반 섹션 목록
   - Files/areas: `src/editor/components/visual-panel/FloatingVisualPanel.tsx`, `VisualPanelContent.tsx`
   - Notes: `QUICK_CATEGORY_TABS`/카테고리 switch 제거. 스냅샷 `intents` 기준으로 접이식 섹션 배열 렌더(이미지 intent면 이미지 섹션 최상단). '기타' 버튼 → `openPanel()`만으로 전체 목록 열림(section-jump 불필요). 헤더는 요소 태그·라벨 요약만 남기고 설명문 제거.
   - Parallelizable: no
-- [ ] 이미지 전용 섹션 신설
+- [x] 이미지 전용 섹션 신설
   - Files/areas: 신규 `src/editor/components/controls/ImageControls.tsx`
   - Notes: 기존에 분산된 src/alt(attribute), object-fit/object-position, aspect-ratio, background-image 그룹을 한 섹션으로 통합. 수치는 스테퍼, 이산값은 세그먼트.
   - Parallelizable: yes
-- [ ] 나머지 섹션 구성: 툴바 중복 제거 + 스테퍼 전면 교체
+- [x] 나머지 섹션 구성: 툴바 중복 제거 + 스테퍼 전면 교체
   - Files/areas: `src/editor/components/controls/*`(Layout/Size/Border/Typography/Color/Opacity/Shadow/BackgroundImage/Content/FormValue/Link/Attribute), `src/editor/components/forms/useVisualStyleForm.ts`
   - Notes: 현재 intent의 툴바가 커버하는 속성(스페이싱 전체 포함)은 패널에서 제외. 남는 섹션: 레이아웃(display/position/overflow/flex·grid 상세), 크기 제약(min/max/box-sizing), 타이포 확장(line-height/letter-spacing/decoration/transform/white-space/font-family), 효과(opacity/shadow/filter), 테두리 상세(변별 width·style·color/코너별 radius/outline), 콘텐츠·속성·폼 값. 모든 수치 입력(`UnitValueInput` 사용처)을 `StepperControl`로 교체, 단위 드롭다운 제거.
   - Parallelizable: yes (섹션별 분담 가능)
-- [ ] 효과 섹션에 `transform` 프리셋 컨트롤 추가
+- [x] 효과 섹션에 `transform` 프리셋 컨트롤 추가
   - Files/areas: `src/shared/visual-style.ts`, 효과 컨트롤 컴포넌트
   - Notes: 자주 안 쓰는 것 '기타' 수용 결정에 따른 항목. 프리셋 옵션(none/scale 0.9·1.1/rotate ±5deg/translateY 등) 방식 — 자유 입력 없음.
   - Parallelizable: yes
-- [ ] 구구절절 텍스트 전면 제거
+- [x] 구구절절 텍스트 전면 제거
   - Files/areas: `src/editor/components/controls/*`(하드코딩 helperText/description 전부), `src/editor/components/visual/VisualControl.tsx`, `styleControlHelpers.tsx`, `VisualSection.tsx`, `VisualPanelContent.tsx`(상태 notice 축약)
   - Notes: `helperText`/그룹 description 렌더 경로 자체를 제거하거나 no-op화. 상태 notice는 한 줄(로딩/오류/선택 없음)로. 남길 라벨 중 하드코딩 한글은 i18n(en+ko)으로 이동.
   - Parallelizable: yes
-- [ ] 브레이크포인트 표시 제거
+- [x] 브레이크포인트 표시 제거
   - Files/areas: `FloatingVisualPanel.tsx`(VisualPanelBreakpointBadge), `styleControlHelpers.tsx`(StyleControlBreakpointBadge), `VisualSection.tsx`(responsive 점)
   - Notes: UI 표시만 제거. record의 `breakpointId` 기록과 export viewport scope 규칙(format.ts/breakpoint-scope.ts)은 유지.
   - Parallelizable: yes

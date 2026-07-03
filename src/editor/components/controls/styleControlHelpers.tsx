@@ -7,29 +7,35 @@ import {
 
 import { useDraftValue } from './useDraftValue';
 
-import { breakpointById } from '../../../shared/breakpoints';
 import type { QuickActionCategory } from '../../../shared/domain/visual';
 import {
   getVisualStylePropertyDefinition,
   type VisualStylePreset,
 } from '../../../shared/visual-style';
-import { useBreakpointStore } from '../../stores/useBreakpointStore';
+import { useVisualSelectionStore } from '../../stores/useVisualSelectionStore';
+import {
+  formatStepperLengthDisplay,
+  formatStepperOpacityDisplay,
+} from '../../utils/stepperMath';
 import { useStyleEdit } from '../../visual/useStyleEdit';
+import { useToolbarStepper } from '../quick-toolbar/useToolbarStepper';
+import { ColorInput, type ColorPresetOption } from '../visual/ColorInput';
 import { PresetSelect, type VisualPresetOption } from '../visual/PresetSelect';
+import { StepperControl } from '../visual/StepperControl';
 import { selectTextInputValue } from '../visual/inputSelection';
 import { VisualControl, VisualResetButton } from '../visual/VisualControl';
 
 export type StyleControlGroupProps = {
   title: string;
-  description: string;
   dataAiId: string;
   children: ReactNode;
   tone?: 'active' | 'muted';
 };
 
+// Title-only group chrome — no descriptions, no breakpoint badge (viewport
+// scoping still lives in records/export, it is just not displayed here).
 export function StyleControlGroup({
   title,
-  description,
   dataAiId,
   children,
   tone = 'active',
@@ -44,16 +50,10 @@ export function StyleControlGroup({
       data-ai-id={dataAiId}
       data-ai-editor-style-control-group-tone={tone}
     >
-      <div className="mb-3 flex items-start justify-between gap-3" data-ai-id={`${dataAiId}-header`}>
-        <div className="min-w-0">
-          <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
-            {title}
-          </h4>
-          <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-            {description}
-          </p>
-        </div>
-        <StyleControlBreakpointBadge dataAiId={`${dataAiId}-breakpoint-badge`} />
+      <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
+        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
+          {title}
+        </h4>
       </div>
       <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
         {children}
@@ -62,28 +62,127 @@ export function StyleControlGroup({
   );
 }
 
-function StyleControlBreakpointBadge({ dataAiId }: { dataAiId: string }): ReactElement {
-  const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
-  const activeBreakpoint = breakpointById(activeBreakpointId);
-  const isBaseBreakpoint = activeBreakpointId === 'base';
-  const title = isBaseBreakpoint
-    ? 'Style edits are recorded for the base breakpoint and applied inline in the preview.'
-    : `Style edits are recorded as ${activeBreakpoint.label} breakpoint intent, while the preview applies inline styles for immediate feedback.`;
+export type CssStepperProps = {
+  property: string;
+  label: string;
+  dataAiId: string;
+  disabled?: boolean;
+  category?: QuickActionCategory;
+  computedProperty?: string;
+  mode?: 'length' | 'opacity';
+};
+
+// Panel-side percent-intent stepper bound to the selected snapshot. Shares
+// the toolbar's stepper math/coalescing but records source 'floating-panel'.
+export function CssStepper({
+  property,
+  label,
+  dataAiId,
+  disabled = false,
+  category = 'style',
+  computedProperty,
+  mode,
+}: CssStepperProps): ReactElement {
+  const edit = useStyleEdit();
+  const snapshot = useVisualSelectionStore((state) => state.snapshot);
+  const stepper = useToolbarStepper(edit.target, snapshot, { source: 'floating-panel' });
+  const computedValue = edit.computedValueOf(computedProperty ?? property);
+  const displayValue = mode === 'opacity'
+    ? formatStepperOpacityDisplay(computedValue)
+    : formatStepperLengthDisplay(computedValue);
 
   return (
-    <span
-      className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] shadow-sm ${
-        isBaseBreakpoint
-          ? 'border-gray-700 bg-gray-950/70 text-gray-400'
-          : 'border-blue-500/30 bg-blue-500/10 text-blue-300'
-      }`}
-      title={title}
-      data-ai-id={dataAiId}
-      data-ai-editor-breakpoint-id={activeBreakpointId}
-      data-ai-editor-breakpoint-inline-preview={isBaseBreakpoint ? 'false' : 'true'}
+    <VisualControl
+      label={label}
+      dataAiId={`${dataAiId}-field`}
+      disabled={disabled}
+      actions={
+        <VisualResetButton
+          dataAiId={`${dataAiId}-reset-button`}
+          disabled={disabled}
+          onClick={() => edit.resetStyle(property, {
+            category,
+            control: { id: `style:${property}`, label },
+          })}
+        />
+      }
     >
-      {isBaseBreakpoint ? activeBreakpoint.label : `${activeBreakpoint.label} intent`}
-    </span>
+      <StepperControl
+        label={label}
+        displayValue={displayValue}
+        disabled={disabled || !edit.canEdit}
+        dataAiId={dataAiId}
+        onStep={(direction) => stepper.stepProperty({
+          property,
+          computedProperty,
+          category,
+          mode,
+        }, direction)}
+      />
+    </VisualControl>
+  );
+}
+
+export const CSS_COLOR_PRESETS: ColorPresetOption[] = [
+  { value: 'transparent', label: 'Transparent' },
+  { value: 'currentColor', label: 'Current color' },
+  { value: '#000000', label: 'Black' },
+  { value: '#ffffff', label: 'White' },
+  { value: '#ef4444', label: 'Red' },
+  { value: '#f59e0b', label: 'Amber' },
+  { value: '#10b981', label: 'Green' },
+  { value: '#3b82f6', label: 'Blue' },
+  { value: '#8b5cf6', label: 'Violet' },
+];
+
+export type CssColorInputProps = {
+  property: string;
+  label: string;
+  dataAiId: string;
+  disabled?: boolean;
+  category?: QuickActionCategory;
+};
+
+export function CssColorInput({
+  property,
+  label,
+  dataAiId,
+  disabled = false,
+  category = 'style',
+}: CssColorInputProps): ReactElement {
+  const edit = useStyleEdit();
+  const committed = edit.valueOf(property);
+  const [draft, setDraft] = useDraftValue(committed, property);
+
+  const commit = (value = draft): void => {
+    edit.commitStyle(property, value, {
+      category,
+      control: { id: `style:${property}`, label },
+    });
+  };
+
+  return (
+    <ColorInput
+      label={label}
+      dataAiId={dataAiId}
+      value={draft}
+      disabled={disabled}
+      presets={CSS_COLOR_PRESETS}
+      presetValue={committed}
+      onChange={setDraft}
+      onPresetSelect={(value) => {
+        setDraft(value);
+        commit(value);
+      }}
+      onCommit={() => commit()}
+      onReset={() => {
+        setDraft('');
+        edit.resetStyle(property, {
+          category,
+          control: { id: `style:${property}`, label },
+        });
+      }}
+    />
   );
 }
 

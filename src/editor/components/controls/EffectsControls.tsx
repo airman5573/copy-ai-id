@@ -1,8 +1,13 @@
 import type { ReactElement } from 'react';
 
-import { CssTextarea, StyleControlGroup } from './styleControlHelpers';
+import {
+  CssPresetSelect,
+  CssStepper,
+  CssTextarea,
+  StyleControlGroup,
+} from './styleControlHelpers';
 
-export type ShadowControlsProps = {
+export type EffectsControlsProps = {
   disabled?: boolean;
 };
 
@@ -18,7 +23,6 @@ const TEXT_SHADOW_PRESETS = [
   { value: 'none', label: 'None' },
   { value: '0 1px 1px rgba(0, 0, 0, 0.28)', label: 'Soft' },
   { value: '0 2px 4px rgba(0, 0, 0, 0.38)', label: 'Strong' },
-  { value: '1px 1px 0 rgba(0, 0, 0, 0.55)', label: 'Outline' },
 ] as const;
 
 const FILTER_PRESETS = [
@@ -29,13 +33,26 @@ const FILTER_PRESETS = [
   { value: 'grayscale(1)', label: 'Gray' },
 ] as const;
 
-export function ShadowControls({ disabled = false }: ShadowControlsProps): ReactElement {
+// Effects section: opacity stepper (percentage points), shadows/filters, and
+// the preset-only transform control.
+export function EffectsControls({ disabled = false }: EffectsControlsProps): ReactElement {
   return (
-    <StyleControlGroup
-      title="Effects"
-      description="box-shadow, text-shadow, filter, backdrop-filter 값을 직접 조정합니다."
-      dataAiId="copy-ai-id-editor-style-effects-group"
-    >
+    <StyleControlGroup title="Effects" dataAiId="copy-ai-id-editor-style-effects-group">
+      <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-style-effects-grid">
+        <CssStepper
+          property="opacity"
+          label="Opacity"
+          dataAiId="copy-ai-id-editor-visual-opacity"
+          disabled={disabled}
+          mode="opacity"
+        />
+        <CssPresetSelect
+          property="transform"
+          label="Transform"
+          dataAiId="copy-ai-id-editor-visual-transform"
+          disabled={disabled}
+        />
+      </div>
       <CssTextarea
         property="box-shadow"
         label="Box shadow"
@@ -54,29 +71,24 @@ export function ShadowControls({ disabled = false }: ShadowControlsProps): React
         presets={TEXT_SHADOW_PRESETS}
         rows={2}
       />
-      <div className="rounded-lg border border-gray-800 bg-gray-950/35 p-3" data-ai-id="copy-ai-id-editor-style-filter-group">
-        <CssTextarea
-          property="filter"
-          label="Filter"
-          dataAiId="copy-ai-id-editor-visual-filter"
-          disabled={disabled}
-          placeholder="blur(4px) brightness(1.1)"
-          presets={FILTER_PRESETS}
-          rows={2}
-        />
-        <div className="mt-3" data-ai-id="copy-ai-id-editor-style-backdrop-filter-wrapper">
-          <CssTextarea
-            property="backdrop-filter"
-            label="Backdrop filter"
-            dataAiId="copy-ai-id-editor-visual-backdrop-filter"
-            disabled={disabled}
-            placeholder="blur(12px)"
-            presets={FILTER_PRESETS}
-            rows={2}
-          />
-        </div>
-      </div>
+      <CssTextarea
+        property="filter"
+        label="Filter"
+        dataAiId="copy-ai-id-editor-visual-filter"
+        disabled={disabled}
+        placeholder="blur(4px) brightness(1.1)"
+        presets={FILTER_PRESETS}
+        rows={2}
+      />
+      <CssTextarea
+        property="backdrop-filter"
+        label="Backdrop filter"
+        dataAiId="copy-ai-id-editor-visual-backdrop-filter"
+        disabled={disabled}
+        placeholder="blur(12px)"
+        presets={FILTER_PRESETS}
+        rows={2}
+      />
     </StyleControlGroup>
   );
 }
-

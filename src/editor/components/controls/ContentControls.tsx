@@ -29,8 +29,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-visual-content-controls">
       <ContentControlGroup
-        title="텍스트 콘텐츠"
-        description="선택 요소의 실제 textContent 또는 form value를 수정하고 preview에 바로 반영합니다."
+        title="Text"
         dataAiId="copy-ai-id-editor-content-text-group"
       >
         <PlainTextContentControl
@@ -49,7 +48,6 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
 
       <ContentControlGroup
         title="Rich HTML"
-        description="내부 HTML tag를 포함해 편집합니다. 위험한 script/event/runtime artifact는 적용 전에 제거됩니다."
         dataAiId="copy-ai-id-editor-content-rich-html-group"
       >
         <RichHtmlContentControl
@@ -302,12 +300,10 @@ function RichHtmlContentControl({
 
 function ContentControlGroup({
   title,
-  description,
   dataAiId,
   children,
 }: {
   title: string;
-  description: string;
   dataAiId: string;
   children: ReactNode;
 }): ReactElement {
@@ -320,9 +316,6 @@ function ContentControlGroup({
         <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
           {title}
         </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-          {description}
-        </p>
       </div>
       <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
         {children}

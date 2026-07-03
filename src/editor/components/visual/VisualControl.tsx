@@ -4,6 +4,8 @@ export type VisualControlProps = {
   label: string;
   dataAiId: string;
   children: ReactNode;
+  // Accepted for API compatibility but intentionally never rendered: the
+  // redesigned panel keeps labels only, no helper prose.
   helperText?: string;
   errorText?: string;
   disabled?: boolean;
@@ -17,7 +19,7 @@ export function VisualControl({
   label,
   dataAiId,
   children,
-  helperText,
+  helperText: _helperText,
   errorText,
   disabled = false,
   actions,
@@ -73,11 +75,6 @@ export function VisualControl({
       ) : (
         body
       )}
-      {helperText ? (
-        <p className="mt-1.5 text-[10px] leading-normal text-gray-500" data-ai-id={`${dataAiId}-helper-text`}>
-          {helperText}
-        </p>
-      ) : null}
       {errorText ? (
         <p className="mt-1.5 text-[10px] leading-normal text-red-400" data-ai-id={`${dataAiId}-error-text`}>
           {errorText}

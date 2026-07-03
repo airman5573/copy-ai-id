@@ -35,8 +35,7 @@ export function AttributeControls({ disabled = false }: AttributeControlsProps):
 
   return (
     <AttributeControlSection
-      title="속성"
-      description="자주 쓰는 안전한 attribute만 수정합니다. style, on* event, 위험한 URL scheme은 허용하지 않습니다."
+      title="Attributes"
       dataAiId="copy-ai-id-editor-content-attribute-group"
     >
       <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-attribute-fields">
@@ -66,12 +65,10 @@ export function AttributeControls({ disabled = false }: AttributeControlsProps):
 
 export function AttributeControlSection({
   title,
-  description,
   dataAiId,
   children,
 }: {
   title: string;
-  description: string;
   dataAiId: string;
   children: ReactNode;
 }): ReactElement {
@@ -84,9 +81,6 @@ export function AttributeControlSection({
         <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
           {title}
         </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id={`${dataAiId}-description-text`}>
-          {description}
-        </p>
       </div>
       <div className="space-y-3" data-ai-id={`${dataAiId}-body`}>
         {children}

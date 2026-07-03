@@ -244,6 +244,17 @@ const COMMON_COLOR_PRESETS = [
   { label: 'White', value: '#ffffff' },
 ] as const;
 
+// Preset-only control (no free-form input) for the panel effects section.
+const TRANSFORM_PRESETS = [
+  { label: 'None', value: 'none' },
+  { label: 'Scale 0.9', value: 'scale(0.9)' },
+  { label: 'Scale 1.1', value: 'scale(1.1)' },
+  { label: 'Rotate -5°', value: 'rotate(-5deg)' },
+  { label: 'Rotate 5°', value: 'rotate(5deg)' },
+  { label: 'Up 4px', value: 'translateY(-4px)' },
+  { label: 'Down 4px', value: 'translateY(4px)' },
+] as const;
+
 export const VISUAL_STYLE_PROPERTY_DEFINITIONS = [
   // Layout
   { property: 'display', category: 'layout', group: 'display', label: 'Display', control: 'select', valueKind: 'keyword', presets: DISPLAY_PRESETS },
@@ -325,6 +336,7 @@ export const VISUAL_STYLE_PROPERTY_DEFINITIONS = [
   { property: 'text-shadow', category: 'style', group: 'effects', label: 'Text shadow', control: 'textarea', valueKind: 'shadow', presets: [{ label: 'None', value: 'none' }], inherited: true },
   { property: 'filter', category: 'style', group: 'effects', label: 'Filter', control: 'textarea', valueKind: 'text', presets: [{ label: 'None', value: 'none' }] },
   { property: 'backdrop-filter', category: 'style', group: 'effects', label: 'Backdrop filter', control: 'textarea', valueKind: 'text', presets: [{ label: 'None', value: 'none' }] },
+  { property: 'transform', category: 'style', group: 'effects', label: 'Transform', control: 'select', valueKind: 'keyword', presets: TRANSFORM_PRESETS },
   { property: 'background-image', category: 'style', group: 'background', label: 'Background image', control: 'textarea', valueKind: 'image', presets: [{ label: 'None', value: 'none' }] },
   { property: 'background-size', category: 'style', group: 'background', label: 'Background size', control: 'select', valueKind: 'keyword', presets: BACKGROUND_SIZE_PRESETS },
   { property: 'background-position', category: 'style', group: 'background', label: 'Background position', control: 'text-input', valueKind: 'position', presets: BACKGROUND_POSITION_PRESETS },
@@ -367,7 +379,7 @@ export const VISUAL_STYLE_PROPERTY_GROUPS = [
   { id: 'media', category: 'size', label: 'Media', properties: ['aspect-ratio', 'object-fit', 'object-position'] },
   { id: 'color', category: 'style', label: 'Color', properties: ['color', 'background-color'] },
   { id: 'typography', category: 'style', label: 'Typography', properties: ['font-size', 'font-weight', 'font-family', 'font-style', 'line-height', 'letter-spacing', 'text-align', 'text-decoration-line', 'text-transform', 'white-space'] },
-  { id: 'effects', category: 'style', label: 'Effects', properties: ['opacity', 'box-shadow', 'text-shadow', 'filter', 'backdrop-filter'] },
+  { id: 'effects', category: 'style', label: 'Effects', properties: ['opacity', 'box-shadow', 'text-shadow', 'filter', 'backdrop-filter', 'transform'] },
   { id: 'background', category: 'style', label: 'Background image', properties: ['background-image', 'background-size', 'background-position', 'background-repeat'] },
   { id: 'border-width', category: 'border', label: 'Border width', properties: ['border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'] },
   { id: 'border-style', category: 'border', label: 'Border style', properties: ['border-style'] },

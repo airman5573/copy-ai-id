@@ -10,10 +10,8 @@ import {
   type SetStateAction,
 } from 'react';
 
-import { breakpointById, type BreakpointId } from '../../../shared/breakpoints';
-import type { QuickActionCategory } from '../../../shared/domain/visual';
+import { type BreakpointId } from '../../../shared/breakpoints';
 import { getCurrentMessages } from '../../../shared/i18n';
-import { selectQuickActionCategory } from '../../bridge/bridgeClient';
 import {
   bridgeViewportRectToEditorViewportRect,
   calculateFloatingOverlayPlacement,
@@ -31,10 +29,7 @@ import {
   useVisualSelectionStore,
   type VisualPanelTargetState,
 } from '../../stores/useVisualSelectionStore';
-import {
-  getVisualPanelCategoryMeta,
-  VisualPanelContent,
-} from './VisualPanelContent';
+import { VisualPanelContent } from './VisualPanelContent';
 
 const DESKTOP_PANEL_WIDTH_PX = 380;
 const MOBILE_PANEL_WIDTH_PX = 320;
@@ -60,12 +55,12 @@ interface FloatingPanelPlacement {
 
 const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
 
-const QUICK_CATEGORY_TABS: QuickActionCategory[] = ['content', 'layout', 'spacing', 'size', 'style', 'border'];
-
+// The "everything else" panel: no tabs, no category state — one scrollable
+// intent-driven section list. Opened from the quick toolbar's More button.
 export function FloatingVisualPanel(): ReactElement | null {
   const isOpen = useFloatingVisualPanelStore((state) => state.isOpen);
   const target = useVisualSelectionStore((state) => state.panelTarget);
-  const activeCategory = target?.category ?? null;
+  const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const closePanel = useFloatingVisualPanelStore((state) => state.closePanel);
   const closeVisualSelectionPanel = useVisualSelectionStore((state) => state.closePanel);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
@@ -83,7 +78,7 @@ export function FloatingVisualPanel(): ReactElement | null {
     }
 
     measurePanel(panelRef.current, setPanelSize);
-  }, [activeCategory, isOpen]);
+  }, [isOpen, target?.nodeId]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -102,7 +97,7 @@ export function FloatingVisualPanel(): ReactElement | null {
     resizeObserver.observe(node);
 
     return () => resizeObserver.disconnect();
-  }, [activeCategory, isOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -153,12 +148,14 @@ export function FloatingVisualPanel(): ReactElement | null {
   ]);
   const panelStyle = createPanelStyle(placement);
 
-  if (!isOpen || activeCategory === null) {
+  if (!isOpen || !target) {
     return null;
   }
 
   const messages = getCurrentMessages();
-  const meta = getVisualPanelCategoryMeta(activeCategory);
+  const tagName = snapshot?.tagName?.toLowerCase()
+    ?? (target.target.kind === 'fallback' ? target.target.tagName.toLowerCase() : null);
+  const label = snapshot?.label ?? getTargetLabel(target);
   const handleClosePanel = (): void => {
     closePanel();
     closeVisualSelectionPanel();
@@ -174,40 +171,38 @@ export function FloatingVisualPanel(): ReactElement | null {
         className="copy-ai-id-editor-floating-visual-panel pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
         style={panelStyle}
         role="dialog"
-        aria-label={`${meta.label} ${messages.visualEditor.panel.editPanelLabelSuffix}`}
+        aria-label={`${label} ${messages.visualEditor.panel.editPanelLabelSuffix}`}
         data-ai-id="copy-ai-id-editor-floating-visual-panel"
         data-ai-editor-floating-visual-panel="1"
         data-copy-ai-id-visual-focus-guard="true"
-        data-ai-editor-floating-panel-category={activeCategory}
         data-ai-editor-floating-panel-placement={placement.mode}
         data-ai-editor-floating-panel-flipped={placement.flipped ? '1' : '0'}
-        data-ai-editor-floating-panel-target-ai-id={target?.target.kind === 'ai-id' ? target.target.aiId : ''}
+        data-ai-editor-floating-panel-target-ai-id={target.target.kind === 'ai-id' ? target.target.aiId : ''}
       >
         <header
           className="copy-ai-id-editor-floating-visual-panel__header shrink-0 border-b border-[color:var(--ai-editor-chrome-border)] bg-[color:var(--ai-editor-chrome-bg-translucent)] px-3.5 py-3"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-header"
         >
-          <div className="flex items-start gap-3" data-ai-id="copy-ai-id-editor-floating-visual-panel-header-row">
-            <div className="min-w-0 flex-1" data-ai-id="copy-ai-id-editor-floating-visual-panel-header-copy">
-              <div className="flex min-w-0 items-center gap-2" data-ai-id="copy-ai-id-editor-floating-visual-panel-title-row">
-                <h2
-                  className="truncate text-xs font-bold uppercase tracking-[0.12em] text-gray-50"
-                  data-ai-id="copy-ai-id-editor-floating-visual-panel-title-text"
+          <div className="flex items-center gap-3" data-ai-id="copy-ai-id-editor-floating-visual-panel-header-row">
+            <div className="flex min-w-0 flex-1 items-center gap-2" data-ai-id="copy-ai-id-editor-floating-visual-panel-title-row">
+              {tagName ? (
+                <span
+                  className="shrink-0 rounded-md border border-gray-600 bg-gray-900 px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-gray-200"
+                  data-ai-id="copy-ai-id-editor-floating-visual-panel-tag-badge"
                 >
-                  {meta.label}
-                </h2>
-                <VisualPanelBreakpointBadge dataAiId="copy-ai-id-editor-floating-visual-panel-breakpoint-badge" />
-              </div>
-              <p
-                className="mt-1 line-clamp-2 text-xs leading-normal text-gray-400"
-                data-ai-id="copy-ai-id-editor-floating-visual-panel-description-text"
+                  {tagName}
+                </span>
+              ) : null}
+              <h2
+                className="truncate text-xs font-bold text-gray-50"
+                data-ai-id="copy-ai-id-editor-floating-visual-panel-title-text"
               >
-                {meta.description}
-              </p>
+                {label}
+              </h2>
             </div>
             <button
               type="button"
-              className="copy-ai-id-editor-floating-visual-panel__close inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-gray-600 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
+              className="copy-ai-id-editor-floating-visual-panel__close inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-600 bg-gray-950/70 text-gray-200 transition hover:border-gray-500 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
               title={messages.visualEditor.panel.close}
               aria-label={messages.visualEditor.panel.close}
               onClick={handleClosePanel}
@@ -216,100 +211,25 @@ export function FloatingVisualPanel(): ReactElement | null {
               <span aria-hidden="true" data-ai-id="copy-ai-id-editor-floating-visual-panel-close-icon-text">×</span>
             </button>
           </div>
-          <FloatingVisualPanelTabs activeCategory={activeCategory} target={target} />
         </header>
 
         <div
           className="copy-ai-id-editor-floating-visual-panel__body min-h-0 flex-1 overflow-y-auto bg-[color:var(--ai-editor-panel-body-bg)] p-3.5"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-body"
         >
-          <VisualPanelContent category={activeCategory} target={target} />
+          <VisualPanelContent target={target} />
         </div>
       </section>
     </div>
   );
 }
 
-type FloatingVisualPanelTabsProps = {
-  activeCategory: QuickActionCategory;
-  target: VisualPanelTargetState | null;
-};
-
-function FloatingVisualPanelTabs({ activeCategory, target }: FloatingVisualPanelTabsProps): ReactElement {
-  const messages = getCurrentMessages();
-
-  return (
-    <div
-      className="copy-ai-id-editor-floating-visual-panel__tabs mt-3 flex gap-1 overflow-x-auto pb-0.5"
-      role="tablist"
-      aria-label={messages.visualEditor.panel.categoriesLabel}
-      data-ai-id="copy-ai-id-editor-floating-visual-panel-category-tabs"
-    >
-      {QUICK_CATEGORY_TABS.map((category) => (
-        <FloatingVisualPanelTab
-          key={category}
-          label={messages.visualEditor.categories[category].label}
-          active={activeCategory === category}
-          onClick={() => openCategory(category, target)}
-          dataAiId={`copy-ai-id-editor-floating-visual-panel-${category}-tab-button`}
-        />
-      ))}
-    </div>
-  );
-}
-
-type FloatingVisualPanelTabProps = {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  dataAiId: string;
-};
-
-function FloatingVisualPanelTab({ label, active, onClick, dataAiId }: FloatingVisualPanelTabProps): ReactElement {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      className={`copy-ai-id-editor-floating-visual-panel__tab shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${
-        active
-          ? 'is-active border-blue-400/70 bg-blue-500/25 text-blue-50 shadow-sm shadow-blue-950/30'
-          : 'border-gray-700 bg-gray-950/40 text-gray-400 hover:border-gray-600 hover:bg-gray-900 hover:text-gray-100'
-      }`}
-      onClick={onClick}
-      data-ai-id={dataAiId}
-    >
-      {label}
-    </button>
-  );
-}
-
-function VisualPanelBreakpointBadge({ dataAiId }: { dataAiId: string }): ReactElement {
-  const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
-  const activeBreakpoint = breakpointById(activeBreakpointId);
-
-  return (
-    <span
-      className="copy-ai-id-editor-floating-visual-panel__breakpoint-badge shrink-0 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 shadow-sm"
-      data-ai-id={dataAiId}
-    >
-      {activeBreakpoint.label}
-    </span>
-  );
-}
-
-function openCategory(category: QuickActionCategory, target: VisualPanelTargetState | null): void {
-  if (!target) {
-    return;
+function getTargetLabel(target: VisualPanelTargetState): string {
+  if (target.target.kind === 'ai-id') {
+    return target.target.aiId;
   }
 
-  selectQuickActionCategory({
-    target: target.target,
-    nodeId: target.nodeId,
-  }, category, {
-    elementRect: target.elementRect,
-    editorRect: target.editorRect,
-  });
+  return target.target.label || target.target.selector || target.target.tagName;
 }
 
 function computePanelPlacement({
@@ -339,10 +259,7 @@ function computePanelPlacement({
     MIN_PANEL_HEIGHT_PX,
     maxHeight,
   );
-  const anchorRect = resolvePanelAnchorRect({
-    mode,
-    target,
-  }) ?? fallbackAnchorRect();
+  const anchorRect = resolvePanelAnchorRect(target) ?? fallbackAnchorRect();
   const placement = calculateFloatingOverlayPlacement(anchorRect, {
     width,
     height,
@@ -376,17 +293,7 @@ function createPanelStyle(placement: FloatingPanelPlacement): CSSProperties {
   };
 }
 
-function resolvePanelAnchorRect({
-  mode,
-  target,
-}: {
-  mode: FloatingPanelPlacementMode;
-  target: VisualPanelTargetState | null;
-}): EditorViewportRect | null {
-  if (mode === 'desktop-follow-anchor') {
-    return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
-  }
-
+function resolvePanelAnchorRect(target: VisualPanelTargetState | null): EditorViewportRect | null {
   return targetEditorRect(target) ?? getPreviewWorkspaceGeometrySnapshot()?.iframeRect ?? null;
 }
 

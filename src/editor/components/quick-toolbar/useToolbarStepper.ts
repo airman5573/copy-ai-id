@@ -6,6 +6,7 @@ import type {
   VisualTargetSnapshot,
 } from '../../../shared/domain/visual';
 import { targetIdentityKey } from '../../../shared/editor-targets';
+import type { VisualEditSource } from '../../../shared/visual-edits';
 import {
   stepLengthValue,
   stepOpacityValue,
@@ -34,11 +35,14 @@ export interface ToolbarStepperApi {
 
 // Per-target stepper state: base values and cumulative percents keyed by CSS
 // property. The map resets whenever the pinned target changes, so a new
-// selection re-captures bases from its own computed style.
+// selection re-captures bases from its own computed style. Shared by the
+// quick toolbar and the floating panel (which passes source 'floating-panel').
 export function useToolbarStepper(
   reference: EditorTargetReference | null,
   snapshot: VisualTargetSnapshot | null,
+  options: { source?: VisualEditSource } = {},
 ): ToolbarStepperApi {
+  const source = options.source ?? 'quick-action-bar';
   const statesRef = useRef<Map<string, StepperBaseState>>(new Map());
   const targetKeyRef = useRef<string | null>(null);
 
@@ -87,13 +91,13 @@ export function useToolbarStepper(
     dispatchVisualStyleMutation({
       reference,
       snapshot,
-      source: 'quick-action-bar',
+      source,
       category: options.category,
       control: { id: `stepper:${options.property}` },
       declarations: [declaration],
       coalesce: true,
     });
-  }, [reference, snapshot, stepDeclaration]);
+  }, [reference, snapshot, source, stepDeclaration]);
 
   const stepProperties = useCallback((options: Omit<ToolbarStepOptions, 'property' | 'computedProperty'> & {
     properties: string[];
@@ -117,13 +121,13 @@ export function useToolbarStepper(
     dispatchVisualStyleMutation({
       reference,
       snapshot,
-      source: 'quick-action-bar',
+      source,
       category: options.category,
       control: { id: `stepper:${declarations.map((declaration) => declaration.property).join('+')}` },
       declarations,
       coalesce: true,
     });
-  }, [reference, snapshot, stepDeclaration]);
+  }, [reference, snapshot, source, stepDeclaration]);
 
   return { stepProperty, stepProperties };
 }

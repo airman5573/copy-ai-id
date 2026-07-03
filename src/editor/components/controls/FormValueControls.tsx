@@ -31,28 +31,19 @@ export function FormValueControls({ disabled = false }: FormValueControlsProps):
     >
       <div className="mb-3" data-ai-id="copy-ai-id-editor-content-form-value-header">
         <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id="copy-ai-id-editor-content-form-value-title-text">
-          폼 값
+          Form value
         </h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500" data-ai-id="copy-ai-id-editor-content-form-value-description-text">
-          input, textarea, select, checkbox/radio, contenteditable의 현재 값을 attribute가 아닌 form-value diff로 기록합니다.
-        </p>
       </div>
 
       {edit.targetKind === 'unsupported' || !edit.formValue ? (
         <p
-          className="rounded-lg border border-dashed border-gray-800 bg-gray-950/30 px-3 py-2 text-[11px] leading-relaxed text-gray-500"
+          className="rounded-lg border border-dashed border-gray-800 bg-gray-950/30 px-3 py-2 text-[11px] leading-relaxed text-gray-400"
           data-ai-id="copy-ai-id-editor-content-form-value-unsupported-message"
         >
-          선택 요소는 별도 form value 컨트롤 대상이 아닙니다. 일반 텍스트 또는 Rich HTML 컨트롤을 사용하세요.
+          —
         </p>
       ) : (
         <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-form-value-fields">
-          <p
-            className="rounded-lg border border-gray-800 bg-gray-950/50 px-3 py-2 text-[10px] leading-relaxed text-gray-500"
-            data-ai-id="copy-ai-id-editor-content-form-value-kind-message"
-          >
-            대상 타입: <strong className="font-mono text-gray-300">{edit.targetKind}</strong>
-          </p>
           {edit.supportsValue ? (
             <FormValueTextField edit={edit} canEdit={canEdit} />
           ) : null}

@@ -170,6 +170,18 @@ export interface CopyAiIdMessages {
       editPanelLabelSuffix: string;
       categoriesLabel: string;
       close: string;
+      sectionReset: string;
+      sectionExpand: string;
+      sectionCollapse: string;
+      sections: {
+        image: string;
+        content: string;
+        layout: string;
+        size: string;
+        typography: string;
+        effects: string;
+        border: string;
+      };
       readyStatus: string;
       waitingStatus: string;
       controlsWaitingPlaceholder: string;
@@ -403,6 +415,18 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         editPanelLabelSuffix: 'editing panel',
         categoriesLabel: 'Visual editing categories',
         close: 'Close panel',
+        sectionReset: 'Reset',
+        sectionExpand: 'Expand',
+        sectionCollapse: 'Collapse',
+        sections: {
+          image: 'Image',
+          content: 'Content',
+          layout: 'Layout',
+          size: 'Size',
+          typography: 'Typography',
+          effects: 'Effects',
+          border: 'Border',
+        },
         readyStatus: 'Ready',
         waitingStatus: 'Waiting',
         controlsWaitingPlaceholder: 'Controls become available after the selected element snapshot is ready.',
@@ -665,6 +689,18 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         editPanelLabelSuffix: '편집 패널',
         categoriesLabel: '비주얼 편집 카테고리',
         close: '패널 닫기',
+        sectionReset: '초기화',
+        sectionExpand: '열기',
+        sectionCollapse: '닫기',
+        sections: {
+          image: '이미지',
+          content: '콘텐츠',
+          layout: '레이아웃',
+          size: '크기',
+          typography: '타이포그래피',
+          effects: '효과',
+          border: '테두리',
+        },
         readyStatus: '준비됨',
         waitingStatus: '대기 중',
         controlsWaitingPlaceholder: '선택 요소 snapshot이 준비되면 이 섹션의 컨트롤을 사용할 수 있습니다.',

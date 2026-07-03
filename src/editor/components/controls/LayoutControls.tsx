@@ -1,4 +1,4 @@
-import { type ReactElement, type ReactNode } from 'react';
+import { type ReactElement } from 'react';
 
 import { type VisualPresetOption } from '../visual/PresetSelect';
 import { useStyleEdit } from '../../visual/useStyleEdit';
@@ -14,7 +14,6 @@ import {
 const DISPLAY_PROPERTY = 'display';
 const FLEX_DISPLAY_VALUES = new Set(['flex', 'inline-flex']);
 const GRID_DISPLAY_VALUES = new Set(['grid', 'inline-grid']);
-const POSITIONED_VALUES = new Set(['relative', 'absolute', 'fixed', 'sticky']);
 
 const DISPLAY_OPTIONS: VisualPresetOption[] = [
   { value: 'block', label: 'Block' },
@@ -25,38 +24,38 @@ const DISPLAY_OPTIONS: VisualPresetOption[] = [
   { value: 'inline-flex', label: 'Inline Flex' },
   { value: 'grid', label: 'Grid' },
   { value: 'inline-grid', label: 'Inline Grid' },
-  { value: 'none', label: 'Hidden (display: none)' },
+  { value: 'none', label: 'None' },
 ];
 
 const FLEX_DIRECTION_OPTIONS: VisualPresetOption[] = [
-  { value: 'row', label: '가로 (row)' },
-  { value: 'row-reverse', label: '가로 역순 (row-reverse)' },
-  { value: 'column', label: '세로 (column)' },
-  { value: 'column-reverse', label: '세로 역순 (column-reverse)' },
+  { value: 'row', label: 'Row' },
+  { value: 'row-reverse', label: 'Row reverse' },
+  { value: 'column', label: 'Column' },
+  { value: 'column-reverse', label: 'Column reverse' },
 ];
 
 const JUSTIFY_OPTIONS: VisualPresetOption[] = [
-  { value: 'flex-start', label: '시작 (flex-start)' },
-  { value: 'center', label: '가운데 (center)' },
-  { value: 'flex-end', label: '끝 (flex-end)' },
-  { value: 'space-between', label: '양끝 분배 (space-between)' },
-  { value: 'space-around', label: '둘레 분배 (space-around)' },
-  { value: 'space-evenly', label: '균등 분배 (space-evenly)' },
+  { value: 'flex-start', label: 'Start' },
+  { value: 'center', label: 'Center' },
+  { value: 'flex-end', label: 'End' },
+  { value: 'space-between', label: 'Space between' },
+  { value: 'space-around', label: 'Space around' },
+  { value: 'space-evenly', label: 'Space evenly' },
 ];
 
 const ALIGN_OPTIONS: VisualPresetOption[] = [
-  { value: 'stretch', label: '늘이기 (stretch)' },
-  { value: 'flex-start', label: '시작 (flex-start)' },
-  { value: 'center', label: '가운데 (center)' },
-  { value: 'flex-end', label: '끝 (flex-end)' },
-  { value: 'baseline', label: '기준선 (baseline)' },
+  { value: 'stretch', label: 'Stretch' },
+  { value: 'flex-start', label: 'Start' },
+  { value: 'center', label: 'Center' },
+  { value: 'flex-end', label: 'End' },
+  { value: 'baseline', label: 'Baseline' },
 ];
 
 const PLACE_ITEMS_OPTIONS: VisualPresetOption[] = [
-  { value: 'start', label: '시작 (start)' },
-  { value: 'center', label: '가운데 (center)' },
-  { value: 'end', label: '끝 (end)' },
-  { value: 'stretch', label: '늘이기 (stretch)' },
+  { value: 'start', label: 'Start' },
+  { value: 'center', label: 'Center' },
+  { value: 'end', label: 'End' },
+  { value: 'stretch', label: 'Stretch' },
 ];
 
 const GRID_TEMPLATE_PRESETS: VisualPresetOption[] = [
@@ -64,7 +63,7 @@ const GRID_TEMPLATE_PRESETS: VisualPresetOption[] = [
   { value: 'repeat(2, minmax(0, 1fr))', label: '2 columns' },
   { value: 'repeat(3, minmax(0, 1fr))', label: '3 columns' },
   { value: 'repeat(4, minmax(0, 1fr))', label: '4 columns' },
-  { value: 'repeat(auto-fit, minmax(12rem, 1fr))', label: 'Auto fit cards' },
+  { value: 'repeat(auto-fit, minmax(12rem, 1fr))', label: 'Auto fit' },
 ];
 
 const GRID_ROWS_PRESETS: VisualPresetOption[] = [
@@ -89,43 +88,30 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
   const edit = useStyleEdit();
   const canEdit = edit.canEdit && !disabled;
   const display = edit.valueOf(DISPLAY_PROPERTY);
-  const position = edit.valueOf('position');
   const isFlex = FLEX_DISPLAY_VALUES.has(display);
   const isGrid = GRID_DISPLAY_VALUES.has(display);
-  const isPositioned = POSITIONED_VALUES.has(position);
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-layout-controls">
-      <StyleControlGroup
-        title="디스플레이"
-        description="선택 요소가 문서 흐름 안에서 렌더링되는 기본 방식을 정합니다."
-        dataAiId="copy-ai-id-editor-layout-display-group"
-      >
+      <StyleControlGroup title="Display" dataAiId="copy-ai-id-editor-layout-display-group">
         <StylePresetSelect
           property="display"
           label="Display"
           dataAiId="copy-ai-id-editor-visual-display"
           options={DISPLAY_OPTIONS}
           disabled={!canEdit}
-          helperText="display 값은 flex/grid 하위 컨트롤 노출에도 사용됩니다."
         />
       </StyleControlGroup>
 
       <StyleControlGroup
-        title="Flex / 정렬"
-        description="flex 또는 grid 컨테이너의 자식 배치 방향과 정렬을 조정합니다."
+        title="Flex"
         dataAiId="copy-ai-id-editor-layout-flex-group"
         tone={isFlex || isGrid ? 'active' : 'muted'}
       >
-        {!isFlex && !isGrid ? (
-          <LayoutHint dataAiId="copy-ai-id-editor-layout-flex-disabled-hint">
-            Display를 Flex 또는 Grid로 바꾸면 정렬 컨트롤이 바로 적용됩니다. 현재 값도 선택하면 inline CSS로 저장됩니다.
-          </LayoutHint>
-        ) : null}
         {isFlex ? (
           <StylePresetSelect
             property="flex-direction"
-            label="방향 (Direction)"
+            label="Direction"
             dataAiId="copy-ai-id-editor-visual-flex-direction"
             options={FLEX_DIRECTION_OPTIONS}
             disabled={!canEdit}
@@ -133,62 +119,52 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         ) : null}
         <StylePresetSelect
           property="justify-content"
-          label="주축 정렬 (Justify)"
+          label="Justify content"
           dataAiId="copy-ai-id-editor-visual-justify-content"
           options={JUSTIFY_OPTIONS}
           disabled={!canEdit}
-          helperText={isFlex || isGrid ? undefined : 'Flex/Grid 컨테이너에서 가장 명확하게 반영됩니다.'}
         />
         <StylePresetSelect
           property="align-items"
-          label="교차축 정렬 (Align)"
+          label="Align items"
           dataAiId="copy-ai-id-editor-visual-align-items"
           options={ALIGN_OPTIONS}
           disabled={!canEdit}
-          helperText={isFlex || isGrid ? undefined : 'Flex/Grid 컨테이너에서 가장 명확하게 반영됩니다.'}
         />
         {isFlex ? (
           <StylePresetSelect
             property="flex-wrap"
-            label="줄바꿈 (Wrap)"
+            label="Wrap"
             dataAiId="copy-ai-id-editor-visual-flex-wrap"
             disabled={!canEdit}
           />
         ) : null}
         <StylePresetSelect
           property="align-content"
-          label="여러 줄 정렬"
+          label="Align content"
           dataAiId="copy-ai-id-editor-visual-align-content"
           options={JUSTIFY_OPTIONS}
           disabled={!canEdit}
-          helperText="여러 줄 flex/grid 영역에서 효과가 큽니다."
         />
       </StyleControlGroup>
 
       <StyleControlGroup
         title="Grid"
-        description="CSS grid의 열/행 템플릿과 자동 배치 방식을 설정합니다."
         dataAiId="copy-ai-id-editor-layout-grid-group"
         tone={isGrid ? 'active' : 'muted'}
       >
-        {!isGrid ? (
-          <LayoutHint dataAiId="copy-ai-id-editor-layout-grid-disabled-hint">
-            Display를 Grid 또는 Inline Grid로 바꾸면 grid template 값이 바로 눈에 보입니다.
-          </LayoutHint>
-        ) : null}
         <StyleTextInput
           property="grid-template-columns"
-          label="그리드 칼럼"
+          label="Grid columns"
           dataAiId="copy-ai-id-editor-visual-grid-cols"
           disabled={!canEdit}
           placeholder="repeat(3, minmax(0, 1fr))"
-          helperText="숫자만 입력하면 repeat(n, minmax(0, 1fr))로 변환합니다."
           normalize={normalizeGridTemplateColumnsInput}
           presets={GRID_TEMPLATE_PRESETS}
         />
         <StyleTextInput
           property="grid-template-rows"
-          label="그리드 행"
+          label="Grid rows"
           dataAiId="copy-ai-id-editor-visual-grid-rows"
           disabled={!canEdit}
           placeholder="auto 1fr"
@@ -197,7 +173,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         />
         <StylePresetSelect
           property="grid-auto-flow"
-          label="자동 배치"
+          label="Auto flow"
           dataAiId="copy-ai-id-editor-visual-grid-auto-flow"
           disabled={!canEdit}
         />
@@ -210,11 +186,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         />
       </StyleControlGroup>
 
-      <StyleControlGroup
-        title="위치 / 오버플로우"
-        description="position, inset, z-index, overflow 값을 inline CSS로 적용합니다."
-        dataAiId="copy-ai-id-editor-layout-position-overflow-group"
-      >
+      <StyleControlGroup title="Position / Overflow" dataAiId="copy-ai-id-editor-layout-position-overflow-group">
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-layout-position-overflow-grid">
           <StylePresetSelect
             property="position"
@@ -231,11 +203,6 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
             inputMode="numeric"
           />
         </div>
-        {!isPositioned ? (
-          <LayoutHint dataAiId="copy-ai-id-editor-layout-inset-disabled-hint">
-            Top/Right/Bottom/Left는 position이 Relative, Absolute, Fixed, Sticky일 때 가장 명확하게 반영됩니다.
-          </LayoutHint>
-        ) : null}
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-layout-inset-grid">
           {INSET_PROPERTIES.map(({ property, label }) => (
             <StyleTextInput
@@ -245,7 +212,6 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
               dataAiId={`copy-ai-id-editor-visual-${property}`}
               disabled={!canEdit}
               placeholder="auto"
-              helperText={isPositioned ? undefined : 'position 변경 후 적용 권장'}
             />
           ))}
         </div>
@@ -254,7 +220,6 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
           label="Overflow"
           dataAiId="copy-ai-id-editor-visual-overflow"
           disabled={!canEdit}
-          helperText="전체 overflow 값을 한 번에 설정합니다."
         />
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-layout-overflow-axis-grid">
           <StylePresetSelect
@@ -272,17 +237,6 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         </div>
       </StyleControlGroup>
     </div>
-  );
-}
-
-function LayoutHint({ dataAiId, children }: { dataAiId: string; children: ReactNode }): ReactElement {
-  return (
-    <p
-      className="rounded-lg border border-blue-500/15 bg-blue-500/10 px-3 py-2 text-[11px] leading-relaxed text-blue-100/80"
-      data-ai-id={dataAiId}
-    >
-      {children}
-    </p>
   );
 }
 
