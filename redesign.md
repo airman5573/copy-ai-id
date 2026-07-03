@@ -173,7 +173,7 @@
   - Files/areas: `src/shared/protocol/editor-bridge-messages.ts` + `guards.ts`(`quickActionCategoryRequested/Selected`, `quickActionStructureRequested`, `quickActionDragMove*Requested` 3종, `availableCategories` 필드), `src/editor/bridge/bridgeClient.ts`(해당 핸들러·`selectQuickActionCategory`), `src/editor/stores/useSectionJumpStore.ts` 삭제, `src/editor/components/visual/sectionJump.ts` 삭제, `src/content/editor-bridge/index.ts` route 정리
   - Notes: `QuickActionCategory` 타입은 record.category 분류용으로 잔존시킴(record/export 스키마 churn 최소화). `useVisualEditStore`의 미사용 `undoStack`/`redoStack` 데드코드도 이번에 제거.
   - Parallelizable: no
-- [ ] i18n 프루닝 + en/ko 패리티 정리
+- [x] i18n 프루닝 + en/ko 패리티 정리
   - Files/areas: `src/shared/i18n.ts`
   - Notes: 제거된 UI가 쓰던 verbose 키(categories.*.description/placeholder, panel.state 장문 등) 삭제, 신규 키(툴바 라벨·팝오버·스테퍼 aria·unitConversionSuffix 등) en+ko 동시 존재 확인.
   - Parallelizable: yes

@@ -1,20 +1,8 @@
 import type { BreakpointId } from './breakpoints';
-import type { QuickActionCategory } from './domain/visual';
 
 export type CopyAiIdLocale = 'en' | 'ko';
 
 type VisualStructureQuickAction = 'duplicate' | 'move-up' | 'move-down' | 'delete';
-
-interface VisualCategoryMessages {
-  label: string;
-  description: string;
-  placeholder: string;
-}
-
-interface VisualPanelStateMessage {
-  title: string;
-  message: string;
-}
 
 export interface CopyAiIdMessages {
   htmlLang: string;
@@ -102,10 +90,7 @@ export interface CopyAiIdMessages {
     };
   };
   visualEditor: {
-    categories: Record<QuickActionCategory, VisualCategoryMessages>;
     quickActions: {
-      toolbarLabel: string;
-      dragMoveTitle: string;
       structure: Record<VisualStructureQuickAction, {
         label: string;
         title: string;
@@ -168,7 +153,6 @@ export interface CopyAiIdMessages {
     };
     panel: {
       editPanelLabelSuffix: string;
-      categoriesLabel: string;
       close: string;
       sectionReset: string;
       sectionExpand: string;
@@ -182,29 +166,21 @@ export interface CopyAiIdMessages {
         effects: string;
         border: string;
       };
-      readyStatus: string;
-      waitingStatus: string;
-      controlsWaitingPlaceholder: string;
-      reasonLabel: string;
-      codeLabel: string;
-      selectedElementFallback: string;
       hiddenPromptLabel: string;
       pendingLabel: string;
       failedLabel: string;
-      latestCodeLabel: string;
       countSuffix: string;
-      copyOnlySuffix: string;
+      // Single-line state notices (title only).
       state: {
-        empty: VisualPanelStateMessage;
-        loading: VisualPanelStateMessage;
-        ready: VisualPanelStateMessage;
-        error: VisualPanelStateMessage;
-        stale: VisualPanelStateMessage;
-        deleted: VisualPanelStateMessage;
-        waiting: VisualPanelStateMessage;
+        empty: string;
+        loading: string;
+        ready: string;
+        error: string;
+        stale: string;
+        deleted: string;
+        waiting: string;
       };
     };
-    staleReasons: Record<string, string>;
   };
 }
 
@@ -314,41 +290,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
     },
     visualEditor: {
-      categories: {
-        content: {
-          label: 'Content',
-          description: 'Adjust text, links, attributes, and HTML next to the selected element.',
-          placeholder: 'Text and HTML editing controls appear in this section.',
-        },
-        layout: {
-          label: 'Layout',
-          description: 'Apply display, flex/grid, and alignment values to the selected element.',
-          placeholder: 'Display, flex, grid, and alignment controls appear in this section.',
-        },
-        spacing: {
-          label: 'Spacing',
-          description: 'Adjust padding, margin, and gap values near the canvas.',
-          placeholder: 'Padding, margin, row gap, and column gap controls appear in this section.',
-        },
-        size: {
-          label: 'Size',
-          description: 'Edit width, height, min/max sizes, and object sizing directly.',
-          placeholder: 'Width, height, min/max, and object-fit controls appear in this section.',
-        },
-        style: {
-          label: 'Style',
-          description: 'Adjust typography, colors, backgrounds, opacity, and shadows.',
-          placeholder: 'Typography, color, background, opacity, and shadow controls appear in this section.',
-        },
-        border: {
-          label: 'Border',
-          description: 'Apply border, radius, and outline values to the selected element.',
-          placeholder: 'Border width/style/color, radius, and outline controls appear in this section.',
-        },
-      },
       quickActions: {
-        toolbarLabel: 'Visual editor quick actions',
-        dragMoveTitle: 'Drag to move',
         structure: {
           duplicate: { label: 'Duplicate', title: 'Duplicate' },
           'move-up': { label: '↑', title: 'Move before the previous sibling' },
@@ -413,7 +355,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
       panel: {
         editPanelLabelSuffix: 'editing panel',
-        categoriesLabel: 'Visual editing categories',
         close: 'Close panel',
         sectionReset: 'Reset',
         sectionExpand: 'Expand',
@@ -427,59 +368,19 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
           effects: 'Effects',
           border: 'Border',
         },
-        readyStatus: 'Ready',
-        waitingStatus: 'Waiting',
-        controlsWaitingPlaceholder: 'Controls become available after the selected element snapshot is ready.',
-        reasonLabel: 'Reason',
-        codeLabel: 'code',
-        selectedElementFallback: 'Selected element',
         hiddenPromptLabel: 'Hidden visual edit prompts',
         pendingLabel: 'Applying visual edits',
         failedLabel: 'Failed visual edits',
-        latestCodeLabel: 'latest code',
         countSuffix: '',
-        copyOnlySuffix: 'Included only when copied.',
         state: {
-          empty: {
-            title: 'Select an element',
-            message: 'Hover an element on the canvas, then click a quick-action button to open visual editing controls.',
-          },
-          loading: {
-            title: 'Loading selected element details',
-            message: 'Reading DOM, style, and attribute details from the preview iframe.',
-          },
-          ready: {
-            title: 'Selected element is ready',
-            message: 'Visual editing controls can be applied to this element.',
-          },
-          error: {
-            title: 'Could not load selected element details',
-            message: 'Error prompt details are hidden. Hover the same element again or retry the quick action.',
-          },
-          stale: {
-            title: 'Reselect this element',
-            message: 'The preview DOM changed and the selected element can no longer be resolved exactly. Hover it again and retry the quick action.',
-          },
-          deleted: {
-            title: 'Selected element was deleted',
-            message: 'The selected element was deleted from the preview DOM. Hover another element to continue visual editing.',
-          },
-          waiting: {
-            title: 'Selected element details are not ready yet',
-            message: 'The element is selected, but no snapshot is available yet. Click the quick action again or hover the element again.',
-          },
+          empty: 'Select an element',
+          loading: 'Loading selected element…',
+          ready: 'Ready',
+          error: 'Could not load the selected element',
+          stale: 'Reselect this element',
+          deleted: 'Selected element was deleted',
+          waiting: 'Waiting for the element snapshot',
         },
-      },
-      staleReasons: {
-        'bridge-reset': 'preview reconnected',
-        cleared: 'selection cleared',
-        disconnected: 'DOM disconnected',
-        hidden: 'hidden',
-        'protected-target': 'protected target',
-        'stale-target': 'stale target',
-        'snapshot-error': 'snapshot error',
-        'mutation-error': 'mutation error',
-        deleted: 'deleted',
       },
     },
   },
@@ -588,41 +489,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
     },
     visualEditor: {
-      categories: {
-        content: {
-          label: '콘텐츠',
-          description: '텍스트, 링크, 속성, HTML을 선택 요소 바로 옆에서 조정합니다.',
-          placeholder: '텍스트와 HTML 편집 컨트롤이 이 섹션에 표시됩니다.',
-        },
-        layout: {
-          label: '레이아웃',
-          description: 'display, flex/grid, 정렬 값을 현재 선택 요소에 적용합니다.',
-          placeholder: 'display, flex, grid, 정렬 컨트롤이 이 섹션에 표시됩니다.',
-        },
-        spacing: {
-          label: '간격',
-          description: 'padding, margin, gap 값을 캔버스 근처에서 조정합니다.',
-          placeholder: 'padding, margin, row/column gap 컨트롤이 이 섹션에 표시됩니다.',
-        },
-        size: {
-          label: '크기',
-          description: 'width, height, min/max 크기 값을 바로 수정합니다.',
-          placeholder: 'width, height, min/max, object-fit 컨트롤이 이 섹션에 표시됩니다.',
-        },
-        style: {
-          label: '스타일',
-          description: '텍스트 스타일, 색상, 배경, 불투명도, 그림자를 조정합니다.',
-          placeholder: 'typography, color, background, opacity, shadow 컨트롤이 이 섹션에 표시됩니다.',
-        },
-        border: {
-          label: '선',
-          description: 'border, radius, outline 계열 값을 선택 요소에 적용합니다.',
-          placeholder: 'border width/style/color, radius, outline 컨트롤이 이 섹션에 표시됩니다.',
-        },
-      },
       quickActions: {
-        toolbarLabel: '비주얼 편집 quick-action',
-        dragMoveTitle: '드래그해서 이동',
         structure: {
           duplicate: { label: '복제', title: '복제' },
           'move-up': { label: '↑', title: '이전 형제 앞으로 이동' },
@@ -687,7 +554,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
       panel: {
         editPanelLabelSuffix: '편집 패널',
-        categoriesLabel: '비주얼 편집 카테고리',
         close: '패널 닫기',
         sectionReset: '초기화',
         sectionExpand: '열기',
@@ -701,59 +567,19 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
           effects: '효과',
           border: '테두리',
         },
-        readyStatus: '준비됨',
-        waitingStatus: '대기 중',
-        controlsWaitingPlaceholder: '선택 요소 snapshot이 준비되면 이 섹션의 컨트롤을 사용할 수 있습니다.',
-        reasonLabel: '사유',
-        codeLabel: 'code',
-        selectedElementFallback: '선택 요소',
         hiddenPromptLabel: '숨겨진 visual edit 프롬프트',
         pendingLabel: '적용 중인 visual edit',
         failedLabel: '실패한 visual edit',
-        latestCodeLabel: 'latest code',
         countSuffix: '개',
-        copyOnlySuffix: '복사할 때만 포함됩니다.',
         state: {
-          empty: {
-            title: '요소를 선택하세요',
-            message: '캔버스에서 요소를 hover한 뒤 quick-action 버튼을 누르면 visual editing 컨트롤이 여기에 표시됩니다.',
-          },
-          loading: {
-            title: '선택 요소 정보를 불러오는 중입니다',
-            message: 'preview iframe에서 현재 요소의 DOM, 스타일, 속성 정보를 읽고 있습니다.',
-          },
-          ready: {
-            title: '선택 요소 준비 완료',
-            message: '이 요소에 visual editing 컨트롤을 적용할 수 있습니다.',
-          },
-          error: {
-            title: '선택 요소 정보를 불러오지 못했습니다',
-            message: '오류 세부 prompt는 화면에 표시하지 않습니다. 같은 요소를 다시 hover하거나 quick-action을 다시 눌러 주세요.',
-          },
-          stale: {
-            title: '선택 요소를 다시 찾아야 합니다',
-            message: 'preview DOM 변경으로 선택 요소를 더 이상 정확히 찾을 수 없습니다. 같은 요소를 다시 hover한 뒤 quick-action을 다시 눌러 주세요.',
-          },
-          deleted: {
-            title: '선택 요소가 삭제되었습니다',
-            message: '선택한 요소가 preview DOM에서 삭제되었습니다. 다른 요소를 다시 hover하거나 선택해서 visual editing을 계속해 주세요.',
-          },
-          waiting: {
-            title: '선택 요소 정보가 아직 준비되지 않았습니다',
-            message: '요소는 선택되었지만 snapshot이 아직 없습니다. quick-action을 다시 누르거나 요소를 다시 hover해 주세요.',
-          },
+          empty: '요소를 선택하세요',
+          loading: '선택 요소 정보를 불러오는 중…',
+          ready: '준비됨',
+          error: '선택 요소 정보를 불러오지 못했습니다',
+          stale: '요소를 다시 선택해 주세요',
+          deleted: '선택 요소가 삭제되었습니다',
+          waiting: '요소 스냅샷을 기다리는 중',
         },
-      },
-      staleReasons: {
-        'bridge-reset': 'preview 재연결',
-        cleared: '선택 해제',
-        disconnected: 'DOM 연결 끊김',
-        hidden: '숨김',
-        'protected-target': '보호 요소',
-        'stale-target': '오래된 대상',
-        'snapshot-error': '스냅샷 오류',
-        'mutation-error': '변경 오류',
-        deleted: '삭제됨',
       },
     },
   },

@@ -133,7 +133,6 @@ export interface VisualPanelReadinessSummary {
   status: VisualPanelReadinessStatus;
   tone: VisualPanelReadinessTone;
   title: string;
-  message: string;
   errorCode: VisualMutationErrorCode | null;
   staleReason: VisualSelectionStaleReason | null;
   canShowControls: boolean;
@@ -389,8 +388,7 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'empty',
       tone: 'neutral',
-      title: stateMessages.empty.title,
-      message: stateMessages.empty.message,
+      title: stateMessages.empty,
       errorCode: null,
       staleReason: null,
       canShowControls: false,
@@ -402,8 +400,7 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'loading',
       tone: 'info',
-      title: stateMessages.loading.title,
-      message: stateMessages.loading.message,
+      title: stateMessages.loading,
       errorCode: null,
       staleReason: null,
       canShowControls: false,
@@ -415,8 +412,7 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'error',
       tone: 'error',
-      title: stateMessages.error.title,
-      message: stateMessages.error.message,
+      title: stateMessages.error,
       errorCode: state.snapshotError?.code ?? null,
       staleReason: state.staleReason,
       canShowControls: false,
@@ -428,8 +424,7 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'stale',
       tone: 'warning',
-      title: staleReadinessTitle(state.staleReason),
-      message: staleReadinessMessage(state.staleReason),
+      title: state.staleReason === 'deleted' ? stateMessages.deleted : stateMessages.stale,
       errorCode: state.snapshotError?.code ?? null,
       staleReason: state.staleReason,
       canShowControls: false,
@@ -441,8 +436,7 @@ export function selectVisualPanelReadinessSummary(
     return {
       status: 'ready',
       tone: 'success',
-      title: stateMessages.ready.title,
-      message: stateMessages.ready.message,
+      title: stateMessages.ready,
       errorCode: null,
       staleReason: null,
       canShowControls: true,
@@ -453,17 +447,12 @@ export function selectVisualPanelReadinessSummary(
   return {
     status: 'waiting',
     tone: 'info',
-    title: stateMessages.waiting.title,
-    message: stateMessages.waiting.message,
+    title: stateMessages.waiting,
     errorCode: null,
     staleReason: state.staleReason,
     canShowControls: false,
     needsReselect: false,
   };
-}
-
-export function describeVisualSelectionStaleReason(reason: VisualSelectionStaleReason): string {
-  return getCurrentMessages().visualEditor.staleReasons[reason] ?? reason;
 }
 
 function isClearingQuickActionReason(reason: QuickActionAnchorChangedMessage['reason']): boolean {
@@ -633,24 +622,4 @@ function staleVisualTargetState(
     snapshotReceivedAt: Date.now(),
     staleReason,
   };
-}
-
-function staleReadinessTitle(reason: VisualSelectionStaleReason | null): string {
-  const stateMessages = getCurrentMessages().visualEditor.panel.state;
-
-  if (reason === 'deleted') {
-    return stateMessages.deleted.title;
-  }
-
-  return stateMessages.stale.title;
-}
-
-function staleReadinessMessage(reason: VisualSelectionStaleReason | null): string {
-  const stateMessages = getCurrentMessages().visualEditor.panel.state;
-
-  if (reason === 'deleted') {
-    return stateMessages.deleted.message;
-  }
-
-  return stateMessages.stale.message;
 }
