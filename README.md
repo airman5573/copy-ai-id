@@ -5,7 +5,7 @@
 
 [한국어](README.ko.md)
 
-Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a responsive iframe preview, preview-only visual editing controls, and a docked-or-floating note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
+Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. Turn it on from the current tab to open a full-screen Shadow DOM editor with a responsive iframe preview, preview-only visual editing controls, and a floating note panel for copying AI-ready UI change notes. Selected elements are inserted into the notebook as compact `el-N` chips; elements with `data-ai-id` map to stable references, and elements without one can still be selected and visually edited through generated fallback targets.
 
 ## Editor workflow
 
@@ -13,9 +13,9 @@ Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. T
 2. Press **Shift + Z + Space**, or open the extension popup and click **Turn ON**.
 3. Copy AI ID opens a full-screen editor over the current tab:
    - **Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, click-to-pin quick edit toolbar, and floating visual panel.
-   - **Note panel — Docked or floating:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
+   - **Floating note panel:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
 4. Highlight DOM nodes from the preview or the keyboard.
-5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. In floating NotePanel mode, **Space** first opens the note panel near the highlighted/hovered element, focuses it, then inserts the chip. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
+5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. **Space** first opens the floating note panel near the highlighted/hovered element, focuses it, then inserts the chip. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
 6. Optionally click a preview element to pin the quick edit toolbar to it. The toolbar's first row is composed from the element's detected intents (image / text / container / link-button / form); the second row always offers padding/margin/gap steppers, structure buttons (duplicate, move, delete), a drag grip, and a **More** button that opens the floating visual panel. Numeric edits use `+/-` steppers that apply concrete pixel values to the preview while recording "change by n% relative to the current value" intents for export. Double-click a text element to edit its text inline. All mutations are preview-only and are recorded as AI-readable visual edit instructions.
 7. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, `## Rules`, and, when applicable, `## Visual edits` sections. Inline chips are rendered as readable `@el-N` mentions, fallback targets include selector/path/context details, and visual edits include human summaries plus machine-readable JSON diffs.
 8. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
@@ -24,12 +24,14 @@ If the same `data-ai-id` appears multiple times, Copy AI ID shows each instance 
 
 Some sites block iframe embedding with `X-Frame-Options` or `frame-ancestors` CSP. Copy AI ID reports that state inside the editor, but it cannot bypass the site policy.
 
-## Note panel modes
+## Floating note panel
 
-The top toolbar includes a persisted **Floating note** toggle:
+The notebook lives in a floating panel overlay:
 
-- **Floating OFF:** the note panel stays docked as the right editor column. This is the most predictable mode for mobile/touch workflows where hover is limited.
-- **Floating ON:** the right note column is hidden and a floating NotePanel overlay opens near the current selected/hovered target. This is useful on desktop when you hover an element and press **Space** to write a note right next to that element.
+- Press **Space** on a highlighted/hovered element to open the panel right next to that element and insert a chip.
+- Click the **Note** button in the top toolbar to open/close the panel without selecting an element; it appears at a default position near the preview frame.
+- The top toolbar also has a **Copy** button, so visual-only edit sessions (no notebook text) can be copied without opening the note panel at all.
+- The panel's controls row includes the breakpoint scope buttons, the Tailwind toggle, the copy-notice dialog, reset, the **Shift + Enter** hint, and the copy button.
 
 ## Preview-only visual editing
 
@@ -55,7 +57,7 @@ Visual editing is an interface for creating precise implementation prompts. It d
 | **ArrowRight** | Move to the next/right sibling; if none, climb to an ancestor's next/right sibling and enter its first child |
 | **ArrowLeft** | Move to the previous/left sibling; if none, climb to an ancestor's previous/left sibling and enter its deepest last descendant |
 | **ArrowDown** | Move to the first child; if none, move to the next/right sibling or the nearest ancestor's next/right sibling |
-| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. In floating NotePanel mode, open/focus the panel near the highlighted/hovered element before inserting the chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
+| **Space** | Insert/focus the highlighted node as a compact `el-N` chip. Opens/focuses the floating note panel near the highlighted/hovered element before inserting the chip. The chip maps to a stable `data-ai-id` target first; otherwise it stores a generated fallback target when available. |
 | **Shift + Enter** | Copy the current notebook text with suffixes |
 | **Esc** | Clear selection or close/off the editor where applicable |
 

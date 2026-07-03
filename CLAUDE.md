@@ -128,7 +128,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 
 **Entry**
 - `main.tsx` — `mountCopyAiIdEditor(host)`: attaches an open shadow root, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, installs the shadow-selection bridge (Lexical selection fix) and notebook draft session persistence.
-- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (2-column grid: `PreviewWorkspace` | docked `NotePanel`) / `FloatingNotePanel` / `FloatingVisualPanel` / toast.
+- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / toast.
 
 **`stores/`** — all Zustand. One store per concern:
 
@@ -138,10 +138,10 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 | `useBridgeStore` | bridge connection status, iframe status, aiId count |
 | `useHighlightStore` | highlight *identity* (target/nodeId/origin) — deliberately separate from hover *geometry* |
 | `useBreakpointStore` | breakpoint / custom viewport width, preview height, per-breakpoint zoom (persisted to `chrome.storage.local`) |
-| `useEditorLayoutStore` | note panel width (persisted) |
+| `useEditorLayoutStore` | note panel width (persisted; sizes the floating note panel) |
 | `useToastStore` | transient toasts |
 | `useFloatingVisualPanelStore` | floating visual panel open/close only (its target lives in `useVisualSelectionStore.panelTarget`) |
-| `useFloatingNotePanelStore` | floating note panel enabled/open/anchor |
+| `useFloatingNotePanelStore` | floating note panel open/anchor (anchor-less `openPanel()` → default placement near the preview frame) |
 | `useSectionJumpStore` | queued "scroll visual panel to section" requests |
 | `useNotebookStore` | notebook draft text, Lexical `editorStateJson`, chip targets/indexes, suffix settings, copy status |
 | `useVisualSelectionStore` | **single owner of visual-selection data**: hoverTarget, activeToolbarTarget, panelTarget, snapshot lifecycle (status/error/staleReason) |
@@ -152,7 +152,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 - `geometry.ts` — converts bridge-viewport rects/points ⇄ editor-viewport coordinates (accounting for canvas zoom) and computes floating-panel placement.
 
 **`components/`**
-- Root: `TopToolbar`, `CanvasControls` (breakpoints/zoom), `MainArea` (grid + note-panel resizing), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (docked/floating notebook UI: copy/reset, font size, suffix toggles), `FloatingNotePanel`, `NoteEditor`.
+- Root: `TopToolbar` (note panel open/close toggle + prompt copy button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`.
 - `visual-panel/` — `FloatingVisualPanel` (tabs for the six categories), `VisualPanelContent` (readiness gating, renders the matching controls group).
 - `visual/` — reusable inputs: `UnitValueInput`, `ColorInput`, `DropdownSelect`, `PresetSelect`, `EdgeBoxControl`, `VisualControl`/`VisualSection`; `dropdownCoordinator.ts` keeps only one dropdown open inside the shadow DOM.
 - `controls/` — one component per edit category (`ContentControls`, `LayoutControls`, `SpacingControls`, `SizeControls`, `BorderControls`, `ColorControls`, `TypographyControls`, `BackgroundImageControls`, …) bound to `forms/useVisualStyleForm.ts` and the style-edit hooks.
@@ -201,11 +201,11 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 4. `visual-edits-export.ts` + `visual-edits-compact.ts` — `## Visual edits`: human-readable summary + fenced compact JSON (`VisualEditJsonDiff` shape).
 5. `clipboard.ts → copyText`, then the draft and visual-edit records are cleared (applied preview DOM mutations are NOT reverted — reloading the preview restores the page).
 
-Visual-edit prompt text is hidden while editing (the panel shows only status/counts) and appended only on copy.
+Visual-edit prompt text is hidden while editing and appended only on copy. Copy is reachable from the note panel copy button, the top-toolbar copy button (works for visual-only sessions), and Shift+Enter.
 
 ## chrome.storage keys
 
-All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `note-panel-floating-enabled`, `preview-height`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, and `notebook-draft:v1:<scopeKey>` (draft scoped per page URL via `activation-scope.ts`). The editor **on/off state is not stored** — it is runtime-only and resets on reload.
+All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, and `notebook-draft:v1:<scopeKey>` (draft scoped per page URL via `activation-scope.ts`). The editor **on/off state is not stored** — it is runtime-only and resets on reload.
 
 ## Invariants and gotchas
 
