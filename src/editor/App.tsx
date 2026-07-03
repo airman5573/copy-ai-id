@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { createPreviewUrl } from './bridge/bridgeClient';
 import { FloatingNotePanel } from './components/FloatingNotePanel';
 import { MainArea } from './components/MainArea';
+import { QuickToolbar } from './components/quick-toolbar/QuickToolbar';
 import { FloatingVisualPanel } from './components/visual-panel/FloatingVisualPanel';
 import { TopToolbar } from './components/TopToolbar';
 import { installEditorKeyboard } from './keyboard';
@@ -108,6 +109,7 @@ export function App({ onRequestClose }: AppProps) {
         onFitZoom={handleFitZoom}
       />
       <FloatingNotePanel />
+      <QuickToolbar />
       <FloatingVisualPanel />
       {toastMessage ? (
         <div

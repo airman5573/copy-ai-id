@@ -89,19 +89,19 @@
   - Files/areas: 신규 `src/editor/components/quick-toolbar/toolbarConfig.ts`
   - Notes: Assumptions의 intent별 1행 구성 + 공통 2행(스페이싱 3버튼/구조 4버튼/드래그 그립/기타)을 선언적 데이터로 정의. 복수 intent 병합·중복 제거 로직 포함.
   - Parallelizable: yes
-- [ ] QuickToolbar 본체 컴포넌트 구축(2행, 앵커 추적 배치)
+- [x] QuickToolbar 본체 컴포넌트 구축(2행, 앵커 추적 배치)
   - Files/areas: 신규 `src/editor/components/quick-toolbar/QuickToolbar.tsx`, `src/editor/App.tsx`(마운트)
   - Notes: `activeToolbarTarget` 존재 시 렌더. 배치 = `bridgeViewportRectToEditorViewportRect(elementRect)` → `calculateFloatingOverlayPlacement(..., {mode:'target'})`, fixed 레이어 `z-[118]`(FloatingVisualPanel z-[120] 아래). `reason:'repositioned'` 수신·window resize·stage scroll에 재배치. 현재값은 `panel/toolbar` 스냅샷의 computedStyle에서 읽고 `visual*Updated` 결과 스냅샷으로 갱신.
   - Parallelizable: no (위 3개 컴포넌트 의존)
-- [ ] 스페이싱 팝오버(전체/좌우/위아래/개별) 구현
+- [x] 스페이싱 팝오버(전체/좌우/위아래/개별) 구현
   - Files/areas: 신규 `src/editor/components/quick-toolbar/SpacingPopover.tsx`
   - Notes: padding/margin/gap 공용. 스코프 토글(전체·좌우·위아래·개별 4방향) + 스코프별 스테퍼. 스코프에 따라 해당 방향 속성들을 한 번의 `updateVisualStyle`(복수 declarations)로 커밋.
   - Parallelizable: yes (QuickToolbar 골격 이후)
-- [ ] 이미지 교체·href·placeholder 편집 팝오버 구현
+- [x] 이미지 교체·href·placeholder 편집 팝오버 구현
   - Files/areas: 신규 `src/editor/components/quick-toolbar/AttributeEditPopover.tsx`
   - Notes: 기존 attribute 뮤테이션 경로(`visual-attributes.ts` 허용목록: src/alt/href/placeholder 포함) 재사용. URL 입력 + 적용 버튼. width/height 키워드(auto/full/fit-content) + 스테퍼 하이브리드는 `SizeHybridControl`로 함께 구현(키워드 선택 시 concrete 값 기록, 스텝 시작 시 % 의도 모델로).
   - Parallelizable: yes (QuickToolbar 골격 이후)
-- [ ] 구조 버튼·드래그 그립을 에디터 발신으로 구현
+- [x] 구조 버튼·드래그 그립을 에디터 발신으로 구현
   - Files/areas: `QuickToolbar.tsx` 내부, `src/editor/bridge/bridgeClient.ts`
   - Notes: 복제/이동/삭제는 기존 Editor→Bridge 메시지(`duplicateVisualElement`/`moveVisualElement`/`deleteVisualElement`)를 직접 발신(기존 `quickActionStructureRequested` 왕복 제거 대비). 이동 버튼 disable은 스냅샷 `previousSibling`/`nextSibling`로 판단. 드래그 그립은 에디터 pointer capture → `editorViewportPointToBridgeViewportPoint` 변환 → 기존 `previewVisualDragMove`/`requestVisualDragMove`/`clearVisualDragMovePreview` 발신(8px 임계값 유지).
   - Parallelizable: no
