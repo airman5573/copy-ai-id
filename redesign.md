@@ -105,11 +105,11 @@
   - Files/areas: `QuickToolbar.tsx` 내부, `src/editor/bridge/bridgeClient.ts`
   - Notes: 복제/이동/삭제는 기존 Editor→Bridge 메시지(`duplicateVisualElement`/`moveVisualElement`/`deleteVisualElement`)를 직접 발신(기존 `quickActionStructureRequested` 왕복 제거 대비). 이동 버튼 disable은 스냅샷 `previousSibling`/`nextSibling`로 판단. 드래그 그립은 에디터 pointer capture → `editorViewportPointToBridgeViewportPoint` 변환 → 기존 `previewVisualDragMove`/`requestVisualDragMove`/`clearVisualDragMovePreview` 발신(8px 임계값 유지).
   - Parallelizable: no
-- [ ] 인라인 텍스트 편집 커밋 핸들러 연결
+- [x] 인라인 텍스트 편집 커밋 핸들러 연결
   - Files/areas: `src/editor/bridge/bridgeClient.ts`, `src/editor/components/visual/visualMutationClient.ts`
   - Notes: `inlineTextEditCommitted` 수신 → 기존 text 뮤테이션 디스패치 경로로 `updateVisualText{value, previousValue}` 발신(record 자동 생성). 별도 UI 없음.
   - Parallelizable: yes
-- [ ] 전환: 브리지 툴바 표시 중단 + Escape 캐스케이드 확인
+- [x] 전환: 브리지 툴바 표시 중단 + Escape 캐스케이드 확인
   - Files/areas: `src/content/editor-bridge/highlight.ts`, `src/editor/shortcut-actions.ts`, `src/editor/keyboard.ts`
   - Notes: `showQuickActionToolbar`/`hideQuickActionToolbar` 호출 제거(파일 삭제는 Phase 7). Escape 순서 = 열린 팝오버 → 툴바 unpin(`activeToolbarTarget` clear, 기존 3단계 로직 재사용) → 하이라이트. `clearQuickActionSelection` Editor→Bridge 메시지 경로는 유지.
   - Parallelizable: no

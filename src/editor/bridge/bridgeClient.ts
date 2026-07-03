@@ -7,6 +7,7 @@ import {
   EDITOR_MESSAGE_TYPES,
   type EditorKeyboardShortcut,
   type EditorToBridgeMessage,
+  type InlineTextEditCommittedMessage,
   type KeyboardShortcutMessage,
   type QuickActionAnchorChangedMessage,
   type RequestVisualTargetSnapshotMessage,
@@ -60,6 +61,7 @@ import {
   previewQuickActionDragMoveFromBridgePoint,
 } from '../visual/structureActions';
 import { createVisualEditRecordPatchForMutationResult } from '../visual/mutationResultPatch';
+import { dispatchVisualTextMutation } from '../visual/visualMutationClient';
 import {
   handleVisualUndoMutationResult,
   isVisualUndoMutationResult,
@@ -304,6 +306,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.visualMutationError:
       handleVisualMutationErrorMessage(message);
       return;
+    case EDITOR_MESSAGE_TYPES.inlineTextEditCommitted:
+      handleInlineTextEditCommitted(message);
+      return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       handleKeyboardShortcut(message);
       return;
@@ -427,6 +432,28 @@ function handleVisualMutationErrorMessage(message: VisualMutationErrorMessage): 
   }
 }
 
+// The bridge reverted the element to previousValue before posting; re-apply
+// through the regular text mutation path so the record/undo pipeline stays
+// the single source of truth.
+function handleInlineTextEditCommitted(message: InlineTextEditCommittedMessage): void {
+  try {
+    dispatchVisualTextMutation({
+      reference: {
+        target: message.target,
+        nodeId: message.nodeId,
+      },
+      text: {
+        value: message.value,
+        previousValue: message.previousValue,
+      },
+      source: 'inline-text-edit',
+      category: 'content',
+    });
+  } catch (error) {
+    console.warn('[Copy AI ID] Failed to record inline text edit.', error);
+  }
+}
+
 function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {
   if (isArrowShortcut(message.shortcut)) {
     suppressHoverUntilMouseMove();
@@ -434,7 +461,7 @@ function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {
 
   if (message.shortcut === 'escape') {
     const result = handleEditorEscapeAction();
-    if (result !== 'visual-panel') {
+    if (result !== 'quick-toolbar-popover' && result !== 'visual-panel') {
       postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
     }
     return;

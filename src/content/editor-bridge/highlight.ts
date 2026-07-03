@@ -17,11 +17,7 @@ import {
   targetReferenceForElement,
 } from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
-import {
-  hideQuickActionToolbar,
-  isQuickActionToolbarElement,
-  showQuickActionToolbar,
-} from './quick-action-toolbar';
+import { isQuickActionToolbarElement } from './quick-action-toolbar';
 
 interface HighlightRefreshOptions {
   force?: boolean;
@@ -159,7 +155,6 @@ export function clearHighlightedElement(post: BridgePost): void {
 export function clearQuickActionSelection(post: BridgePost): void {
   pinnedElement = null;
   endPinnedAnchorTracking();
-  hideQuickActionToolbar();
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
     target: null,
@@ -295,6 +290,8 @@ function refreshPinnedQuickActionToolbar(post: BridgePost): void {
   syncPinnedQuickActionToolbar(reference, post);
 }
 
+// The visible toolbar UI is owned by the editor (React QuickToolbar); the
+// bridge only streams anchor geometry + intents for the pinned element.
 function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: BridgePost): void {
   const target = reference.target;
   if (!target) {
@@ -310,14 +307,6 @@ function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: Bri
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     intents: classifyElementIntents(reference.element),
     reason: 'pinned',
-  });
-
-  showQuickActionToolbar({
-    target,
-    nodeId: reference.nodeId,
-    element: reference.element,
-    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
-    post,
   });
 }
 

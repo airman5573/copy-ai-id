@@ -95,7 +95,7 @@ export function installEditorKeyboard(): () => void {
 
 function clearVisualEditorEscapeState(): void {
   const result = handleEditorEscapeAction();
-  if (result !== 'visual-panel' && result !== 'floating-note-panel') {
+  if (result !== 'quick-toolbar-popover' && result !== 'visual-panel' && result !== 'floating-note-panel') {
     postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
   }
 }

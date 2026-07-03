@@ -8,6 +8,7 @@ import type {
   EditorToBridgeMessage,
 } from '../shared/protocol/editor-bridge-messages';
 import { bridgeViewportRectToEditorViewportRect, type EditorViewportRect } from './bridge/geometry';
+import { closeOpenQuickToolbarPopover } from './components/quick-toolbar/popoverRegistry';
 import { captureNotePanelAnchor } from './note-panel-anchor';
 import { requestNotePanelFocus } from './note-panel-focus';
 import { copyNotebookDraftFromStore } from './notebook/copy';
@@ -19,7 +20,12 @@ import { useVisualSelectionStore } from './stores/useVisualSelectionStore';
 import { showStaleFallbackTargetToast } from './toast';
 import { undoLastVisualEdit } from './visual/visualUndo';
 
-export type EditorEscapeActionResult = 'visual-panel' | 'floating-note-panel' | 'visual-toolbar' | 'highlight';
+export type EditorEscapeActionResult =
+  | 'quick-toolbar-popover'
+  | 'visual-panel'
+  | 'floating-note-panel'
+  | 'visual-toolbar'
+  | 'highlight';
 
 export interface AppendTargetReferenceOptions {
   elementRect?: BridgeViewportRect | null;
@@ -53,6 +59,12 @@ export function handleEditorShortcutAction(
 }
 
 export function handleEditorEscapeAction(): EditorEscapeActionResult {
+  // Escape cascade: open quick-toolbar popover → visual panel → floating note
+  // panel → toolbar unpin → highlight (forwarded to the bridge by callers).
+  if (closeOpenQuickToolbarPopover()) {
+    return 'quick-toolbar-popover';
+  }
+
   const floatingPanel = useFloatingVisualPanelStore.getState();
   if (floatingPanel.isOpen) {
     floatingPanel.closePanel();
