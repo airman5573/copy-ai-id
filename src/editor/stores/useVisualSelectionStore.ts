@@ -11,7 +11,6 @@ import {
   type HighlightOrigin,
 } from '../../shared/domain/targets';
 import {
-  type QuickActionCategory,
   type VisualMutationError,
   type VisualMutationErrorCode,
   type VisualTargetSnapshot,
@@ -60,14 +59,12 @@ export interface VisualToolbarTargetState extends EditorTargetReference {
   elementRect: BridgeViewportRect;
   editorRect: EditorViewportRect | null;
   viewport: BridgeViewportSize;
-  availableCategories: QuickActionCategory[];
   intents: ElementIntent[];
   reason: QuickActionAnchorChangedMessage['reason'];
   updatedAt: number;
 }
 
 export interface VisualPanelTargetState extends EditorTargetReference {
-  category: QuickActionCategory | null;
   elementRect: BridgeViewportRect | null;
   editorRect: EditorViewportRect | null;
   openedAt: number;
@@ -75,7 +72,6 @@ export interface VisualPanelTargetState extends EditorTargetReference {
 }
 
 interface VisualPanelTargetInput extends EditorTargetReference {
-  category?: QuickActionCategory | null;
   elementRect?: BridgeViewportRect | null;
   editorRect?: EditorViewportRect | null;
 }
@@ -83,7 +79,7 @@ interface VisualPanelTargetInput extends EditorTargetReference {
 /**
  * Single owner of visual-selection data: hover/toolbar/panel targets with
  * their geometry, and the target-snapshot lifecycle. The floating visual
- * panel reads its target/category from `panelTarget` here and only keeps
+ * panel reads its target from `panelTarget` here and only keeps
  * open/close state in useFloatingVisualPanelStore; highlight identity for
  * tree/keyboard/notebook lives in useHighlightStore.
  */
@@ -207,7 +203,6 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
         elementRect: message.elementRect,
         editorRect,
         viewport: message.viewport,
-        availableCategories: message.availableCategories,
         intents: message.intents,
         reason: message.reason,
         updatedAt: Date.now(),
@@ -242,7 +237,6 @@ export const useVisualSelectionStore = create<VisualSelectionStore>((set) => ({
       panelTarget: {
         target: input.target,
         nodeId: input.nodeId,
-        category: input.category ?? existingPanelTarget?.category ?? null,
         elementRect: input.elementRect ?? existingPanelTarget?.elementRect ?? null,
         editorRect: input.editorRect ?? existingPanelTarget?.editorRect ?? null,
         openedAt: samePanelTarget ? existingPanelTarget.openedAt : now,

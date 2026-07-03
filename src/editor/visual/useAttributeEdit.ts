@@ -9,7 +9,6 @@ import {
   type VisualAttributeSanitizeResult,
 } from '../../shared/visual-attributes';
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
-import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 import { useSelectedTargetReference } from './useSelectedTargetReference';
@@ -90,7 +89,6 @@ export function useAttributeEdit(): AttributeEditApi {
         kind: 'content',
         id: `attribute:${name}`,
         label: definition?.label ?? `Attribute: ${name}`,
-        sectionId: QUICK_ACTION_SECTION_IDS.content,
         ...options.control,
       },
       attribute: sanitized.attribute,

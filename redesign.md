@@ -165,11 +165,11 @@
   - Parallelizable: yes
 
 ### Phase 7 - 구 코드·프로토콜 정리, i18n 프루닝, 문서
-- [ ] 브리지 툴바 관련 파일·참조 삭제
+- [x] 브리지 툴바 관련 파일·참조 삭제
   - Files/areas: `src/content/editor-bridge/quick-action-toolbar.ts`, `toolbar-styles.ts`, `toolbar-geometry.ts` 삭제; `highlight.ts`(corridor·`isQuickActionToolbarElement` 참조), `local-picker.ts`, `keyboard.ts`, `index.ts`의 참조 정리; `src/shared/config.ts`의 `QUICK_ACTION_BAR_ATTR`/`QUICK_ACTION_STYLE_ATTR`/툴바 z-index 상수는 참조가 0이 된 경우에만 제거(z-index 표 번호는 재부여 금지)
   - Notes: `runtime-artifacts.ts`가 툴바 속성을 스크럽 목록에 갖고 있으면 함께 확인.
   - Parallelizable: no
-- [ ] 폐기 프로토콜·스토어 제거
+- [x] 폐기 프로토콜·스토어 제거
   - Files/areas: `src/shared/protocol/editor-bridge-messages.ts` + `guards.ts`(`quickActionCategoryRequested/Selected`, `quickActionStructureRequested`, `quickActionDragMove*Requested` 3종, `availableCategories` 필드), `src/editor/bridge/bridgeClient.ts`(해당 핸들러·`selectQuickActionCategory`), `src/editor/stores/useSectionJumpStore.ts` 삭제, `src/editor/components/visual/sectionJump.ts` 삭제, `src/content/editor-bridge/index.ts` route 정리
   - Notes: `QuickActionCategory` 타입은 record.category 분류용으로 잔존시킴(record/export 스키마 churn 최소화). `useVisualEditStore`의 미사용 `undoStack`/`redoStack` 데드코드도 이번에 제거.
   - Parallelizable: no

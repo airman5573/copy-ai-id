@@ -219,7 +219,6 @@ export function QuickToolbar(): ReactElement | null {
     selectionStore.openPanelForTarget({
       target: toolbarTarget.target,
       nodeId: toolbarTarget.nodeId,
-      category: 'layout',
       elementRect: toolbarTarget.elementRect,
       editorRect: toolbarTarget.editorRect,
     });

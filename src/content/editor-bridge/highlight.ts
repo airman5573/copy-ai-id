@@ -2,7 +2,6 @@ import {
   type EditorTarget,
   type HighlightOrigin,
 } from '../../shared/domain/targets';
-import { type QuickActionCategory } from '../../shared/domain/visual';
 import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import type { BridgePost } from './types';
@@ -17,7 +16,6 @@ import {
   targetReferenceForElement,
 } from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
-import { isQuickActionToolbarElement } from './quick-action-toolbar';
 
 interface HighlightRefreshOptions {
   force?: boolean;
@@ -43,18 +41,9 @@ let suppressionStartPosition: MousePosition | null = null;
 let pinnedAnchorRafHandle: number | null = null;
 let stopPinnedAnchorTracking: (() => void) | null = null;
 
-const DEFAULT_QUICK_ACTION_CATEGORIES: QuickActionCategory[] = [
-  'content',
-  'layout',
-  'spacing',
-  'size',
-  'style',
-  'border',
-];
-
 export function installHoverHighlight(post: BridgePost): () => void {
   const handleMouseOver = (event: MouseEvent): void => {
-    if (isHoverHighlightSuppressed() || isQuickActionToolbarElement(event.target)) {
+    if (isHoverHighlightSuppressed()) {
       return;
     }
 
@@ -62,7 +51,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
   };
 
   const handleMouseOut = (event: MouseEvent): void => {
-    if (isHoverHighlightSuppressed() || isQuickActionToolbarElement(event.target)) {
+    if (isHoverHighlightSuppressed()) {
       return;
     }
 
@@ -85,10 +74,6 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
     lastMousePosition = position;
 
-    if (isQuickActionToolbarElement(event.target)) {
-      return;
-    }
-
     if (!releasedKeyboardSuppression || isHoverHighlightSuppressed()) {
       return;
     }
@@ -105,7 +90,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
   };
 
   const handleClick = (event: MouseEvent): void => {
-    if (event.button !== 0 || inlineTextEditSuppressed || isQuickActionToolbarElement(event.target)) {
+    if (event.button !== 0 || inlineTextEditSuppressed) {
       return;
     }
 
@@ -161,7 +146,6 @@ export function clearQuickActionSelection(post: BridgePost): void {
     nodeId: null,
     elementRect: null,
     viewport: viewportSize(),
-    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     intents: [],
     reason: 'cleared',
   });
@@ -304,7 +288,6 @@ function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: Bri
     nodeId: reference.nodeId,
     elementRect: reference.elementRect,
     viewport: reference.viewport,
-    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     intents: classifyElementIntents(reference.element),
     reason: 'pinned',
   });
@@ -365,7 +348,6 @@ function postRepositionedAnchor(post: BridgePost): void {
     nodeId: reference.nodeId,
     elementRect: reference.elementRect,
     viewport: reference.viewport,
-    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     intents: classifyElementIntents(connected),
     reason: 'repositioned',
   });

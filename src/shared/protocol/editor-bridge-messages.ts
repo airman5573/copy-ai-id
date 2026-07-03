@@ -15,8 +15,6 @@ import type {
   LayoutTreeNode,
 } from '../domain/targets';
 import type {
-  QuickActionCategory,
-  QuickActionStructureOperation,
   VisualAttributeMutation,
   VisualBoxRegionHighlight,
   VisualDropPosition,
@@ -44,12 +42,6 @@ export const EDITOR_MESSAGE_TYPES = {
   setCanvasZoom: 'copy-ai-id:set-canvas-zoom',
   iframeStatus: 'copy-ai-id:iframe-status',
   quickActionAnchorChanged: 'copy-ai-id:quick-action-anchor-changed',
-  quickActionCategoryRequested: 'copy-ai-id:quick-action-category-requested',
-  quickActionStructureRequested: 'copy-ai-id:quick-action-structure-requested',
-  quickActionDragMovePreviewRequested: 'copy-ai-id:quick-action-drag-move-preview-requested',
-  quickActionDragMoveRequested: 'copy-ai-id:quick-action-drag-move-requested',
-  quickActionDragMoveClearRequested: 'copy-ai-id:quick-action-drag-move-clear-requested',
-  quickActionCategorySelected: 'copy-ai-id:quick-action-category-selected',
   requestVisualTargetSnapshot: 'copy-ai-id:request-visual-target-snapshot',
   visualTargetSnapshot: 'copy-ai-id:visual-target-snapshot',
   updateVisualStyle: 'copy-ai-id:update-visual-style',
@@ -177,43 +169,8 @@ export interface QuickActionAnchorChangedMessage {
   nodeId: string | null;
   elementRect: BridgeViewportRect | null;
   viewport: BridgeViewportSize;
-  availableCategories: QuickActionCategory[];
   intents: ElementIntent[];
   reason?: 'pinned' | 'repositioned' | 'hidden' | 'disconnected' | 'protected-target' | 'stale-target' | 'cleared';
-}
-
-export interface QuickActionCategorySelectedMessage extends EditorTargetReference {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionCategorySelected;
-  category: QuickActionCategory;
-}
-
-export interface QuickActionRequestGeometry {
-  elementRect?: BridgeViewportRect | null;
-  viewport?: BridgeViewportSize;
-}
-
-export interface QuickActionCategoryRequestedMessage extends EditorTargetReference, QuickActionRequestGeometry {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionCategoryRequested;
-  category: QuickActionCategory;
-}
-
-export interface QuickActionStructureRequestedMessage extends EditorTargetReference, QuickActionRequestGeometry {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionStructureRequested;
-  operation: QuickActionStructureOperation;
-}
-
-export interface QuickActionDragMovePreviewRequestedMessage extends EditorTargetReference, QuickActionRequestGeometry {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionDragMovePreviewRequested;
-  dropPoint: BridgeViewportPoint;
-}
-
-export interface QuickActionDragMoveRequestedMessage extends EditorTargetReference, QuickActionRequestGeometry {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionDragMoveRequested;
-  dropPoint: BridgeViewportPoint;
-}
-
-export interface QuickActionDragMoveClearRequestedMessage extends EditorTargetReference {
-  type: typeof EDITOR_MESSAGE_TYPES.quickActionDragMoveClearRequested;
 }
 
 export interface RequestVisualTargetSnapshotMessage extends EditorTargetReference {
@@ -396,7 +353,6 @@ export type EditorToBridgeMessage =
   | ClearQuickActionSelectionMessage
   | SetHoverHighlightSuppressedMessage
   | SetCanvasZoomMessage
-  | QuickActionCategorySelectedMessage
   | RequestVisualTargetSnapshotMessage
   | UpdateVisualStyleMessage
   | UpdateVisualTextMessage
@@ -421,11 +377,6 @@ export type BridgeToEditorMessage =
   | KeyboardShortcutMessage
   | IframeStatusMessage
   | QuickActionAnchorChangedMessage
-  | QuickActionCategoryRequestedMessage
-  | QuickActionStructureRequestedMessage
-  | QuickActionDragMovePreviewRequestedMessage
-  | QuickActionDragMoveRequestedMessage
-  | QuickActionDragMoveClearRequestedMessage
   | VisualTargetSnapshotMessage
   | VisualStyleUpdatedMessage
   | VisualTextUpdatedMessage

@@ -1,6 +1,4 @@
-import { type BridgeViewportRect } from '../../shared/domain/geometry';
 import { type EditorTargetReference } from '../../shared/domain/targets';
-import { type QuickActionCategory } from '../../shared/domain/visual';
 import {
   type BridgeReadyMessage,
   type BridgeToEditorMessage,
@@ -34,10 +32,6 @@ import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpoint
 import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useVisualSelectionStore, type VisualMutationResultMessage } from '../stores/useVisualSelectionStore';
 import {
-  quickActionCategoryToSectionId,
-  useSectionJumpStore,
-} from '../stores/useSectionJumpStore';
-import {
   appendTargetReferenceToNotebook,
   handleEditorEscapeAction,
   handleEditorShortcutAction,
@@ -54,12 +48,6 @@ import {
   showStaleFallbackTargetToast,
   showStaleVisualTargetToast,
 } from '../toast';
-import {
-  clearQuickActionDragMovePreview,
-  dispatchQuickActionDragMoveFromBridgePoint,
-  dispatchQuickActionStructureOperation,
-  previewQuickActionDragMoveFromBridgePoint,
-} from '../visual/structureActions';
 import { createVisualEditRecordPatchForMutationResult } from '../visual/mutationResultPatch';
 import { dispatchVisualTextMutation } from '../visual/visualMutationClient';
 import {
@@ -143,54 +131,6 @@ export function requestVisualTargetSnapshot(
   });
 }
 
-export function selectQuickActionCategory(
-  reference: EditorTargetReference,
-  category: QuickActionCategory,
-  options: {
-    elementRect?: BridgeViewportRect | null;
-    editorRect?: EditorViewportRect | null;
-  } = {},
-): void {
-  const activeToolbarTarget = useVisualSelectionStore.getState().activeToolbarTarget;
-  const isActiveToolbarTarget = Boolean(activeToolbarTarget)
-    && hasSameEditorTarget(activeToolbarTarget?.target, reference.target)
-    && activeToolbarTarget?.nodeId === reference.nodeId;
-
-  const elementRect = options.elementRect
-    ?? (isActiveToolbarTarget ? activeToolbarTarget?.elementRect ?? null : null);
-  const editorRect = options.editorRect
-    ?? (isActiveToolbarTarget ? activeToolbarTarget?.editorRect ?? null : null);
-
-  useVisualSelectionStore.getState().openPanelForTarget({
-    target: reference.target,
-    nodeId: reference.nodeId,
-    category,
-    elementRect,
-    editorRect,
-  });
-
-  const floatingNotePanel = useFloatingNotePanelStore.getState();
-  if (floatingNotePanel.enabled && floatingNotePanel.isOpen) {
-    floatingNotePanel.closePanel();
-  }
-
-  useFloatingVisualPanelStore.getState().openPanel();
-  useSectionJumpStore.getState().queueSectionJump({
-    target: reference.target,
-    nodeId: reference.nodeId,
-    category,
-    sectionId: quickActionCategoryToSectionId(category),
-  });
-
-  postToBridge({
-    type: EDITOR_MESSAGE_TYPES.quickActionCategorySelected,
-    target: reference.target,
-    nodeId: reference.nodeId,
-    category,
-  });
-  requestVisualTargetSnapshot(reference);
-}
-
 export function installBridgeClient(): () => void {
   const cleanupHoverProtection = onNoteEditorHoverProtectionChange((protectedFromHover) => {
     postToBridge({
@@ -258,36 +198,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.quickActionAnchorChanged:
       handleQuickActionAnchorChanged(message);
       return;
-    case EDITOR_MESSAGE_TYPES.quickActionCategoryRequested:
-      selectQuickActionCategory({
-        target: message.target,
-        nodeId: message.nodeId,
-      }, message.category, {
-        elementRect: message.elementRect ?? null,
-        editorRect: message.elementRect ? bridgeViewportRectToEditorViewportRect(message.elementRect) : null,
-      });
-      return;
-    case EDITOR_MESSAGE_TYPES.quickActionStructureRequested:
-      dispatchQuickActionStructureOperation({
-        target: message.target,
-        nodeId: message.nodeId,
-      }, message.operation);
-      return;
-    case EDITOR_MESSAGE_TYPES.quickActionDragMovePreviewRequested:
-      previewQuickActionDragMoveFromBridgePoint({
-        target: message.target,
-        nodeId: message.nodeId,
-      }, message.dropPoint);
-      return;
-    case EDITOR_MESSAGE_TYPES.quickActionDragMoveRequested:
-      dispatchQuickActionDragMoveFromBridgePoint({
-        target: message.target,
-        nodeId: message.nodeId,
-      }, message.dropPoint);
-      return;
-    case EDITOR_MESSAGE_TYPES.quickActionDragMoveClearRequested:
-      clearQuickActionDragMovePreview();
-      return;
     case EDITOR_MESSAGE_TYPES.visualTargetSnapshot:
       handleVisualTargetSnapshot(message);
       return;
@@ -321,7 +231,6 @@ function handleBridgeReady(message: BridgeReadyMessage): void {
   useVisualEditStore.getState().resetVisualEditStore();
   useVisualSelectionStore.getState().resetVisualSelectionStore();
   useFloatingVisualPanelStore.getState().resetFloatingVisualPanelStore();
-  useSectionJumpStore.getState().resetSectionJumpStore();
   useBridgeStore.getState().markReady(message.url, message.aiIdCount);
   useRuntimeStore.getState().setPreviewUrl(message.url);
   postCurrentCanvasZoomToBridge();

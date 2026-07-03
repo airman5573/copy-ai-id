@@ -24,7 +24,6 @@ import {
   type VisualMutationDispatchResult,
   type VisualStyleDeclarationMutationInput,
 } from './visualMutationClient';
-import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 
 export interface CommitStyleOptions {
   priority?: '' | 'important';
@@ -54,7 +53,6 @@ export interface StyleEditApi {
 }
 
 export function useStyleEdit(): StyleEditApi {
-  const panelTarget = useVisualSelectionStore((state) => state.panelTarget);
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const snapshotStatus = useVisualSelectionStore((state) => state.snapshotStatus);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
@@ -104,7 +102,7 @@ export function useStyleEdit(): StyleEditApi {
       return null;
     }
 
-    const category = resolveCommitCategory(declarations, options.category ?? panelTarget?.category ?? null);
+    const category = resolveCommitCategory(declarations, options.category ?? null);
     const control = createStyleControlDescriptor(declarations, category, options.control);
 
     return dispatchVisualStyleMutation({
@@ -117,7 +115,7 @@ export function useStyleEdit(): StyleEditApi {
       declarations,
       coalesce: options.coalesce,
     });
-  }, [activeBreakpointId, inlineValueOf, panelTarget?.category, snapshot, target, valueOf]);
+  }, [activeBreakpointId, inlineValueOf, snapshot, target, valueOf]);
 
   const commitStyle = useCallback((propertyId: string, cssValue: string, options: CommitStyleOptions = {}) => (
     commitStyles([{ propertyId, value: cssValue, ...options }], options)
@@ -200,7 +198,6 @@ function createStyleControlDescriptor(
     kind: category,
     id: declarations.length === 1 ? `style:${firstProperty}` : 'style:multiple',
     label,
-    sectionId: QUICK_ACTION_SECTION_IDS[category],
     property: declarations.length === 1 ? firstProperty : undefined,
     ...override,
   };

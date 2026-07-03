@@ -4,7 +4,6 @@ import type { EditorTargetReference } from '../../shared/domain/targets';
 import type { VisualTextMutation } from '../../shared/domain/visual';
 import { sanitizeVisualHtmlFragment } from '../../shared/visual-html';
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
-import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 import { useSelectedTargetReference } from './useSelectedTargetReference';
@@ -67,7 +66,6 @@ export function useContentEdit(): ContentEditApi {
         kind: 'content',
         id: 'content:text',
         label: 'Plain text',
-        sectionId: QUICK_ACTION_SECTION_IDS.content,
         ...options.control,
       },
       text,
@@ -95,7 +93,6 @@ export function useContentEdit(): ContentEditApi {
         kind: 'rich-text',
         id: 'content:rich-html',
         label: 'Rich HTML',
-        sectionId: QUICK_ACTION_SECTION_IDS.content,
         ...options.control,
       },
       richText: {

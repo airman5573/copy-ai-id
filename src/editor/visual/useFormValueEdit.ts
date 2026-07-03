@@ -6,7 +6,6 @@ import type {
   VisualFormValueSnapshot,
 } from '../../shared/domain/visual';
 import type { VisualEditControlDescriptor, VisualEditSource } from '../../shared/visual-edits';
-import { QUICK_ACTION_SECTION_IDS } from '../components/visual/sectionJump';
 import { useBreakpointStore } from '../stores/useBreakpointStore';
 import { useVisualSelectionStore } from '../stores/useVisualSelectionStore';
 import { useSelectedTargetReference } from './useSelectedTargetReference';
@@ -79,7 +78,6 @@ export function useFormValueEdit(): FormValueEditApi {
         kind: 'form-value',
         id: 'content:form-value',
         label: 'Form value',
-        sectionId: QUICK_ACTION_SECTION_IDS.content,
         ...options.control,
       },
       formValue: mutation,

@@ -757,14 +757,9 @@ function resolveStyleCategory(
 
   const firstProperty = 'declarations' in options ? options.declarations[0]?.property : undefined;
   const definition = firstProperty ? getVisualStylePropertyDefinition(firstProperty) : null;
-  const panelCategory = useVisualSelectionStore.getState().panelTarget?.category;
 
   if (definition) {
     return definition.category;
-  }
-
-  if (panelCategory && panelCategory !== 'content') {
-    return panelCategory;
   }
 
   if (context.snapshot?.computedStyle.display?.includes('flex')) {

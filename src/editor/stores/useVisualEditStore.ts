@@ -14,7 +14,6 @@ import {
   type VisualEditsExportDocument,
 } from '../../shared/visual-edits';
 
-const MAX_VISUAL_EDIT_HISTORY_DEPTH = 50;
 const PREVIEW_ONLY_WARNING: VisualEditWarning = {
   code: 'preview-only',
   message: 'This edit was applied only to the preview DOM and should be recreated in source code by the receiving AI/developer.',
@@ -43,8 +42,6 @@ export interface VisualEditStateSnapshot {
   records: VisualEditRecord[];
   pendingMutations: Record<number, VisualEditPendingMutation>;
   errorMessages: VisualEditErrorEntry[];
-  undoStack: VisualEditRecord[][];
-  redoStack: VisualEditRecord[][];
   nextOrder: number;
   lastUpdatedAt: string | null;
 }
@@ -57,8 +54,6 @@ export interface VisualEditStore extends VisualEditStateSnapshot {
   markMutationFailed(mutationId: number, error: VisualMutationError): void;
   updateRecordStatus(recordId: VisualEditId, status: VisualEditStatus, error?: VisualMutationError): void;
   removeRecord(recordId: VisualEditId): void;
-  undoVisualEditRecordState(): void;
-  redoVisualEditRecordState(): void;
   clearVisualEdits(): void;
   resetVisualEditStore(): void;
   hasVisualEdits(): boolean;
@@ -81,8 +76,6 @@ const initialVisualEditState: VisualEditStateSnapshot = {
   records: [],
   pendingMutations: {},
   errorMessages: [],
-  undoStack: [],
-  redoStack: [],
   nextOrder: 1,
   lastUpdatedAt: null,
 };
@@ -100,8 +93,6 @@ export const useVisualEditStore = create<VisualEditStore>((set, get) => ({
           [options.mutationId]: createPendingMutation(options.mutationId, record),
         }
         : state.pendingMutations,
-      undoStack: pushHistorySnapshot(state.undoStack, state.records),
-      redoStack: [],
       nextOrder: Math.max(state.nextOrder, record.order + 1),
       lastUpdatedAt: new Date().toISOString(),
     }));
@@ -123,8 +114,6 @@ export const useVisualEditStore = create<VisualEditStore>((set, get) => ({
           [options.mutationId]: createPendingMutation(options.mutationId, normalizedRecord),
         }
         : state.pendingMutations,
-      undoStack: pushHistorySnapshot(state.undoStack, state.records),
-      redoStack: [],
       nextOrder: Math.max(state.nextOrder, normalizedRecord.order + 1),
       lastUpdatedAt: new Date().toISOString(),
     };
@@ -196,8 +185,6 @@ export const useVisualEditStore = create<VisualEditStore>((set, get) => ({
     records: state.records.map((record) => (
       record.id === recordId ? updateRecordStatus(record, status, error) : record
     )),
-    undoStack: pushHistorySnapshot(state.undoStack, state.records),
-    redoStack: [],
     lastUpdatedAt: new Date().toISOString(),
   })),
   removeRecord: (recordId) => set((state) => ({
@@ -206,42 +193,12 @@ export const useVisualEditStore = create<VisualEditStore>((set, get) => ({
       Object.entries(state.pendingMutations)
         .filter(([, pending]) => pending.recordId !== recordId),
     ) as Record<number, VisualEditPendingMutation>,
-    undoStack: pushHistorySnapshot(state.undoStack, state.records),
-    redoStack: [],
     lastUpdatedAt: new Date().toISOString(),
   })),
-  undoVisualEditRecordState: () => set((state) => {
-    const previousRecords = state.undoStack[state.undoStack.length - 1];
-    if (!previousRecords) {
-      return state;
-    }
-
-    return {
-      records: previousRecords,
-      undoStack: state.undoStack.slice(0, -1),
-      redoStack: pushHistorySnapshot(state.redoStack, state.records),
-      lastUpdatedAt: new Date().toISOString(),
-    };
-  }),
-  redoVisualEditRecordState: () => set((state) => {
-    const nextRecords = state.redoStack[state.redoStack.length - 1];
-    if (!nextRecords) {
-      return state;
-    }
-
-    return {
-      records: nextRecords,
-      undoStack: pushHistorySnapshot(state.undoStack, state.records),
-      redoStack: state.redoStack.slice(0, -1),
-      lastUpdatedAt: new Date().toISOString(),
-    };
-  }),
   clearVisualEdits: () => set({
     records: [],
     pendingMutations: {},
     errorMessages: [],
-    undoStack: [],
-    redoStack: [],
     nextOrder: 1,
     lastUpdatedAt: new Date().toISOString(),
   }),
@@ -397,9 +354,6 @@ function ensurePreviewOnlyWarning(warnings: readonly VisualEditWarning[] | null 
   return [...existingWarnings, PREVIEW_ONLY_WARNING];
 }
 
-function pushHistorySnapshot(history: VisualEditRecord[][], records: VisualEditRecord[]): VisualEditRecord[][] {
-  return [...history, records].slice(-MAX_VISUAL_EDIT_HISTORY_DEPTH);
-}
 
 function formatVisualEditRecordId(order: number): VisualEditId {
   return `visual-edit-${order}`;
