@@ -26,7 +26,6 @@ import {
   registerBridgeIframeElement,
 } from './geometry';
 import { useBridgeStore } from '../stores/useBridgeStore';
-import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { useFloatingVisualPanelStore } from '../stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from '../stores/useHighlightStore';
 import { getActiveCanvasZoom, useBreakpointStore } from '../stores/useBreakpointStore';

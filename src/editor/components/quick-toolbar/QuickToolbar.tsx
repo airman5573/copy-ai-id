@@ -248,7 +248,7 @@ export function QuickToolbar(): ReactElement | null {
     });
 
     const floatingNotePanel = useFloatingNotePanelStore.getState();
-    if (floatingNotePanel.enabled && floatingNotePanel.isOpen) {
+    if (floatingNotePanel.isOpen) {
       floatingNotePanel.closePanel();
     }
 

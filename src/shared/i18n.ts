@@ -19,7 +19,6 @@ export interface CopyAiIdMessages {
   editor: {
     title: string;
     subtitle: string;
-    notePanel: string;
     notePanelToggle: string;
     notePanelOpenTitle: string;
     notePanelCloseTitle: string;
@@ -43,7 +42,6 @@ export interface CopyAiIdMessages {
     zoomReset: string;
     customViewport: string;
     resizePreviewWidth: string;
-    resizeNotePanel: string;
   };
   notebook: {
     title: string;
@@ -56,10 +54,6 @@ export interface CopyAiIdMessages {
     copyShortcutLabel: string;
     expand: string;
     collapse: string;
-    fontSize: string;
-    fontSizeDecrease: string;
-    fontSizeReset: string;
-    fontSizeIncrease: string;
     tailwind: string;
     tailwindSuffix: string;
     noticeButton: string;
@@ -130,7 +124,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
     editor: {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id editor',
-      notePanel: 'Note panel',
       notePanelToggle: 'Note',
       notePanelOpenTitle: 'Open the floating note panel.',
       notePanelCloseTitle: 'Close the floating note panel.',
@@ -158,7 +151,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       zoomReset: 'Reset zoom',
       customViewport: 'Custom',
       resizePreviewWidth: 'Resize preview width',
-      resizeNotePanel: 'Resize note panel',
     },
     notebook: {
       title: 'Notebook',
@@ -171,10 +163,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       copyShortcutLabel: 'Shortcut',
       expand: 'Expand notebook',
       collapse: 'Collapse notebook',
-      fontSize: 'Note font size',
-      fontSizeDecrease: 'Decrease note font size',
-      fontSizeReset: 'Reset note font size',
-      fontSizeIncrease: 'Increase note font size',
       tailwind: 'Tailwind',
       tailwindSuffix: 'works with tailwind only',
       noticeButton: 'Copy notice',
@@ -247,7 +235,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
     editor: {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id 에디터',
-      notePanel: '노트 패널',
       notePanelToggle: '노트',
       notePanelOpenTitle: '플로팅 노트 패널을 엽니다.',
       notePanelCloseTitle: '플로팅 노트 패널을 닫습니다.',
@@ -275,7 +262,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       zoomReset: '확대 초기화',
       customViewport: '사용자 지정',
       resizePreviewWidth: '미리보기 너비 조절',
-      resizeNotePanel: '노트 패널 너비 조절',
     },
     notebook: {
       title: '노트북',
@@ -288,10 +274,6 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       copyShortcutLabel: '단축키',
       expand: '노트북 펼치기',
       collapse: '노트북 접기',
-      fontSize: '노트 글자 크기',
-      fontSizeDecrease: '노트 글자 크기 줄이기',
-      fontSizeReset: '노트 글자 크기 초기화',
-      fontSizeIncrease: '노트 글자 크기 키우기',
       tailwind: '테일윈드',
       tailwindSuffix: 'tailwind에서만 동작합니다',
       noticeButton: '복사 Notice',

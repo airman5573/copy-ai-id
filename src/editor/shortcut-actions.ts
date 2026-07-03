@@ -75,7 +75,7 @@ export function handleEditorEscapeAction(): EditorEscapeActionResult {
   }
 
   const floatingNotePanel = useFloatingNotePanelStore.getState();
-  if (floatingNotePanel.enabled && floatingNotePanel.isOpen) {
+  if (floatingNotePanel.isOpen) {
     floatingNotePanel.closePanel();
     return 'floating-note-panel';
   }
@@ -112,24 +112,16 @@ export function appendTargetReferenceToNotebook(
 ): boolean {
   const explicitGeometry = resolveTargetReferenceGeometry(options);
   const floatingNotePanel = useFloatingNotePanelStore.getState();
-  if (floatingNotePanel.enabled) {
-    // Capture the anchor before hiding the toolbar — the pinned toolbar
-    // geometry is one of the anchor sources.
-    const anchor = captureNotePanelAnchor(reference, explicitGeometry);
-    floatingNotePanel.openNearTarget(anchor);
-    options.hideQuickActionToolbar?.();
-    window.requestAnimationFrame(() => {
-      requestNotePanelFocus({
-        afterFocus: () => insertTargetReferenceIntoNotebook(reference),
-      });
-    });
-    return true;
-  }
-
-  // Appending a chip always hides the quick toolbar, docked note panel too.
+  // Capture the anchor before hiding the toolbar — the pinned toolbar
+  // geometry is one of the anchor sources.
+  const anchor = captureNotePanelAnchor(reference, explicitGeometry);
+  floatingNotePanel.openNearTarget(anchor);
   options.hideQuickActionToolbar?.();
-  insertTargetReferenceIntoNotebook(reference);
-  requestNotePanelFocus();
+  window.requestAnimationFrame(() => {
+    requestNotePanelFocus({
+      afterFocus: () => insertTargetReferenceIntoNotebook(reference),
+    });
+  });
   return true;
 }
 
@@ -147,7 +139,7 @@ export function focusNotebookChipFromBadge(
     .find((candidate) => candidate.chipId === chipId);
   const floatingNotePanel = useFloatingNotePanelStore.getState();
 
-  if (floatingNotePanel.enabled && chip) {
+  if (chip) {
     const anchor = captureNotePanelAnchor(
       { target: chip.target, nodeId: chip.nodeId },
       resolveTargetReferenceGeometry(options),

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Minus, Plus, RotateCcw, StickyNote } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/shallow';
 
 import {
@@ -12,9 +12,6 @@ import { getCurrentMessages } from '../../shared/i18n';
 import { writeNotebookTargetNotice } from '../notebook/notebook-notice';
 import { clearNotebookCopyStatusReset, copyNotebookDraftFromStore } from '../notebook/copy';
 import {
-  DEFAULT_NOTE_FONT_SIZE,
-  MAX_NOTE_FONT_SIZE,
-  MIN_NOTE_FONT_SIZE,
   selectHasNotebookDraftForCopy,
   useNotebookStore,
 } from '../stores/useNotebookStore';
@@ -26,32 +23,38 @@ import {
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
-export type NotePanelVariant = 'docked' | 'floating';
-
 export interface NotePanelProps {
-  variant?: NotePanelVariant;
   dataAiId?: string;
   className?: string;
 }
 
 export function NotePanel({
-  variant = 'docked',
-  dataAiId,
+  dataAiId = 'copy-ai-id-editor-floating-note-panel',
   className = '',
 }: NotePanelProps = {}) {
   const messages = getCurrentMessages();
-  const isFloating = variant === 'floating';
-  const resolvedDataAiId = dataAiId ?? (isFloating
-    ? 'copy-ai-id-editor-floating-note-panel'
-    : 'copy-ai-id-editor-note-panel');
   const panelClassName = [
     'copy-ai-id-editor-note-panel',
-    `copy-ai-id-editor-note-panel--${variant}`,
+    'copy-ai-id-editor-note-panel--floating',
     className,
   ].filter(Boolean).join(' ');
   const [isNoticeEditorOpen, setNoticeEditorOpen] = useState(false);
   const [noticeDraft, setNoticeDraft] = useState('');
   const noticeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // The floating panel shell is transformed and overflow-hidden, so the
+  // fixed-position notice dialog must be portaled out to the editor shell.
+  const [noticeDialogHost, setNoticeDialogHost] = useState<HTMLElement | null>(null);
+  const attachNoticeDialogHostProbe = (node: HTMLDivElement | null): void => {
+    if (!node) {
+      setNoticeDialogHost(null);
+      return;
+    }
+
+    const root = node.getRootNode();
+    setNoticeDialogHost('querySelector' in root
+      ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-shell"]')
+      : null);
+  };
   const draft = useNotebookStore((state) => state.draft);
   const editorStateJson = useNotebookStore((state) => state.editorStateJson);
   const isNotebookEmpty = useNotebookStore((state) => state.isNotebookEmpty);
@@ -61,8 +64,6 @@ export function NotePanel({
   const clearDraft = useNotebookStore((state) => state.clearDraft);
   const setSuffixSettings = useNotebookStore((state) => state.setSuffixSettings);
   const hydrateNoteFontSize = useNotebookStore((state) => state.hydrateNoteFontSize);
-  const stepNoteFontSize = useNotebookStore((state) => state.stepNoteFontSize);
-  const resetNoteFontSize = useNotebookStore((state) => state.resetNoteFontSize);
   const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
   const visualEditStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
   const hasCopyableVisualEdits = useVisualEditStore(selectHasVisualEdits);
@@ -160,10 +161,6 @@ export function NotePanel({
       : copyStatus === 'empty'
       ? messages.notebook.empty
       : messages.notebook.save;
-  const copyButtonDescriptionId = [
-    !isFloating ? 'copy-ai-id-editor-copy-shortcut-hint' : null,
-    !isFloating && visualEditStatus.hasHiddenPromptText ? 'copy-ai-id-editor-hidden-visual-prompt-status' : null,
-  ].filter(Boolean).join(' ');
   const copyButton = (
     <button
       className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
@@ -171,7 +168,6 @@ export function NotePanel({
       data-ai-editor-copy-eligible={canCopyNotebook ? 'true' : 'false'}
       data-ai-editor-copy-has-visual-edits={hasCopyableVisualEdits ? 'true' : 'false'}
       type="button"
-      aria-describedby={copyButtonDescriptionId || undefined}
       onClick={() => {
         void handleCopy();
       }}
@@ -183,77 +179,10 @@ export function NotePanel({
   return (
     <PanelChrome
       side="right"
-      dataAiId={resolvedDataAiId}
+      dataAiId={dataAiId}
       className={panelClassName}
-      data-ai-editor-note-panel-variant={variant}
+      data-ai-editor-note-panel-variant="floating"
     >
-      {!isFloating ? (
-        <div className="copy-ai-id-editor-panel__header copy-ai-id-editor-panel__header--with-action">
-          <div className="copy-ai-id-editor-panel__title">
-            <StickyNote size={16} aria-hidden="true" />
-            <h2>{messages.editor.notePanel}</h2>
-          </div>
-          <div className="copy-ai-id-editor-panel__actions">
-            <div
-              className="copy-ai-id-editor-note-font-size-controls"
-              data-ai-id="copy-ai-id-editor-note-font-size-controls"
-              role="group"
-              aria-label={messages.notebook.fontSize}
-            >
-              <ToolbarButton
-                className="copy-ai-id-editor-note-font-size-button"
-                data-ai-id="copy-ai-id-editor-note-font-size-decrease-button"
-                disabled={noteFontSize <= MIN_NOTE_FONT_SIZE}
-                title={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
-                aria-label={`${messages.notebook.fontSizeDecrease} (${noteFontSize}px)`}
-                onClick={() => stepNoteFontSize(-1)}
-              >
-                <Minus size={14} aria-hidden="true" />
-              </ToolbarButton>
-              <ToolbarButton
-                className="copy-ai-id-editor-note-font-size-button"
-                data-ai-id="copy-ai-id-editor-note-font-size-reset-button"
-                disabled={noteFontSize === DEFAULT_NOTE_FONT_SIZE}
-                title={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
-                aria-label={`${messages.notebook.fontSizeReset} (${DEFAULT_NOTE_FONT_SIZE}px)`}
-                onClick={resetNoteFontSize}
-              >
-                <RotateCcw size={14} aria-hidden="true" />
-              </ToolbarButton>
-              <ToolbarButton
-                className="copy-ai-id-editor-note-font-size-button"
-                data-ai-id="copy-ai-id-editor-note-font-size-increase-button"
-                disabled={noteFontSize >= MAX_NOTE_FONT_SIZE}
-                title={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
-                aria-label={`${messages.notebook.fontSizeIncrease} (${noteFontSize}px)`}
-                onClick={() => stepNoteFontSize(1)}
-              >
-                <Plus size={14} aria-hidden="true" />
-              </ToolbarButton>
-            </div>
-            <ToolbarButton
-              data-ai-id="copy-ai-id-editor-note-notice-button"
-              title={messages.notebook.noticeDialogTitle}
-              aria-label={messages.notebook.noticeDialogTitle}
-              aria-haspopup="dialog"
-              aria-expanded={isNoticeEditorOpen}
-              onClick={openNoticeEditor}
-            >
-              {messages.notebook.noticeButton}
-            </ToolbarButton>
-            <ToolbarButton
-              data-ai-id="copy-ai-id-editor-note-reset-button"
-              disabled={isNotebookEmpty && !hasVisualEditState}
-              title={messages.notebook.reset}
-              aria-label={messages.notebook.reset}
-              onClick={handleReset}
-            >
-              {messages.notebook.reset}
-            </ToolbarButton>
-          </div>
-        </div>
-      ) : null}
-
       <NoteEditor
         draft={draft}
         editorStateJson={editorStateJson}
@@ -261,9 +190,11 @@ export function NotePanel({
         placeholder={messages.notebook.placeholder}
       />
 
-      {!isFloating ? <HiddenVisualPromptStatus status={visualEditStatus} /> : null}
-
-      <div className="copy-ai-id-editor-note-controls" data-ai-id="copy-ai-id-editor-note-suffix-controls">
+      <div
+        ref={attachNoticeDialogHostProbe}
+        className="copy-ai-id-editor-note-controls"
+        data-ai-id="copy-ai-id-editor-note-suffix-controls"
+      >
         <div className="copy-ai-id-editor-note-control-group" role="group" aria-label={messages.notebook.breakpointScope.label}>
           <button
             type="button"
@@ -300,54 +231,36 @@ export function NotePanel({
           <span>{messages.notebook.tailwind}</span>
         </label>
 
-        {isFloating ? (
-          <>
-            <ToolbarButton
-              data-ai-id="copy-ai-id-editor-note-notice-button"
-              title={messages.notebook.noticeDialogTitle}
-              aria-label={messages.notebook.noticeDialogTitle}
-              aria-haspopup="dialog"
-              aria-expanded={isNoticeEditorOpen}
-              onClick={openNoticeEditor}
-            >
-              {messages.notebook.noticeButton}
-            </ToolbarButton>
-            <ToolbarButton
-              data-ai-id="copy-ai-id-editor-note-reset-button"
-              disabled={isNotebookEmpty && !hasVisualEditState}
-              title={messages.notebook.reset}
-              aria-label={messages.notebook.reset}
-              onClick={handleReset}
-            >
-              {messages.notebook.reset}
-            </ToolbarButton>
-            <span
-              className="copy-ai-id-editor-copy-shortcut"
-              data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
-              title={messages.notebook.copyShortcutLabel}
-            >
-              <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
-            </span>
-            {copyButton}
-          </>
-        ) : null}
+        <ToolbarButton
+          data-ai-id="copy-ai-id-editor-note-notice-button"
+          title={messages.notebook.noticeDialogTitle}
+          aria-label={messages.notebook.noticeDialogTitle}
+          aria-haspopup="dialog"
+          aria-expanded={isNoticeEditorOpen}
+          onClick={openNoticeEditor}
+        >
+          {messages.notebook.noticeButton}
+        </ToolbarButton>
+        <ToolbarButton
+          data-ai-id="copy-ai-id-editor-note-reset-button"
+          disabled={isNotebookEmpty && !hasVisualEditState}
+          title={messages.notebook.reset}
+          aria-label={messages.notebook.reset}
+          onClick={handleReset}
+        >
+          {messages.notebook.reset}
+        </ToolbarButton>
+        <span
+          className="copy-ai-id-editor-copy-shortcut"
+          data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
+          title={messages.notebook.copyShortcutLabel}
+        >
+          <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
+        </span>
+        {copyButton}
       </div>
 
-      {!isFloating ? (
-        <div className="copy-ai-id-editor-copy-actions" data-ai-id="copy-ai-id-editor-copy-actions">
-          {copyButton}
-          <span
-            id="copy-ai-id-editor-copy-shortcut-hint"
-            className="copy-ai-id-editor-copy-shortcut"
-            data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
-          >
-            <span data-ai-id="copy-ai-id-editor-copy-shortcut-label">{messages.notebook.copyShortcutLabel}</span>
-            <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
-          </span>
-        </div>
-      ) : null}
-
-      {isNoticeEditorOpen ? (
+      {isNoticeEditorOpen ? portalNoticeDialog(noticeDialogHost, (
         <div
           className="copy-ai-id-editor-notice-dialog-backdrop"
           data-ai-id="copy-ai-id-editor-notice-dialog-backdrop"
@@ -407,45 +320,11 @@ export function NotePanel({
             </div>
           </section>
         </div>
-      ) : null}
+      )) : null}
     </PanelChrome>
   );
 }
 
-function HiddenVisualPromptStatus({
-  status,
-}: {
-  status: ReturnType<typeof selectVisualEditRuntimeStatus>;
-}) {
-  if (!status.hasHiddenPromptText && !status.hasPending && !status.hasErrors) {
-    return null;
-  }
-
-  return (
-    <div
-      id="copy-ai-id-editor-hidden-visual-prompt-status"
-      className="copy-ai-id-editor-hidden-visual-prompt-status"
-      data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status"
-      data-ai-editor-hidden-visual-prompt="true"
-      role={status.hasErrors ? 'alert' : 'status'}
-      aria-live={status.hasErrors ? 'assertive' : 'polite'}
-    >
-      <strong data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-title">
-        Visual edits {status.exportableCount}개 저장됨
-      </strong>
-      <span data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-message">
-        편집 프롬프트 내용은 노트에 표시하지 않고, 복사할 때만 <code>## Visual edits</code>로 클립보드에 포함됩니다.
-      </span>
-      {status.hasPending || status.hasErrors ? (
-        <span
-          className="copy-ai-id-editor-hidden-visual-prompt-status__meta"
-          data-ai-id="copy-ai-id-editor-hidden-visual-prompt-status-meta"
-        >
-          {status.hasPending ? `적용 중 ${status.pendingCount}개` : null}
-          {status.hasPending && status.hasErrors ? ' · ' : null}
-          {status.hasErrors ? `실패 ${status.failedCount}개${status.latestErrorCode ? ` (${status.latestErrorCode})` : ''}` : null}
-        </span>
-      ) : null}
-    </div>
-  );
+function portalNoticeDialog(host: HTMLElement | null, dialog: ReactElement) {
+  return host ? createPortal(dialog, host) : dialog;
 }

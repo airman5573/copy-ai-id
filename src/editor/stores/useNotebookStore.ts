@@ -53,8 +53,6 @@ interface NotebookStore {
   setFlashChip(flashChip: ((chipId: string) => void) | null): void;
   setSuffixSettings(settings: NotebookSuffixSettings): void;
   hydrateNoteFontSize(): Promise<void>;
-  stepNoteFontSize(step: number): void;
-  resetNoteFontSize(): void;
   setCopyStatus(copyStatus: CopyStatus): void;
   setFocusedTarget(target: EditorTarget | null): void;
   clearDraft(): void;
@@ -108,19 +106,6 @@ async function readStoredNoteFontSize(): Promise<number> {
   }
 }
 
-async function writeStoredNoteFontSize(fontSize: number): Promise<void> {
-  const storage = getChromeLocalStorage();
-  if (!storage) {
-    return;
-  }
-
-  try {
-    await storage.set({ [NOTE_FONT_SIZE_STORAGE_KEY]: normalizeNoteFontSize(fontSize) });
-  } catch {
-    // Font-size persistence is best-effort so the editor remains usable if
-    // extension storage is temporarily unavailable.
-  }
-}
 
 function createPlainDraftState(draft: string) {
   return {
@@ -181,15 +166,6 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   }),
   hydrateNoteFontSize: async () => {
     set({ noteFontSize: await readStoredNoteFontSize() });
-  },
-  stepNoteFontSize: (step) => set((state) => {
-    const noteFontSize = normalizeNoteFontSize(state.noteFontSize + step);
-    void writeStoredNoteFontSize(noteFontSize);
-    return { noteFontSize };
-  }),
-  resetNoteFontSize: () => {
-    set({ noteFontSize: DEFAULT_NOTE_FONT_SIZE });
-    void writeStoredNoteFontSize(DEFAULT_NOTE_FONT_SIZE);
   },
   setCopyStatus: (copyStatus) => set({ copyStatus }),
   setFocusedTarget: (focusedTarget) => set({ focusedTarget }),

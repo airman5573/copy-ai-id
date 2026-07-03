@@ -31,7 +31,6 @@ export function App({ onRequestClose }: AppProps) {
   const toastTone = useToastStore((state) => state.tone);
   const clearToast = useToastStore((state) => state.clearToast);
   const setSuffixSettings = useNotebookStore((state) => state.setSuffixSettings);
-  const hydrateFloatingNotePanelEnabled = useFloatingNotePanelStore((state) => state.hydrateEnabled);
   const resetFloatingNotePanelRuntime = useFloatingNotePanelStore((state) => state.resetFloatingNotePanelRuntime);
 
   useEffect(() => {
@@ -40,19 +39,12 @@ export function App({ onRequestClose }: AppProps) {
     setCurrentUrl(url);
     setPreviewUrl(createPreviewUrl(url));
     let isActive = true;
-    let notePanelHydrateFrameId: number | null = null;
-    void hydrateFloatingNotePanelEnabled().then(() => {
+    const initialFitFrameId = window.requestAnimationFrame(() => {
       if (!isActive) {
         return;
       }
 
-      notePanelHydrateFrameId = window.requestAnimationFrame(() => {
-        if (!isActive) {
-          return;
-        }
-
-        fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
-      });
+      fitZoom(previewStageRef.current?.clientWidth, previewStageRef.current?.clientHeight);
     });
     void readNotebookTargetNotice().then((targetNotice) => {
       if (!isActive) {
@@ -72,9 +64,7 @@ export function App({ onRequestClose }: AppProps) {
 
     return () => {
       isActive = false;
-      if (notePanelHydrateFrameId !== null) {
-        window.cancelAnimationFrame(notePanelHydrateFrameId);
-      }
+      window.cancelAnimationFrame(initialFitFrameId);
       cleanupKeyboard();
       cleanupKeyboardHoverGuard();
       cleanupVisualEditorFocusGuard();
@@ -86,7 +76,6 @@ export function App({ onRequestClose }: AppProps) {
   }, [
     clearToast,
     fitZoom,
-    hydrateFloatingNotePanelEnabled,
     resetFloatingNotePanelRuntime,
     setCurrentUrl,
     setMounted,

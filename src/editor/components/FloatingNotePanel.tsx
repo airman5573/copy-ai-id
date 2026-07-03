@@ -63,7 +63,6 @@ interface FloatingNotePanelPlacement {
 }
 
 export function FloatingNotePanel() {
-  const enabled = useFloatingNotePanelStore((state) => state.enabled);
   const isOpen = useFloatingNotePanelStore((state) => state.isOpen);
   const anchor = useFloatingNotePanelStore((state) => state.anchor);
   const notePanelWidth = useEditorLayoutStore((state) => state.notePanelWidth);
@@ -77,18 +76,10 @@ export function FloatingNotePanel() {
     : 'desktop-target';
 
   useLayoutEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
     measurePanel(panelRef.current, setPanelSize);
-  }, [enabled, isOpen, notePanelWidth]);
+  }, [isOpen, notePanelWidth]);
 
   useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-
     const node = panelRef.current;
     if (!node || typeof ResizeObserver === 'undefined') {
       return undefined;
@@ -101,13 +92,9 @@ export function FloatingNotePanel() {
     resizeObserver.observe(node);
 
     return () => resizeObserver.disconnect();
-  }, [enabled]);
+  }, []);
 
   useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-
     let frameId: number | null = null;
     const bumpLayoutRevision = (): void => {
       if (frameId !== null) {
@@ -136,7 +123,7 @@ export function FloatingNotePanel() {
       window.removeEventListener('scroll', bumpLayoutRevision, true);
       previewStage?.removeEventListener('scroll', bumpLayoutRevision);
     };
-  }, [enabled]);
+  }, []);
 
   const placement = useMemo(() => computeFloatingNotePanelPlacement({
     anchor,
@@ -169,10 +156,6 @@ export function FloatingNotePanel() {
     }
   };
 
-  if (!enabled) {
-    return null;
-  }
-
   return (
     <div
       className="copy-ai-id-editor-floating-note-panel-layer"
@@ -191,7 +174,6 @@ export function FloatingNotePanel() {
         onKeyDownCapture={handleShellKeyDownCapture}
       >
         <NotePanel
-          variant="floating"
           dataAiId="copy-ai-id-editor-floating-note-panel"
           className="copy-ai-id-editor-floating-note-panel"
         />

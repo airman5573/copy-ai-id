@@ -95,7 +95,7 @@ function setCopyStatusWithReset(status: CopyStatus): void {
 
 function scheduleFloatingNotePanelCloseAfterCopy(): void {
   const floatingNotePanel = useFloatingNotePanelStore.getState();
-  if (!floatingNotePanel.enabled || !floatingNotePanel.isOpen) {
+  if (!floatingNotePanel.isOpen) {
     return;
   }
 
@@ -107,8 +107,7 @@ function scheduleFloatingNotePanelCloseAfterCopy(): void {
 
     const currentFloatingNotePanel = useFloatingNotePanelStore.getState();
     if (
-      currentFloatingNotePanel.enabled
-      && currentFloatingNotePanel.isOpen
+      currentFloatingNotePanel.isOpen
       && currentFloatingNotePanel.openedAt === openedAt
       && (currentFloatingNotePanel.anchor?.updatedAt ?? null) === anchorUpdatedAt
     ) {
