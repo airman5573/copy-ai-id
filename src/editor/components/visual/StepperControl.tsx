@@ -1,7 +1,5 @@
 import type { ReactElement } from 'react';
 
-import { getCurrentMessages } from '../../../shared/i18n';
-
 export interface StepperControlProps {
   label: string;
   displayValue: string;
@@ -11,7 +9,8 @@ export interface StepperControlProps {
 }
 
 // `[-] 16px [+]` percent-intent stepper. Pure presentation: base capture,
-// percent accumulation, and clamping live in utils/stepperMath.ts.
+// percent accumulation, and clamping live in utils/stepperMath.ts. No hover
+// tooltips by design — meaning comes from the visible label next to it.
 export function StepperControl({
   label,
   displayValue,
@@ -19,16 +18,13 @@ export function StepperControl({
   dataAiId,
   onStep,
 }: StepperControlProps): ReactElement {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
-
   return (
     <div
       className="flex h-7 items-stretch overflow-hidden rounded-md border border-gray-600 bg-gray-950/80"
-      title={label}
       data-ai-id={dataAiId}
     >
       <StepperButton
-        ariaLabel={`${messages.decrease}: ${label}`}
+        ariaLabel={`줄이기: ${label}`}
         dataAiId={`${dataAiId}-decrease-button`}
         disabled={disabled}
         onClick={() => onStep(-1)}
@@ -42,7 +38,7 @@ export function StepperControl({
         {displayValue}
       </span>
       <StepperButton
-        ariaLabel={`${messages.increase}: ${label}`}
+        ariaLabel={`늘리기: ${label}`}
         dataAiId={`${dataAiId}-increase-button`}
         disabled={disabled}
         onClick={() => onStep(1)}
@@ -71,7 +67,6 @@ function StepperButton({
       type="button"
       className="flex w-6 shrink-0 items-center justify-center bg-gray-900 text-sm font-bold text-gray-200 transition hover:bg-blue-600/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 disabled:cursor-not-allowed disabled:text-gray-600"
       aria-label={ariaLabel}
-      title={ariaLabel}
       disabled={disabled}
       onClick={onClick}
       data-ai-id={dataAiId}

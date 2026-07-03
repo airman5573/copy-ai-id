@@ -16,20 +16,20 @@ export type QuickToolbarControlId =
   | 'font-weight'
   | 'text-color'
   | 'text-align'
-  | 'gap'
   | 'flex-direction'
-  | 'justify-content'
-  | 'align-items'
+  | 'alignment'
   | 'background-color'
   | 'href-edit'
   | 'placeholder-edit';
 
+// Gap is intentionally absent from the container row — the shared 간격
+// spacing popover in the common row already owns it.
 export const INTENT_TOOLBAR_CONTROLS: Record<ElementIntent, readonly QuickToolbarControlId[]> = {
   image: ['image-replace', 'width', 'height', 'object-fit', 'radius'],
   form: ['placeholder-edit', 'width', 'font-size', 'radius'],
   'link-button': ['background-color', 'text-color', 'radius', 'font-size', 'href-edit'],
   text: ['font-size', 'font-weight', 'text-color', 'text-align'],
-  container: ['gap', 'flex-direction', 'justify-content', 'align-items', 'background-color', 'radius'],
+  container: ['flex-direction', 'alignment', 'background-color', 'radius'],
 };
 
 // Merges multiple intents in priority order and deduplicates overlapping

@@ -39,6 +39,8 @@ export const PREVIEW_DROP_INDICATOR_Z_INDEX = 2147483647;
 export const PREVIEW_BOX_MODEL_HOVER_Z_INDEX = 2147483645;
 export const PREVIEW_BOX_MODEL_CONTROL_Z_INDEX = 2147483647;
 export const PREVIEW_QUICK_ACTION_TOOLBAR_Z_INDEX = 2147483647;
+// Above the hover box-model, below the control/drop-indicator layers.
+export const PREVIEW_CHIP_BADGE_Z_INDEX = 2147483646;
 
 export function isExtensionOwnedElement(element: Element): boolean {
   return element.matches(EXTENSION_OWNED_DOM_SELECTOR)

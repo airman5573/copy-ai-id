@@ -5,6 +5,7 @@ import {
 import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import type { BridgePost } from './types';
+import { isChipBadgeEventTarget } from './chip-badges';
 import { classifyElementIntents } from './element-intent';
 import { resolveTreeNode } from './layout-tree';
 import { viewportSize } from './lib/viewport';
@@ -91,6 +92,12 @@ export function installHoverHighlight(post: BridgePost): () => void {
 
   const handleClick = (event: MouseEvent): void => {
     if (event.button !== 0 || inlineTextEditSuppressed) {
+      return;
+    }
+
+    // Badge clicks belong to the chip badge's own listener; the point hit
+    // test below would otherwise pin the element underneath the badge.
+    if (isChipBadgeEventTarget(event.target)) {
       return;
     }
 

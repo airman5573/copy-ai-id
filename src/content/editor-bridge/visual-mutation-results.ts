@@ -20,6 +20,7 @@ import {
   buildAndPostLayoutTreeSnapshot,
   type LayoutTreeBuildResult,
 } from './layout-tree';
+import { refreshChipBadges } from './chip-badges';
 import {
   refreshHighlightedElement,
 } from './highlight';
@@ -165,6 +166,7 @@ export function refreshAfterVisualMutation(
 
   if (options.overlays !== false) {
     refreshOverlays();
+    refreshChipBadges();
   }
 
   if (options.highlight !== false) {

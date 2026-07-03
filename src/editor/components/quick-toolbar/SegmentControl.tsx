@@ -3,7 +3,9 @@ import type { ReactElement, ReactNode } from 'react';
 export interface SegmentOption {
   value: string;
   label: ReactNode;
-  title?: string;
+  // Screen-reader name for icon-only labels. No visual tooltip is rendered —
+  // the toolbar is designed to be self-explanatory without hover hints.
+  ariaLabel?: string;
 }
 
 export interface SegmentControlProps {
@@ -29,7 +31,6 @@ export function SegmentControl({
       className="flex h-7 items-stretch overflow-hidden rounded-md border border-gray-600 bg-gray-950/80"
       role="group"
       aria-label={ariaLabel}
-      title={ariaLabel}
       data-ai-id={dataAiId}
     >
       {options.map((option) => {
@@ -44,7 +45,7 @@ export function SegmentControl({
                 : 'bg-gray-900 text-gray-300 hover:bg-gray-800 hover:text-gray-100'
             }`}
             aria-pressed={active}
-            title={option.title ?? `${ariaLabel}: ${option.value}`}
+            aria-label={option.ariaLabel ?? undefined}
             disabled={disabled}
             onClick={() => onChange(option.value)}
             data-ai-id={`${dataAiId}-${option.value}-button`}

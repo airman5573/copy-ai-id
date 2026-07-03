@@ -227,7 +227,6 @@ export function ColorInput({
               aria-haspopup="listbox"
               aria-expanded={paletteOpen}
               aria-label={presetPlaceholderLabel}
-              title={presetPlaceholderLabel}
               onClick={() => {
                 setPaletteOpen((current) => {
                   if (current) {

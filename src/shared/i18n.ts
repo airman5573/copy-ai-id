@@ -2,8 +2,6 @@ import type { BreakpointId } from './breakpoints';
 
 export type CopyAiIdLocale = 'en' | 'ko';
 
-type VisualStructureQuickAction = 'duplicate' | 'move-up' | 'move-down' | 'delete';
-
 export interface CopyAiIdMessages {
   htmlLang: string;
   /**
@@ -89,87 +87,11 @@ export interface CopyAiIdMessages {
       selectedOnlySuffix: string;
     };
   };
+  // The quick toolbar and 모든 옵션 panel are Korean-only by product decision;
+  // their labels are hardcoded in the components, so only the shared state
+  // notices remain localized here.
   visualEditor: {
-    quickActions: {
-      structure: Record<VisualStructureQuickAction, {
-        label: string;
-        title: string;
-      }>;
-    };
-    quickToolbar: {
-      toolbarLabel: string;
-      increase: string;
-      decrease: string;
-      more: string;
-      moreTitle: string;
-      apply: string;
-      dragHandleTitle: string;
-      controls: {
-        imageReplace: string;
-        width: string;
-        height: string;
-        objectFit: string;
-        radius: string;
-        fontSize: string;
-        fontWeight: string;
-        textColor: string;
-        textAlign: string;
-        gap: string;
-        flexDirection: string;
-        justifyContent: string;
-        alignItems: string;
-        backgroundColor: string;
-        hrefEdit: string;
-        placeholderEdit: string;
-      };
-      spacing: {
-        padding: string;
-        margin: string;
-        gap: string;
-        scopeAll: string;
-        scopeX: string;
-        scopeY: string;
-        scopeEach: string;
-        top: string;
-        right: string;
-        bottom: string;
-        left: string;
-      };
-      attribute: {
-        imageSrcLabel: string;
-        imageAltLabel: string;
-        hrefLabel: string;
-        placeholderLabel: string;
-      };
-      color: {
-        custom: string;
-        presetsLabel: string;
-      };
-      sizeKeywords: {
-        auto: string;
-        full: string;
-        fitContent: string;
-      };
-    };
     panel: {
-      editPanelLabelSuffix: string;
-      close: string;
-      sectionReset: string;
-      sectionExpand: string;
-      sectionCollapse: string;
-      sections: {
-        image: string;
-        content: string;
-        layout: string;
-        size: string;
-        typography: string;
-        effects: string;
-        border: string;
-      };
-      hiddenPromptLabel: string;
-      pendingLabel: string;
-      failedLabel: string;
-      countSuffix: string;
       // Single-line state notices (title only).
       state: {
         empty: string;
@@ -290,88 +212,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
     },
     visualEditor: {
-      quickActions: {
-        structure: {
-          duplicate: { label: 'Duplicate', title: 'Duplicate' },
-          'move-up': { label: '↑', title: 'Move before the previous sibling' },
-          'move-down': { label: '↓', title: 'Move after the next sibling' },
-          delete: { label: 'Delete', title: 'Delete' },
-        },
-      },
-      quickToolbar: {
-        toolbarLabel: 'Quick edit toolbar',
-        increase: 'Increase',
-        decrease: 'Decrease',
-        more: 'More',
-        moreTitle: 'Open all editing controls',
-        apply: 'Apply',
-        dragHandleTitle: 'Drag to move',
-        controls: {
-          imageReplace: 'Image',
-          width: 'W',
-          height: 'H',
-          objectFit: 'Fit',
-          radius: 'Radius',
-          fontSize: 'Size',
-          fontWeight: 'Weight',
-          textColor: 'Text',
-          textAlign: 'Align',
-          gap: 'Gap',
-          flexDirection: 'Direction',
-          justifyContent: 'Justify',
-          alignItems: 'Align items',
-          backgroundColor: 'BG',
-          hrefEdit: 'Link',
-          placeholderEdit: 'Placeholder',
-        },
-        spacing: {
-          padding: 'Padding',
-          margin: 'Margin',
-          gap: 'Gap',
-          scopeAll: 'All',
-          scopeX: 'X',
-          scopeY: 'Y',
-          scopeEach: 'Each',
-          top: 'Top',
-          right: 'Right',
-          bottom: 'Bottom',
-          left: 'Left',
-        },
-        attribute: {
-          imageSrcLabel: 'Image URL',
-          imageAltLabel: 'Alt text',
-          hrefLabel: 'Link URL',
-          placeholderLabel: 'Placeholder',
-        },
-        color: {
-          custom: 'Custom',
-          presetsLabel: 'Color presets',
-        },
-        sizeKeywords: {
-          auto: 'Auto',
-          full: 'Full',
-          fitContent: 'Fit',
-        },
-      },
       panel: {
-        editPanelLabelSuffix: 'editing panel',
-        close: 'Close panel',
-        sectionReset: 'Reset',
-        sectionExpand: 'Expand',
-        sectionCollapse: 'Collapse',
-        sections: {
-          image: 'Image',
-          content: 'Content',
-          layout: 'Layout',
-          size: 'Size',
-          typography: 'Typography',
-          effects: 'Effects',
-          border: 'Border',
-        },
-        hiddenPromptLabel: 'Hidden visual edit prompts',
-        pendingLabel: 'Applying visual edits',
-        failedLabel: 'Failed visual edits',
-        countSuffix: '',
         state: {
           empty: 'Select an element',
           loading: 'Loading selected element…',
@@ -489,88 +330,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       },
     },
     visualEditor: {
-      quickActions: {
-        structure: {
-          duplicate: { label: '복제', title: '복제' },
-          'move-up': { label: '↑', title: '이전 형제 앞으로 이동' },
-          'move-down': { label: '↓', title: '다음 형제 뒤로 이동' },
-          delete: { label: '삭제', title: '삭제' },
-        },
-      },
-      quickToolbar: {
-        toolbarLabel: '퀵 편집 툴바',
-        increase: '증가',
-        decrease: '감소',
-        more: '기타',
-        moreTitle: '전체 편집 컨트롤 열기',
-        apply: '적용',
-        dragHandleTitle: '드래그해서 이동',
-        controls: {
-          imageReplace: '이미지',
-          width: 'W',
-          height: 'H',
-          objectFit: 'Fit',
-          radius: '라운드',
-          fontSize: '크기',
-          fontWeight: '굵기',
-          textColor: '글자색',
-          textAlign: '정렬',
-          gap: '간격',
-          flexDirection: '방향',
-          justifyContent: '주축 정렬',
-          alignItems: '교차 정렬',
-          backgroundColor: '배경',
-          hrefEdit: '링크',
-          placeholderEdit: '플레이스홀더',
-        },
-        spacing: {
-          padding: '패딩',
-          margin: '마진',
-          gap: '간격',
-          scopeAll: '전체',
-          scopeX: '좌우',
-          scopeY: '위아래',
-          scopeEach: '개별',
-          top: '위',
-          right: '오른쪽',
-          bottom: '아래',
-          left: '왼쪽',
-        },
-        attribute: {
-          imageSrcLabel: '이미지 URL',
-          imageAltLabel: '대체 텍스트',
-          hrefLabel: '링크 URL',
-          placeholderLabel: '플레이스홀더',
-        },
-        color: {
-          custom: '커스텀',
-          presetsLabel: '색상 프리셋',
-        },
-        sizeKeywords: {
-          auto: 'Auto',
-          full: 'Full',
-          fitContent: 'Fit',
-        },
-      },
       panel: {
-        editPanelLabelSuffix: '편집 패널',
-        close: '패널 닫기',
-        sectionReset: '초기화',
-        sectionExpand: '열기',
-        sectionCollapse: '닫기',
-        sections: {
-          image: '이미지',
-          content: '콘텐츠',
-          layout: '레이아웃',
-          size: '크기',
-          typography: '타이포그래피',
-          effects: '효과',
-          border: '테두리',
-        },
-        hiddenPromptLabel: '숨겨진 visual edit 프롬프트',
-        pendingLabel: '적용 중인 visual edit',
-        failedLabel: '실패한 visual edit',
-        countSuffix: '개',
         state: {
           empty: '요소를 선택하세요',
           loading: '선택 요소 정보를 불러오는 중…',

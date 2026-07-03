@@ -12,50 +12,50 @@ export type EffectsControlsProps = {
 };
 
 const BOX_SHADOW_PRESETS = [
-  { value: 'none', label: 'None' },
-  { value: '0 2px 4px rgba(0, 0, 0, 0.12)', label: 'Small' },
-  { value: '0 8px 20px rgba(0, 0, 0, 0.18)', label: 'Medium' },
-  { value: '0 18px 42px rgba(0, 0, 0, 0.28)', label: 'Large' },
-  { value: 'inset 0 2px 8px rgba(0, 0, 0, 0.18)', label: 'Inset' },
+  { value: 'none', label: '없음' },
+  { value: '0 2px 4px rgba(0, 0, 0, 0.12)', label: '작게' },
+  { value: '0 8px 20px rgba(0, 0, 0, 0.18)', label: '중간' },
+  { value: '0 18px 42px rgba(0, 0, 0, 0.28)', label: '크게' },
+  { value: 'inset 0 2px 8px rgba(0, 0, 0, 0.18)', label: '안쪽' },
 ] as const;
 
 const TEXT_SHADOW_PRESETS = [
-  { value: 'none', label: 'None' },
-  { value: '0 1px 1px rgba(0, 0, 0, 0.28)', label: 'Soft' },
-  { value: '0 2px 4px rgba(0, 0, 0, 0.38)', label: 'Strong' },
+  { value: 'none', label: '없음' },
+  { value: '0 1px 1px rgba(0, 0, 0, 0.28)', label: '부드럽게' },
+  { value: '0 2px 4px rgba(0, 0, 0, 0.38)', label: '강하게' },
 ] as const;
 
 const FILTER_PRESETS = [
-  { value: 'none', label: 'None' },
-  { value: 'blur(4px)', label: 'Blur' },
-  { value: 'brightness(1.1)', label: 'Bright' },
-  { value: 'contrast(1.1)', label: 'Contrast' },
-  { value: 'grayscale(1)', label: 'Gray' },
+  { value: 'none', label: '없음' },
+  { value: 'blur(4px)', label: '흐리게' },
+  { value: 'brightness(1.1)', label: '밝게' },
+  { value: 'contrast(1.1)', label: '대비' },
+  { value: 'grayscale(1)', label: '흑백' },
 ] as const;
 
 // Effects section: opacity stepper (percentage points), shadows/filters, and
 // the preset-only transform control.
 export function EffectsControls({ disabled = false }: EffectsControlsProps): ReactElement {
   return (
-    <StyleControlGroup title="Effects" dataAiId="copy-ai-id-editor-style-effects-group">
+    <StyleControlGroup title="효과" dataAiId="copy-ai-id-editor-style-effects-group">
       <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-style-effects-grid">
         <CssStepper
           property="opacity"
-          label="Opacity"
+          label="투명도"
           dataAiId="copy-ai-id-editor-visual-opacity"
           disabled={disabled}
           mode="opacity"
         />
         <CssPresetSelect
           property="transform"
-          label="Transform"
+          label="변형"
           dataAiId="copy-ai-id-editor-visual-transform"
           disabled={disabled}
         />
       </div>
       <CssTextarea
         property="box-shadow"
-        label="Box shadow"
+        label="그림자"
         dataAiId="copy-ai-id-editor-visual-box-shadow"
         disabled={disabled}
         placeholder="0 8px 20px rgba(0, 0, 0, 0.18)"
@@ -64,7 +64,7 @@ export function EffectsControls({ disabled = false }: EffectsControlsProps): Rea
       />
       <CssTextarea
         property="text-shadow"
-        label="Text shadow"
+        label="글자 그림자"
         dataAiId="copy-ai-id-editor-visual-text-shadow"
         disabled={disabled}
         placeholder="0 2px 4px rgba(0, 0, 0, 0.38)"
@@ -73,7 +73,7 @@ export function EffectsControls({ disabled = false }: EffectsControlsProps): Rea
       />
       <CssTextarea
         property="filter"
-        label="Filter"
+        label="필터"
         dataAiId="copy-ai-id-editor-visual-filter"
         disabled={disabled}
         placeholder="blur(4px) brightness(1.1)"
@@ -82,7 +82,7 @@ export function EffectsControls({ disabled = false }: EffectsControlsProps): Rea
       />
       <CssTextarea
         property="backdrop-filter"
-        label="Backdrop filter"
+        label="배경 필터"
         dataAiId="copy-ai-id-editor-visual-backdrop-filter"
         disabled={disabled}
         placeholder="blur(12px)"

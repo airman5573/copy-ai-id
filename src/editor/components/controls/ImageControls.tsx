@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
 
-import { getCurrentMessages } from '../../../shared/i18n';
 import { useAttributeEdit } from '../../visual/useAttributeEdit';
 import { useStyleEdit } from '../../visual/useStyleEdit';
 import { selectTextInputValue } from '../visual/inputSelection';
@@ -17,7 +16,7 @@ export type ImageControlsProps = {
 };
 
 const ASPECT_RATIO_PRESETS = [
-  { label: 'Auto', value: 'auto' },
+  { label: '자동', value: 'auto' },
   { label: '1:1', value: '1 / 1' },
   { label: '4:3', value: '4 / 3' },
   { label: '16:9', value: '16 / 9' },
@@ -25,11 +24,11 @@ const ASPECT_RATIO_PRESETS = [
 ] as const;
 
 const OBJECT_POSITION_PRESETS = [
-  { label: 'Center', value: 'center' },
-  { label: 'Top', value: 'top' },
-  { label: 'Right', value: 'right' },
-  { label: 'Bottom', value: 'bottom' },
-  { label: 'Left', value: 'left' },
+  { label: '가운데', value: 'center' },
+  { label: '위', value: 'top' },
+  { label: '오른쪽', value: 'right' },
+  { label: '아래', value: 'bottom' },
+  { label: '왼쪽', value: 'left' },
 ] as const;
 
 // Image-intent section: consolidates src/alt attributes, object sizing, and
@@ -38,38 +37,37 @@ export function ImageControls({ disabled = false }: ImageControlsProps): ReactEl
   const attributeEdit = useAttributeEdit();
   const styleEdit = useStyleEdit();
   const canEdit = attributeEdit.canEdit && !disabled;
-  const messages = getCurrentMessages().visualEditor.quickToolbar.attribute;
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-image-controls">
-      <StyleControlGroup title="Source" dataAiId="copy-ai-id-editor-image-source-group">
+      <StyleControlGroup title="이미지 주소" dataAiId="copy-ai-id-editor-image-source-group">
         <ImageAttributeInput
           name="src"
-          label={messages.imageSrcLabel}
+          label="이미지 URL"
           placeholder="https://example.com/image.jpg"
           dataAiId="copy-ai-id-editor-visual-image-src"
           disabled={!canEdit}
         />
         <ImageAttributeInput
           name="alt"
-          label={messages.imageAltLabel}
+          label="대체 텍스트"
           dataAiId="copy-ai-id-editor-visual-image-alt"
           disabled={!canEdit}
         />
       </StyleControlGroup>
 
-      <StyleControlGroup title="Fit" dataAiId="copy-ai-id-editor-image-fit-group">
+      <StyleControlGroup title="맞춤 / 비율" dataAiId="copy-ai-id-editor-image-fit-group">
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-image-fit-grid">
           <CssPresetSelect
             property="object-fit"
-            label="Object fit"
+            label="맞춤"
             dataAiId="copy-ai-id-editor-visual-object-fit"
             disabled={!styleEdit.canEdit || disabled}
             category="size"
           />
           <CssTextInput
             property="object-position"
-            label="Object position"
+            label="이미지 위치"
             dataAiId="copy-ai-id-editor-visual-object-position"
             disabled={!styleEdit.canEdit || disabled}
             placeholder="center"
@@ -79,7 +77,7 @@ export function ImageControls({ disabled = false }: ImageControlsProps): ReactEl
         </div>
         <CssTextInput
           property="aspect-ratio"
-          label="Aspect ratio"
+          label="가로세로 비율"
           dataAiId="copy-ai-id-editor-visual-aspect-ratio"
           disabled={!styleEdit.canEdit || disabled}
           placeholder="16 / 9"

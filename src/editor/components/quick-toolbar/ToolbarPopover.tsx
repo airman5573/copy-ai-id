@@ -92,7 +92,6 @@ export function ToolbarPopover({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-label={label}
-        title={label}
         disabled={disabled}
         onClick={toggle}
         data-ai-id={`${dataAiId}-button`}

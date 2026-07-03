@@ -1,7 +1,6 @@
 import { useState, type ReactElement } from 'react';
 
 import type { VisualTargetSnapshot } from '../../../shared/domain/visual';
-import { getCurrentMessages } from '../../../shared/i18n';
 import { formatStepperLengthDisplay } from '../../utils/stepperMath';
 import { StepperControl } from '../visual/StepperControl';
 import { SegmentControl } from './SegmentControl';
@@ -21,7 +20,25 @@ export interface SpacingPopoverProps {
   dataAiId: string;
 }
 
-const EDGE_PROPERTY_SUFFIXES = ['top', 'right', 'bottom', 'left'] as const;
+const GROUP_LABELS: Record<QuickToolbarSpacingGroup, string> = {
+  padding: '패딩',
+  margin: '마진',
+  gap: '간격',
+};
+
+const SCOPE_LABELS: Record<QuickToolbarSpacingScope, string> = {
+  all: '전체',
+  x: '좌우',
+  y: '위아래',
+  each: '개별',
+};
+
+const EDGES = [
+  { suffix: 'top', label: '위' },
+  { suffix: 'right', label: '오른쪽' },
+  { suffix: 'bottom', label: '아래' },
+  { suffix: 'left', label: '왼쪽' },
+] as const;
 
 // Padding/Margin/Gap popover: scope segment (all / left-right / top-bottom /
 // each edge) with steppers that commit every affected property in a single
@@ -33,15 +50,14 @@ export function SpacingPopover({
   disabled = false,
   dataAiId,
 }: SpacingPopoverProps): ReactElement {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
   const [scope, setScope] = useState<QuickToolbarSpacingScope>('all');
-  const groupLabel = messages.spacing[group];
+  const groupLabel = GROUP_LABELS[group];
   const scopeOptions = (group === 'gap'
     ? (['all', 'x', 'y'] as const)
     : (['all', 'x', 'y', 'each'] as const)
   ).map((candidate) => ({
     value: candidate,
-    label: scopeLabel(candidate),
+    label: SCOPE_LABELS[candidate],
   }));
   const activeScope: QuickToolbarSpacingScope = group === 'gap' && scope === 'each' ? 'all' : scope;
   const category = 'spacing' as const;
@@ -64,18 +80,18 @@ export function SpacingPopover({
         />
         {activeScope === 'each' && group !== 'gap' ? (
           <div className="grid grid-cols-2 gap-1.5" data-ai-id={`${dataAiId}-edge-grid`}>
-            {EDGE_PROPERTY_SUFFIXES.map((edge) => {
-              const property = `${group}-${edge}`;
+            {EDGES.map((edge) => {
+              const property = `${group}-${edge.suffix}`;
               return (
-                <div key={edge} className="flex items-center justify-between gap-1.5" data-ai-id={`${dataAiId}-${edge}-row`}>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-300" data-ai-id={`${dataAiId}-${edge}-label-text`}>
-                    {messages.spacing[edge]}
+                <div key={edge.suffix} className="flex items-center justify-between gap-1.5" data-ai-id={`${dataAiId}-${edge.suffix}-row`}>
+                  <span className="text-[10px] font-semibold text-gray-300" data-ai-id={`${dataAiId}-${edge.suffix}-label-text`}>
+                    {edge.label}
                   </span>
                   <StepperControl
-                    label={`${groupLabel} ${messages.spacing[edge]}`}
+                    label={`${groupLabel} ${edge.label}`}
                     displayValue={displayValueFor(snapshot, property)}
                     disabled={disabled}
-                    dataAiId={`${dataAiId}-${edge}-stepper`}
+                    dataAiId={`${dataAiId}-${edge.suffix}-stepper`}
                     onStep={(direction) => stepper.stepProperty({ property, category }, direction)}
                   />
                 </div>
@@ -84,11 +100,11 @@ export function SpacingPopover({
           </div>
         ) : (
           <div className="flex items-center justify-between gap-2" data-ai-id={`${dataAiId}-scoped-row`}>
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-300" data-ai-id={`${dataAiId}-scoped-label-text`}>
-              {scopeLabel(activeScope)}
+            <span className="text-[10px] font-semibold text-gray-300" data-ai-id={`${dataAiId}-scoped-label-text`}>
+              {SCOPE_LABELS[activeScope]}
             </span>
             <StepperControl
-              label={`${groupLabel} ${scopeLabel(activeScope)}`}
+              label={`${groupLabel} ${SCOPE_LABELS[activeScope]}`}
               displayValue={displayValueFor(snapshot, spacingPropertiesForScope(group, activeScope)[0])}
               disabled={disabled}
               dataAiId={`${dataAiId}-scoped-stepper`}
@@ -102,20 +118,6 @@ export function SpacingPopover({
       </div>
     </ToolbarPopover>
   );
-
-  function scopeLabel(candidate: QuickToolbarSpacingScope): string {
-    switch (candidate) {
-      case 'x':
-        return messages.spacing.scopeX;
-      case 'y':
-        return messages.spacing.scopeY;
-      case 'each':
-        return messages.spacing.scopeEach;
-      case 'all':
-      default:
-        return messages.spacing.scopeAll;
-    }
-  }
 }
 
 function displayValueFor(snapshot: VisualTargetSnapshot | null, property: string | undefined): string {

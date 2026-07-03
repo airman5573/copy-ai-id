@@ -13,7 +13,7 @@ import {
 
 import type { EditorTargetReference } from '../../../shared/domain/targets';
 import { EDITOR_MESSAGE_TYPES } from '../../../shared/protocol/editor-bridge-messages';
-import { targetIdentityKey } from '../../../shared/editor-targets';
+import { hasSameEditorTarget, targetIdentityKey } from '../../../shared/editor-targets';
 import { postToBridge } from '../../bridge/bridgeClient';
 import { isNoteEditorHoverProtected, protectEditorInteractionFromHover } from '../../note-hover-guard';
 import { onNotePanelFocusRequest, type NotePanelFocusRequestDetail } from '../../note-panel-focus';
@@ -55,6 +55,7 @@ export function NotebookEditorPlugins({ draft }: NotebookEditorPluginsProps) {
       <FocusRequestPlugin />
       <HighlightBlurPlugin />
       <ChipClickPlugin />
+      <ChipFlashPlugin />
     </>
   );
 }
@@ -95,7 +96,15 @@ function TargetReferenceInsertionPlugin() {
   const setInsertTargetReference = useNotebookStore((state) => state.setInsertTargetReference);
 
   const insertTargetReference = useCallback((targetReference: EditorTargetReference): void => {
-    const chipId = allocateChipId();
+    // An element that already has a chip keeps its number: re-pressing Space
+    // inserts another occurrence of the same chip id instead of minting a new
+    // one. Numbers freed by deleting every occurrence are not reused.
+    const existingChipId = editor.getEditorState().read(() => (
+      $exportNotebookLexicalState().chips
+        .find((chip) => hasSameEditorTarget(chip.target, targetReference.target))
+        ?.chipId ?? null
+    ));
+    const chipId = existingChipId ?? allocateChipId();
     setFocusedTarget(targetReference.target);
     protectEditorInteractionFromHover();
 
@@ -168,6 +177,40 @@ function HighlightBlurPlugin() {
       }
     }
   }, [editor, highlightedNodeId, highlightedTarget, highlightKey]);
+
+  return null;
+}
+
+const CHIP_FLASH_CLASS_NAME = 'copy-ai-id-editor-note-chip--flash';
+
+// Registers the chip-flash callback used by preview badge clicks: scroll the
+// matching chip into view and pulse it briefly.
+function ChipFlashPlugin() {
+  const [editor] = useLexicalComposerContext();
+  const setFlashChip = useNotebookStore((state) => state.setFlashChip);
+
+  useEffect(() => {
+    setFlashChip((chipId) => {
+      const chipElement = editor.getRootElement()
+        ?.querySelector<HTMLElement>(`[data-copy-ai-id-chip-id="${chipId}"]`);
+      if (!chipElement) {
+        return;
+      }
+
+      chipElement.scrollIntoView({ block: 'nearest' });
+      chipElement.classList.remove(CHIP_FLASH_CLASS_NAME);
+      // Force a reflow so re-clicking the badge restarts the animation.
+      void chipElement.offsetWidth;
+      chipElement.classList.add(CHIP_FLASH_CLASS_NAME);
+      chipElement.addEventListener('animationend', () => {
+        chipElement.classList.remove(CHIP_FLASH_CLASS_NAME);
+      }, { once: true });
+    });
+
+    return () => {
+      setFlashChip(null);
+    };
+  }, [editor, setFlashChip]);
 
   return null;
 }

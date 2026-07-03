@@ -29,7 +29,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-visual-content-controls">
       <ContentControlGroup
-        title="Text"
+        title="텍스트"
         dataAiId="copy-ai-id-editor-content-text-group"
       >
         <PlainTextContentControl
@@ -37,7 +37,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
           targetKey={edit.targetKey}
           value={edit.textValue}
           onCommit={(value) => edit.commitText(value, {
-            control: { id: 'content:text', label: 'Plain text' },
+            control: { id: 'content:text', label: '일반 텍스트' },
           })}
         />
       </ContentControlGroup>
@@ -47,7 +47,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
       <AttributeControls disabled={!canEdit} />
 
       <ContentControlGroup
-        title="Rich HTML"
+        title="서식 있는 HTML"
         dataAiId="copy-ai-id-editor-content-rich-html-group"
       >
         <RichHtmlContentControl
@@ -55,7 +55,7 @@ export function ContentControls({ disabled = false }: ContentControlsProps): Rea
           targetKey={edit.targetKey}
           value={edit.richHtml}
           onCommit={(value) => edit.commitRichHtml(value, {
-            control: { id: 'content:rich-html', label: 'Rich HTML' },
+            control: { id: 'content:rich-html', label: '서식 있는 HTML' },
           })}
         />
       </ContentControlGroup>
@@ -105,7 +105,7 @@ function PlainTextContentControl({
 
   return (
     <VisualControl
-      label="Plain text"
+      label="일반 텍스트"
       dataAiId="copy-ai-id-editor-content-plain-text-control"
       helperText="입력을 멈추면 자동 적용되고, blur 시 즉시 적용됩니다. input/textarea/select는 value로, 일반 요소는 textContent로 반영됩니다."
       disabled={!canEdit}
@@ -222,7 +222,7 @@ function RichHtmlContentControl({
   return (
     <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-rich-html-control">
       <VisualControl
-        label="Rich text editor"
+        label="서식 있는 텍스트"
         dataAiId="copy-ai-id-editor-content-rich-html-editor-control"
         helperText="보이는 텍스트를 직접 수정하면 sanitized innerHTML로 preview에 반영됩니다."
         disabled={!canEdit}
@@ -235,7 +235,7 @@ function RichHtmlContentControl({
           role="textbox"
           aria-multiline="true"
           aria-disabled={!canEdit}
-          data-placeholder="Rich text를 입력하세요."
+          data-placeholder="서식 있는 텍스트를 입력하세요."
           onFocus={() => {
             focusedSurfaceRef.current = 'editor';
           }}
@@ -258,7 +258,7 @@ function RichHtmlContentControl({
       </VisualControl>
 
       <VisualControl
-        label="HTML source"
+        label="HTML 소스"
         dataAiId="copy-ai-id-editor-content-rich-html-source-control"
         helperText="내부 tag까지 직접 수정합니다. script, event handler, javascript URL, extension runtime attribute는 제거됩니다."
         disabled={!canEdit}

@@ -21,7 +21,7 @@ export function LinkControls({ disabled = false }: LinkControlsProps): ReactElem
 
   return (
     <AttributeControlSection
-      title="Link"
+      title="링크"
       dataAiId="copy-ai-id-editor-content-link-group"
     >
       <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-link-fields">

@@ -5,6 +5,7 @@ import {
   type SetCanvasZoomMessage,
 } from '../../shared/protocol/editor-bridge-messages';
 import { isEditorToBridgeMessage } from '../../shared/protocol/guards';
+import { setChipBadges } from './chip-badges';
 import { buildLayoutTreeSnapshot } from './layout-tree';
 import { handleBridgeKeyboardShortcut, installBridgeKeyboard } from './keyboard';
 import { refreshOverlays, startOverlayTracking } from './overlay';
@@ -184,6 +185,9 @@ function route(message: EditorToBridgeMessage, post: (message: BridgeToEditorMes
       return;
     case EDITOR_MESSAGE_TYPES.requestVisualDragMove:
       handleVisualDragMoveRequest(message, post);
+      return;
+    case EDITOR_MESSAGE_TYPES.setChipBadges:
+      setChipBadges(message.badges, post);
       return;
     default:
       return;

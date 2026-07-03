@@ -7,7 +7,22 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactElement,
+  type ReactNode,
 } from 'react';
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Copy,
+  GripVertical,
+  SlidersHorizontal,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 
 import type { EditorTargetReference } from '../../../shared/domain/targets';
 import type {
@@ -16,7 +31,6 @@ import type {
   VisualTargetSnapshot,
 } from '../../../shared/domain/visual';
 import { hasSameEditorTarget } from '../../../shared/editor-targets';
-import { getCurrentMessages } from '../../../shared/i18n';
 import { normalizeVisualStyleValue } from '../../../shared/visual-style';
 import { requestVisualTargetSnapshot } from '../../bridge/bridgeClient';
 import {
@@ -42,6 +56,7 @@ import {
 } from '../../visual/structureActions';
 import { dispatchVisualStyleMutation } from '../../visual/visualMutationClient';
 import { StepperControl } from '../visual/StepperControl';
+import { AlignmentControl } from './AlignmentControl';
 import {
   AttributeEditPopover,
   SizeHybridControl,
@@ -57,9 +72,18 @@ import {
 } from './toolbarConfig';
 import { useToolbarStepper, type ToolbarStepperApi } from './useToolbarStepper';
 
-const DEFAULT_TOOLBAR_SIZE: OverlaySize = { width: 420, height: 76 };
+const DEFAULT_TOOLBAR_SIZE: OverlaySize = { width: 420, height: 112 };
 const TOOLBAR_GAP_PX = 10;
 const DRAG_THRESHOLD_PX = 8;
+
+// Labels are intentionally hardcoded Korean (single-locale UI by product
+// decision) and every control shows its meaning without hover tooltips.
+const STRUCTURE_BUTTONS: Record<QuickActionStructureOperation, { label: string; Icon: LucideIcon }> = {
+  duplicate: { label: '복제', Icon: Copy },
+  'move-up': { label: '위로', Icon: ArrowUp },
+  'move-down': { label: '아래로', Icon: ArrowDown },
+  delete: { label: '삭제', Icon: Trash2 },
+};
 
 interface DragGripState {
   pointerId: number;
@@ -70,7 +94,8 @@ interface DragGripState {
 
 // Editor-side floating quick toolbar. Anchored to the pinned preview element
 // (bridge streams 'repositioned' rects while pinned); row 1 is composed from
-// the element's intents, row 2 is the shared spacing/structure/drag/more strip.
+// the element's intents, row 2 is the shared spacing strip, row 3 holds
+// structure actions and the 모든 옵션 panel opener.
 export function QuickToolbar(): ReactElement | null {
   const toolbarTarget = useVisualSelectionStore((state) => state.activeToolbarTarget);
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
@@ -182,7 +207,6 @@ export function QuickToolbar(): ReactElement | null {
     return null;
   }
 
-  const messages = getCurrentMessages().visualEditor;
   const intents = matchedSnapshot?.intents?.length
     ? matchedSnapshot.intents
     : toolbarTarget.intents;
@@ -228,7 +252,7 @@ export function QuickToolbar(): ReactElement | null {
       floatingNotePanel.closePanel();
     }
 
-    useFloatingVisualPanelStore.getState().openPanel();
+    useFloatingVisualPanelStore.getState().openPanel(intents.includes('image') ? 'image' : undefined);
     if (!matchedSnapshot) {
       requestVisualTargetSnapshot(reference);
     }
@@ -300,11 +324,11 @@ export function QuickToolbar(): ReactElement | null {
         className="pointer-events-auto fixed flex flex-col gap-1.5 rounded-xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] p-2 text-gray-100 shadow-[0_14px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/5 backdrop-blur-md"
         style={placementStyle}
         role="toolbar"
-        aria-label={messages.quickToolbar.toolbarLabel}
+        aria-label="빠른 편집 툴바"
         data-ai-id="copy-ai-id-editor-quick-toolbar"
         data-copy-ai-id-visual-focus-guard="true"
       >
-        <div className="flex flex-wrap items-center gap-1.5" data-ai-id="copy-ai-id-editor-quick-toolbar-intent-row">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5" data-ai-id="copy-ai-id-editor-quick-toolbar-intent-row">
           {controls.map((control) => (
             <QuickToolbarControl
               key={control}
@@ -316,7 +340,10 @@ export function QuickToolbar(): ReactElement | null {
             />
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-1.5" data-ai-id="copy-ai-id-editor-quick-toolbar-common-row">
+        <div className="flex flex-wrap items-center gap-1.5" data-ai-id="copy-ai-id-editor-quick-toolbar-spacing-row">
+          <span className="text-[10px] font-semibold text-gray-400" data-ai-id="copy-ai-id-editor-quick-toolbar-spacing-label-text">
+            여백
+          </span>
           {QUICK_TOOLBAR_SPACING_GROUPS.map((group) => (
             <SpacingPopover
               key={group}
@@ -327,46 +354,69 @@ export function QuickToolbar(): ReactElement | null {
               dataAiId={`copy-ai-id-editor-quick-toolbar-spacing-${group}`}
             />
           ))}
-          <span className="mx-0.5 h-5 w-px shrink-0 bg-gray-600/70" aria-hidden="true" data-ai-id="copy-ai-id-editor-quick-toolbar-divider-1" />
-          {QUICK_TOOLBAR_STRUCTURE_OPERATIONS.map((operation) => (
-            <button
-              key={operation}
-              type="button"
-              className="flex h-7 items-center rounded-md border border-gray-600 bg-gray-900 px-2 text-[11px] font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 disabled:cursor-not-allowed disabled:opacity-40"
-              title={messages.quickActions.structure[operation].title}
-              aria-label={messages.quickActions.structure[operation].title}
-              disabled={isStructureOperationDisabled(operation, matchedSnapshot)}
-              onClick={() => runStructureOperation(operation)}
-              data-ai-id={`copy-ai-id-editor-quick-toolbar-structure-${operation}-button`}
-            >
-              {messages.quickActions.structure[operation].label}
-            </button>
-          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5" data-ai-id="copy-ai-id-editor-quick-toolbar-common-row">
+          {QUICK_TOOLBAR_STRUCTURE_OPERATIONS.map((operation) => {
+            const { label, Icon } = STRUCTURE_BUTTONS[operation];
+            return (
+              <button
+                key={operation}
+                type="button"
+                className="flex h-7 items-center gap-1 rounded-md border border-gray-600 bg-gray-900 px-2 text-[11px] font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={isStructureOperationDisabled(operation, matchedSnapshot)}
+                onClick={() => runStructureOperation(operation)}
+                data-ai-id={`copy-ai-id-editor-quick-toolbar-structure-${operation}-button`}
+              >
+                <Icon size={12} aria-hidden="true" />
+                {label}
+              </button>
+            );
+          })}
           <button
             type="button"
-            className="flex h-7 cursor-grab touch-none items-center rounded-md border border-gray-600 bg-gray-900 px-1.5 text-sm text-gray-300 transition hover:bg-gray-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 active:cursor-grabbing"
-            title={messages.quickToolbar.dragHandleTitle}
-            aria-label={messages.quickToolbar.dragHandleTitle}
+            className="flex h-7 cursor-grab touch-none items-center gap-1 rounded-md border border-gray-600 bg-gray-900 px-2 text-[11px] font-semibold text-gray-200 transition hover:bg-gray-800 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 active:cursor-grabbing"
             onPointerDown={handleGripPointerDown}
             onPointerMove={handleGripPointerMove}
             onPointerUp={handleGripPointerUp}
             onPointerCancel={handleGripPointerCancel}
             data-ai-id="copy-ai-id-editor-quick-toolbar-drag-grip-button"
           >
-            ⠿
+            <GripVertical size={12} aria-hidden="true" />
+            드래그
           </button>
-          <span className="mx-0.5 h-5 w-px shrink-0 bg-gray-600/70" aria-hidden="true" data-ai-id="copy-ai-id-editor-quick-toolbar-divider-2" />
+          <span className="mx-0.5 h-5 w-px shrink-0 bg-gray-600/70" aria-hidden="true" data-ai-id="copy-ai-id-editor-quick-toolbar-divider-1" />
           <button
             type="button"
-            className="flex h-7 items-center rounded-md border border-blue-500/50 bg-blue-600/30 px-2.5 text-[11px] font-semibold text-blue-50 transition hover:bg-blue-600/50 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
-            title={messages.quickToolbar.moreTitle}
+            className="flex h-7 items-center gap-1 rounded-md border border-blue-500/50 bg-blue-600/30 px-2.5 text-[11px] font-semibold text-blue-50 transition hover:bg-blue-600/50 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
             onClick={openMorePanel}
             data-ai-id="copy-ai-id-editor-quick-toolbar-more-button"
           >
-            {messages.quickToolbar.more}
+            <SlidersHorizontal size={12} aria-hidden="true" />
+            모든 옵션
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Small always-visible label chip in front of a control whose body cannot
+// carry its own text (steppers, icon segments).
+function LabeledControl({
+  label,
+  dataAiId,
+  children,
+}: {
+  label: string;
+  dataAiId: string;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <div className="flex items-center gap-1" data-ai-id={dataAiId}>
+      <span className="shrink-0 text-[10px] font-semibold text-gray-400" data-ai-id={`${dataAiId}-label-text`}>
+        {label}
+      </span>
+      {children}
     </div>
   );
 }
@@ -384,7 +434,6 @@ function QuickToolbarControl({
   stepper: ToolbarStepperApi;
   commitStyle: (property: string, value: string, category: QuickActionCategory) => void;
 }): ReactElement | null {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
   const disabled = !snapshot;
   const computed = (property: string): string => snapshot?.computedStyle[property] ?? '';
 
@@ -392,10 +441,10 @@ function QuickToolbarControl({
     case 'image-replace':
       return (
         <AttributeEditPopover
-          label={messages.controls.imageReplace}
+          label="이미지 바꾸기"
           fields={[
-            { name: 'src', label: messages.attribute.imageSrcLabel, placeholder: 'https://…' },
-            { name: 'alt', label: messages.attribute.imageAltLabel },
+            { name: 'src', label: '이미지 주소', placeholder: 'https://…' },
+            { name: 'alt', label: '이미지 설명' },
           ]}
           reference={reference}
           snapshot={snapshot}
@@ -418,59 +467,67 @@ function QuickToolbarControl({
       );
     case 'object-fit':
       return (
-        <SegmentControl
-          options={[
-            { value: 'cover', label: 'Cover' },
-            { value: 'contain', label: 'Contain' },
-            { value: 'fill', label: 'Fill' },
-          ]}
-          value={computed('object-fit') || null}
-          ariaLabel={messages.controls.objectFit}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-object-fit"
-          onChange={(value) => commitStyle('object-fit', value, 'size')}
-        />
+        <LabeledControl label="맞춤" dataAiId="copy-ai-id-editor-quick-toolbar-object-fit-control">
+          <SegmentControl
+            options={[
+              { value: 'cover', label: '꽉 채우기' },
+              { value: 'contain', label: '모두 보기' },
+              { value: 'fill', label: '늘리기' },
+            ]}
+            value={computed('object-fit') || null}
+            ariaLabel="이미지 맞춤"
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-object-fit"
+            onChange={(value) => commitStyle('object-fit', value, 'size')}
+          />
+        </LabeledControl>
       );
     case 'radius':
       return (
-        <StepperControl
-          label={messages.controls.radius}
-          displayValue={formatStepperLengthDisplay(computed('border-radius'))}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-radius-stepper"
-          onStep={(direction) => stepper.stepProperty({ property: 'border-radius', category: 'border' }, direction)}
-        />
+        <LabeledControl label="둥글기" dataAiId="copy-ai-id-editor-quick-toolbar-radius-control">
+          <StepperControl
+            label="모서리 둥글기"
+            displayValue={formatStepperLengthDisplay(computed('border-radius'))}
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-radius-stepper"
+            onStep={(direction) => stepper.stepProperty({ property: 'border-radius', category: 'border' }, direction)}
+          />
+        </LabeledControl>
       );
     case 'font-size':
       return (
-        <StepperControl
-          label={messages.controls.fontSize}
-          displayValue={formatStepperLengthDisplay(computed('font-size'))}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-font-size-stepper"
-          onStep={(direction) => stepper.stepProperty({ property: 'font-size', category: 'style' }, direction)}
-        />
+        <LabeledControl label="글자 크기" dataAiId="copy-ai-id-editor-quick-toolbar-font-size-control">
+          <StepperControl
+            label="글자 크기"
+            displayValue={formatStepperLengthDisplay(computed('font-size'))}
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-font-size-stepper"
+            onStep={(direction) => stepper.stepProperty({ property: 'font-size', category: 'style' }, direction)}
+          />
+        </LabeledControl>
       );
     case 'font-weight':
       return (
-        <SegmentControl
-          options={[
-            { value: '400', label: '400' },
-            { value: '500', label: '500' },
-            { value: '600', label: '600' },
-            { value: '700', label: '700' },
-          ]}
-          value={normalizeFontWeight(computed('font-weight'))}
-          ariaLabel={messages.controls.fontWeight}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-font-weight"
-          onChange={(value) => commitStyle('font-weight', value, 'style')}
-        />
+        <LabeledControl label="굵기" dataAiId="copy-ai-id-editor-quick-toolbar-font-weight-control">
+          <SegmentControl
+            options={[
+              { value: '400', label: <span style={{ fontWeight: 400 }}>가</span>, ariaLabel: '보통 굵기' },
+              { value: '500', label: <span style={{ fontWeight: 500 }}>가</span>, ariaLabel: '조금 굵게' },
+              { value: '600', label: <span style={{ fontWeight: 600 }}>가</span>, ariaLabel: '굵게' },
+              { value: '700', label: <span style={{ fontWeight: 700 }}>가</span>, ariaLabel: '아주 굵게' },
+            ]}
+            value={normalizeFontWeight(computed('font-weight'))}
+            ariaLabel="글자 굵기"
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-font-weight"
+            onChange={(value) => commitStyle('font-weight', value, 'style')}
+          />
+        </LabeledControl>
       );
     case 'text-color':
       return (
         <ColorSwatchControl
-          label={messages.controls.textColor}
+          label="글자색"
           value={computed('color')}
           disabled={disabled}
           dataAiId="copy-ai-id-editor-quick-toolbar-text-color"
@@ -479,84 +536,67 @@ function QuickToolbarControl({
       );
     case 'text-align':
       return (
-        <SegmentControl
-          options={[
-            { value: 'left', label: 'L', title: `${messages.controls.textAlign}: left` },
-            { value: 'center', label: 'C', title: `${messages.controls.textAlign}: center` },
-            { value: 'right', label: 'R', title: `${messages.controls.textAlign}: right` },
-            { value: 'justify', label: 'J', title: `${messages.controls.textAlign}: justify` },
-          ]}
-          value={normalizeTextAlign(computed('text-align'))}
-          ariaLabel={messages.controls.textAlign}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-text-align"
-          onChange={(value) => commitStyle('text-align', value, 'style')}
-        />
-      );
-    case 'gap':
-      return (
-        <StepperControl
-          label={messages.controls.gap}
-          displayValue={formatStepperLengthDisplay(computed('row-gap'))}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-gap-stepper"
-          onStep={(direction) => stepper.stepProperty({
-            property: 'gap',
-            computedProperty: 'row-gap',
-            category: 'spacing',
-          }, direction)}
-        />
+        <LabeledControl label="정렬" dataAiId="copy-ai-id-editor-quick-toolbar-text-align-control">
+          <SegmentControl
+            options={[
+              { value: 'left', label: <AlignLeft size={13} aria-hidden="true" />, ariaLabel: '왼쪽 정렬' },
+              { value: 'center', label: <AlignCenter size={13} aria-hidden="true" />, ariaLabel: '가운데 정렬' },
+              { value: 'right', label: <AlignRight size={13} aria-hidden="true" />, ariaLabel: '오른쪽 정렬' },
+              { value: 'justify', label: <AlignJustify size={13} aria-hidden="true" />, ariaLabel: '양쪽 맞춤' },
+            ]}
+            value={normalizeTextAlign(computed('text-align'))}
+            ariaLabel="글자 정렬"
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-text-align"
+            onChange={(value) => commitStyle('text-align', value, 'style')}
+          />
+        </LabeledControl>
       );
     case 'flex-direction':
       return (
-        <SegmentControl
-          options={[
-            { value: 'row', label: '→', title: `${messages.controls.flexDirection}: row` },
-            { value: 'column', label: '↓', title: `${messages.controls.flexDirection}: column` },
-          ]}
-          value={computed('flex-direction') || null}
-          ariaLabel={messages.controls.flexDirection}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-flex-direction"
-          onChange={(value) => commitStyle('flex-direction', value, 'layout')}
-        />
+        <LabeledControl label="방향" dataAiId="copy-ai-id-editor-quick-toolbar-flex-direction-control">
+          <SegmentControl
+            options={[
+              {
+                value: 'row',
+                label: (
+                  <span className="flex items-center gap-1">
+                    <ArrowRight size={12} aria-hidden="true" />
+                    가로
+                  </span>
+                ),
+              },
+              {
+                value: 'column',
+                label: (
+                  <span className="flex items-center gap-1">
+                    <ArrowDown size={12} aria-hidden="true" />
+                    세로
+                  </span>
+                ),
+              },
+            ]}
+            value={computed('flex-direction') || null}
+            ariaLabel="배치 방향"
+            disabled={disabled}
+            dataAiId="copy-ai-id-editor-quick-toolbar-flex-direction"
+            onChange={(value) => commitStyle('flex-direction', value, 'layout')}
+          />
+        </LabeledControl>
       );
-    case 'justify-content':
+    case 'alignment':
       return (
-        <SegmentControl
-          options={[
-            { value: 'flex-start', label: 'S', title: `${messages.controls.justifyContent}: flex-start` },
-            { value: 'center', label: 'C', title: `${messages.controls.justifyContent}: center` },
-            { value: 'flex-end', label: 'E', title: `${messages.controls.justifyContent}: flex-end` },
-            { value: 'space-between', label: 'SB', title: `${messages.controls.justifyContent}: space-between` },
-          ]}
-          value={normalizeFlexAlignment(computed('justify-content'))}
-          ariaLabel={messages.controls.justifyContent}
+        <AlignmentControl
+          reference={reference}
+          snapshot={snapshot}
           disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-justify-content"
-          onChange={(value) => commitStyle('justify-content', value, 'layout')}
-        />
-      );
-    case 'align-items':
-      return (
-        <SegmentControl
-          options={[
-            { value: 'flex-start', label: 'S', title: `${messages.controls.alignItems}: flex-start` },
-            { value: 'center', label: 'C', title: `${messages.controls.alignItems}: center` },
-            { value: 'flex-end', label: 'E', title: `${messages.controls.alignItems}: flex-end` },
-            { value: 'stretch', label: 'ST', title: `${messages.controls.alignItems}: stretch` },
-          ]}
-          value={normalizeFlexAlignment(computed('align-items'))}
-          ariaLabel={messages.controls.alignItems}
-          disabled={disabled}
-          dataAiId="copy-ai-id-editor-quick-toolbar-align-items"
-          onChange={(value) => commitStyle('align-items', value, 'layout')}
+          dataAiId="copy-ai-id-editor-quick-toolbar-alignment"
         />
       );
     case 'background-color':
       return (
         <ColorSwatchControl
-          label={messages.controls.backgroundColor}
+          label="배경색"
           value={computed('background-color')}
           disabled={disabled}
           dataAiId="copy-ai-id-editor-quick-toolbar-background-color"
@@ -566,8 +606,8 @@ function QuickToolbarControl({
     case 'href-edit':
       return (
         <AttributeEditPopover
-          label={messages.controls.hrefEdit}
-          fields={[{ name: 'href', label: messages.attribute.hrefLabel, placeholder: 'https://…' }]}
+          label="링크"
+          fields={[{ name: 'href', label: '링크 주소', placeholder: 'https://…' }]}
           reference={reference}
           snapshot={snapshot}
           disabled={disabled}
@@ -577,8 +617,8 @@ function QuickToolbarControl({
     case 'placeholder-edit':
       return (
         <AttributeEditPopover
-          label={messages.controls.placeholderEdit}
-          fields={[{ name: 'placeholder', label: messages.attribute.placeholderLabel }]}
+          label="안내 문구"
+          fields={[{ name: 'placeholder', label: '안내 문구' }]}
           reference={reference}
           snapshot={snapshot}
           disabled={disabled}
@@ -653,22 +693,6 @@ function normalizeTextAlign(value: string): string | null {
 
   if (value === 'end') {
     return 'right';
-  }
-
-  return value || null;
-}
-
-function normalizeFlexAlignment(value: string): string | null {
-  if (value === 'normal') {
-    return null;
-  }
-
-  if (value === 'start') {
-    return 'flex-start';
-  }
-
-  if (value === 'end') {
-    return 'flex-end';
   }
 
   return value || null;

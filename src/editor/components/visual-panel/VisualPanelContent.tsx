@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import { useShallow } from 'zustand/shallow';
 
-import { getCurrentMessages } from '../../../shared/i18n';
 import {
   selectVisualPanelReadinessSummary,
   useVisualSelectionStore,
@@ -13,31 +12,30 @@ import {
   useVisualEditStore,
   type VisualEditRuntimeStatusSummary,
 } from '../../stores/useVisualEditStore';
-import { VisualSection } from '../visual/VisualSection';
+import type { FloatingVisualPanelCategory } from '../../stores/useFloatingVisualPanelStore';
 import { BorderControls } from '../controls/BorderControls';
 import { ContentControls } from '../controls/ContentControls';
 import { EffectsControls } from '../controls/EffectsControls';
 import { ImageControls } from '../controls/ImageControls';
 import { LayoutControls } from '../controls/LayoutControls';
 import { SizeControls } from '../controls/SizeControls';
+import { SpacingControls } from '../controls/SpacingControls';
+import { StyleBasicsControls } from '../controls/StyleBasicsControls';
 import { TypographyControls } from '../controls/TypographyControls';
 
 export interface VisualPanelContentProps {
   target: VisualPanelTargetState | null;
+  category: FloatingVisualPanelCategory;
 }
 
-// "Everything not on the quick toolbar": one scroll of collapsible sections
-// driven by the snapshot intents (image section first when present). Spacing,
-// width/height, font-size/weight/align, text/background color, and uniform
-// radius live on the toolbar and are intentionally absent here.
-export function VisualPanelContent({ target }: VisualPanelContentProps): ReactElement {
-  const snapshot = useVisualSelectionStore((state) => state.snapshot);
+// One category tab at a time, every control included — controls that also
+// live on the quick toolbar are duplicated here on purpose so the panel is
+// complete on its own.
+export function VisualPanelContent({ target, category }: VisualPanelContentProps): ReactElement {
   const readiness = useVisualSelectionStore(
     useShallow((state) => selectVisualPanelReadinessSummary(state, Boolean(target))),
   );
   const runtimeStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
-  const sections = getCurrentMessages().visualEditor.panel.sections;
-  const hasImageIntent = snapshot?.intents.includes('image') ?? false;
 
   return (
     <div
@@ -45,66 +43,44 @@ export function VisualPanelContent({ target }: VisualPanelContentProps): ReactEl
       data-ai-id="copy-ai-id-editor-visual-panel-content"
       data-ai-editor-visual-panel-target-node-id={target?.nodeId ?? ''}
       data-ai-editor-visual-panel-readiness={readiness.status}
+      data-ai-editor-visual-panel-category={category}
     >
       <VisualPanelStateNotice readiness={readiness} />
       <VisualEditRuntimeNotice status={runtimeStatus} />
-      {readiness.canShowControls ? (
-        <>
-          {hasImageIntent ? (
-            <VisualSection
-              title={sections.image}
-              dataAiId="copy-ai-id-editor-visual-panel-image-section"
-              defaultOpen
-            >
-              <ImageControls />
-            </VisualSection>
-          ) : null}
-          <VisualSection
-            title={sections.content}
-            dataAiId="copy-ai-id-editor-visual-panel-content-section"
-            defaultOpen={false}
-          >
-            <ContentControls />
-          </VisualSection>
-          <VisualSection
-            title={sections.layout}
-            dataAiId="copy-ai-id-editor-visual-panel-layout-section"
-            defaultOpen={false}
-          >
-            <LayoutControls />
-          </VisualSection>
-          <VisualSection
-            title={sections.size}
-            dataAiId="copy-ai-id-editor-visual-panel-size-section"
-            defaultOpen={false}
-          >
-            <SizeControls />
-          </VisualSection>
-          <VisualSection
-            title={sections.typography}
-            dataAiId="copy-ai-id-editor-visual-panel-typography-section"
-            defaultOpen={false}
-          >
-            <TypographyControls />
-          </VisualSection>
-          <VisualSection
-            title={sections.effects}
-            dataAiId="copy-ai-id-editor-visual-panel-effects-section"
-            defaultOpen={false}
-          >
-            <EffectsControls />
-          </VisualSection>
-          <VisualSection
-            title={sections.border}
-            dataAiId="copy-ai-id-editor-visual-panel-border-section"
-            defaultOpen={false}
-          >
-            <BorderControls />
-          </VisualSection>
-        </>
-      ) : null}
+      {readiness.canShowControls ? <VisualPanelCategoryContent category={category} /> : null}
     </div>
   );
+}
+
+function VisualPanelCategoryContent({ category }: { category: FloatingVisualPanelCategory }): ReactElement {
+  switch (category) {
+    case 'content':
+      return <ContentControls />;
+    case 'image':
+      return <ImageControls />;
+    case 'layout':
+      return <LayoutControls />;
+    case 'spacing':
+      return <SpacingControls />;
+    case 'size':
+      return <SizeControls />;
+    case 'style':
+      return (
+        <div className="space-y-4" data-ai-id="copy-ai-id-editor-visual-panel-style-tab">
+          <StyleBasicsControls />
+          <TypographyControls />
+          <EffectsControls />
+        </div>
+      );
+    case 'border':
+      return <BorderControls />;
+    default:
+      return exhaustiveCategory(category);
+  }
+}
+
+function exhaustiveCategory(category: never): never {
+  throw new Error(`Unsupported visual panel category: ${category}`);
 }
 
 // One-line status: loading / error / stale / empty. Ready renders nothing.
@@ -133,8 +109,6 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
     return null;
   }
 
-  const panelMessages = getCurrentMessages().visualEditor.panel;
-
   return (
     <div
       className="rounded-lg border border-gray-700/80 bg-gray-950/60 px-3 py-2 text-xs leading-relaxed text-gray-300 shadow-sm"
@@ -144,17 +118,17 @@ function VisualEditRuntimeNotice({ status }: { status: VisualEditRuntimeStatusSu
     >
       {status.hasHiddenPromptText ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-hidden-prompt-count">
-          {panelMessages.hiddenPromptLabel}: {status.exportableCount}{panelMessages.countSuffix}
+          숨겨진 visual edit 프롬프트: {status.exportableCount}개
         </span>
       ) : null}
       {status.hasPending ? (
         <span className="block" data-ai-id="copy-ai-id-editor-visual-panel-runtime-pending-count">
-          {panelMessages.pendingLabel}: {status.pendingCount}{panelMessages.countSuffix}
+          적용 중인 visual edit: {status.pendingCount}개
         </span>
       ) : null}
       {status.hasErrors ? (
         <span className="block text-amber-200" data-ai-id="copy-ai-id-editor-visual-panel-runtime-error-count">
-          {panelMessages.failedLabel}: {status.failedCount}{panelMessages.countSuffix}
+          실패한 visual edit: {status.failedCount}개
         </span>
       ) : null}
     </div>

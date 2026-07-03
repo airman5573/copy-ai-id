@@ -9,8 +9,15 @@ import {
   formatNotebookChipId,
   normalizeNextNotebookChipIndex,
 } from '../notebook/lexical/chip-ids';
-import type { ExportedChipTarget } from '../notebook/lexical/chip-export';
-import type { NotebookDraftSessionSnapshot } from '../notebook/session-draft';
+import {
+  type ExportedChipTarget,
+  formatChipTargetMap,
+  hasFallbackChipTargets,
+} from '../notebook/lexical/chip-export';
+import {
+  collectNotebookChipTargetsFromSerializedEditorState,
+  type NotebookDraftSessionSnapshot,
+} from '../notebook/session-draft';
 import {
   DEFAULT_NOTEBOOK_SUFFIX_SETTINGS,
   normalizeNotebookSuffixSettings,
@@ -38,10 +45,12 @@ interface NotebookStore {
   copyStatus: CopyStatus;
   focusedTarget: EditorTarget | null;
   insertTargetReference: ((reference: EditorTargetReference) => void) | null;
+  flashChip: ((chipId: string) => void) | null;
   hydrateDraftSession(snapshot: NotebookDraftSessionSnapshot): void;
   setLexicalEditorState(snapshot: NotebookLexicalStateSnapshot): void;
   allocateChipId(): string;
   setInsertTargetReference(insertTargetReference: ((reference: EditorTargetReference) => void) | null): void;
+  setFlashChip(flashChip: ((chipId: string) => void) | null): void;
   setSuffixSettings(settings: NotebookSuffixSettings): void;
   hydrateNoteFontSize(): Promise<void>;
   stepNoteFontSize(step: number): void;
@@ -137,11 +146,19 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   copyStatus: 'idle',
   focusedTarget: null,
   insertTargetReference: null,
-  hydrateDraftSession: (snapshot) => set({
-    ...createPlainDraftState(snapshot.draft),
-    editorStateJson: snapshot.editorStateJson,
-    nextChipIndex: normalizeNextNotebookChipIndex(snapshot.nextChipIndex),
-  }),
+  flashChip: null,
+  hydrateDraftSession: (snapshot) => {
+    const chips = collectNotebookChipTargetsFromSerializedEditorState(snapshot.editorStateJson);
+
+    set({
+      ...createPlainDraftState(snapshot.draft),
+      editorStateJson: snapshot.editorStateJson,
+      activeChipTargets: chips,
+      chipTargetMap: formatChipTargetMap(chips),
+      hasFallbackTargets: hasFallbackChipTargets(chips),
+      nextChipIndex: normalizeNextNotebookChipIndex(snapshot.nextChipIndex),
+    });
+  },
   setLexicalEditorState: (snapshot) => set(snapshot),
   allocateChipId: () => {
     let chipId = formatNotebookChipId(FIRST_NOTEBOOK_CHIP_INDEX);
@@ -158,6 +175,7 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
     return chipId;
   },
   setInsertTargetReference: (insertTargetReference) => set({ insertTargetReference }),
+  setFlashChip: (flashChip) => set({ flashChip }),
   setSuffixSettings: (suffixSettings) => set({
     suffixSettings: normalizeNotebookSuffixSettings(suffixSettings),
   }),

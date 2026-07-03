@@ -24,60 +24,60 @@ const DISPLAY_OPTIONS: VisualPresetOption[] = [
   { value: 'inline-flex', label: 'Inline Flex' },
   { value: 'grid', label: 'Grid' },
   { value: 'inline-grid', label: 'Inline Grid' },
-  { value: 'none', label: 'None' },
+  { value: 'none', label: '없음' },
 ];
 
 const FLEX_DIRECTION_OPTIONS: VisualPresetOption[] = [
-  { value: 'row', label: 'Row' },
-  { value: 'row-reverse', label: 'Row reverse' },
-  { value: 'column', label: 'Column' },
-  { value: 'column-reverse', label: 'Column reverse' },
+  { value: 'row', label: '가로' },
+  { value: 'row-reverse', label: '가로 반대' },
+  { value: 'column', label: '세로' },
+  { value: 'column-reverse', label: '세로 반대' },
 ];
 
 const JUSTIFY_OPTIONS: VisualPresetOption[] = [
-  { value: 'flex-start', label: 'Start' },
-  { value: 'center', label: 'Center' },
-  { value: 'flex-end', label: 'End' },
-  { value: 'space-between', label: 'Space between' },
-  { value: 'space-around', label: 'Space around' },
-  { value: 'space-evenly', label: 'Space evenly' },
+  { value: 'flex-start', label: '앞' },
+  { value: 'center', label: '가운데' },
+  { value: 'flex-end', label: '끝' },
+  { value: 'space-between', label: '양끝 벌리기' },
+  { value: 'space-around', label: '고르게(바깥 포함)' },
+  { value: 'space-evenly', label: '모두 고르게' },
 ];
 
 const ALIGN_OPTIONS: VisualPresetOption[] = [
-  { value: 'stretch', label: 'Stretch' },
-  { value: 'flex-start', label: 'Start' },
-  { value: 'center', label: 'Center' },
-  { value: 'flex-end', label: 'End' },
-  { value: 'baseline', label: 'Baseline' },
+  { value: 'stretch', label: '늘려 채우기' },
+  { value: 'flex-start', label: '앞' },
+  { value: 'center', label: '가운데' },
+  { value: 'flex-end', label: '끝' },
+  { value: 'baseline', label: '글자 기준선' },
 ];
 
 const PLACE_ITEMS_OPTIONS: VisualPresetOption[] = [
-  { value: 'start', label: 'Start' },
-  { value: 'center', label: 'Center' },
-  { value: 'end', label: 'End' },
-  { value: 'stretch', label: 'Stretch' },
+  { value: 'start', label: '앞' },
+  { value: 'center', label: '가운데' },
+  { value: 'end', label: '끝' },
+  { value: 'stretch', label: '늘려 채우기' },
 ];
 
 const GRID_TEMPLATE_PRESETS: VisualPresetOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'repeat(2, minmax(0, 1fr))', label: '2 columns' },
-  { value: 'repeat(3, minmax(0, 1fr))', label: '3 columns' },
-  { value: 'repeat(4, minmax(0, 1fr))', label: '4 columns' },
-  { value: 'repeat(auto-fit, minmax(12rem, 1fr))', label: 'Auto fit' },
+  { value: 'none', label: '없음' },
+  { value: 'repeat(2, minmax(0, 1fr))', label: '2열' },
+  { value: 'repeat(3, minmax(0, 1fr))', label: '3열' },
+  { value: 'repeat(4, minmax(0, 1fr))', label: '4열' },
+  { value: 'repeat(auto-fit, minmax(12rem, 1fr))', label: '자동 맞춤' },
 ];
 
 const GRID_ROWS_PRESETS: VisualPresetOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'repeat(2, minmax(0, auto))', label: '2 rows' },
-  { value: 'repeat(3, minmax(0, auto))', label: '3 rows' },
-  { value: 'auto 1fr', label: 'Auto + fill' },
+  { value: 'none', label: '없음' },
+  { value: 'repeat(2, minmax(0, auto))', label: '2행' },
+  { value: 'repeat(3, minmax(0, auto))', label: '3행' },
+  { value: 'auto 1fr', label: '자동+채움' },
 ];
 
 const INSET_PROPERTIES = [
-  { property: 'top', label: 'Top' },
-  { property: 'right', label: 'Right' },
-  { property: 'bottom', label: 'Bottom' },
-  { property: 'left', label: 'Left' },
+  { property: 'top', label: '위' },
+  { property: 'right', label: '오른쪽' },
+  { property: 'bottom', label: '아래' },
+  { property: 'left', label: '왼쪽' },
 ] as const;
 
 export type LayoutControlsProps = {
@@ -93,10 +93,10 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
 
   return (
     <div className="space-y-4" data-ai-id="copy-ai-id-editor-layout-controls">
-      <StyleControlGroup title="Display" dataAiId="copy-ai-id-editor-layout-display-group">
+      <StyleControlGroup title="표시 방식" dataAiId="copy-ai-id-editor-layout-display-group">
         <StylePresetSelect
           property="display"
-          label="Display"
+          label="표시 방식"
           dataAiId="copy-ai-id-editor-visual-display"
           options={DISPLAY_OPTIONS}
           disabled={!canEdit}
@@ -111,7 +111,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         {isFlex ? (
           <StylePresetSelect
             property="flex-direction"
-            label="Direction"
+            label="방향"
             dataAiId="copy-ai-id-editor-visual-flex-direction"
             options={FLEX_DIRECTION_OPTIONS}
             disabled={!canEdit}
@@ -119,14 +119,14 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         ) : null}
         <StylePresetSelect
           property="justify-content"
-          label="Justify content"
+          label="정렬 (진행 방향)"
           dataAiId="copy-ai-id-editor-visual-justify-content"
           options={JUSTIFY_OPTIONS}
           disabled={!canEdit}
         />
         <StylePresetSelect
           property="align-items"
-          label="Align items"
+          label="정렬 (교차 방향)"
           dataAiId="copy-ai-id-editor-visual-align-items"
           options={ALIGN_OPTIONS}
           disabled={!canEdit}
@@ -134,14 +134,14 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         {isFlex ? (
           <StylePresetSelect
             property="flex-wrap"
-            label="Wrap"
+            label="줄바꿈"
             dataAiId="copy-ai-id-editor-visual-flex-wrap"
             disabled={!canEdit}
           />
         ) : null}
         <StylePresetSelect
           property="align-content"
-          label="Align content"
+          label="여러 줄 정렬"
           dataAiId="copy-ai-id-editor-visual-align-content"
           options={JUSTIFY_OPTIONS}
           disabled={!canEdit}
@@ -155,7 +155,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
       >
         <StyleTextInput
           property="grid-template-columns"
-          label="Grid columns"
+          label="그리드 열"
           dataAiId="copy-ai-id-editor-visual-grid-cols"
           disabled={!canEdit}
           placeholder="repeat(3, minmax(0, 1fr))"
@@ -164,7 +164,7 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         />
         <StyleTextInput
           property="grid-template-rows"
-          label="Grid rows"
+          label="그리드 행"
           dataAiId="copy-ai-id-editor-visual-grid-rows"
           disabled={!canEdit}
           placeholder="auto 1fr"
@@ -173,30 +173,30 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         />
         <StylePresetSelect
           property="grid-auto-flow"
-          label="Auto flow"
+          label="자동 배치"
           dataAiId="copy-ai-id-editor-visual-grid-auto-flow"
           disabled={!canEdit}
         />
         <StylePresetSelect
           property="place-items"
-          label="Place items"
+          label="칸 안 정렬"
           dataAiId="copy-ai-id-editor-visual-place-items"
           options={PLACE_ITEMS_OPTIONS}
           disabled={!canEdit}
         />
       </StyleControlGroup>
 
-      <StyleControlGroup title="Position / Overflow" dataAiId="copy-ai-id-editor-layout-position-overflow-group">
+      <StyleControlGroup title="위치 / 넘침 처리" dataAiId="copy-ai-id-editor-layout-position-overflow-group">
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-layout-position-overflow-grid">
           <StylePresetSelect
             property="position"
-            label="Position"
+            label="위치 기준"
             dataAiId="copy-ai-id-editor-visual-position"
             disabled={!canEdit}
           />
           <StyleTextInput
             property="z-index"
-            label="Z index"
+            label="쌓임 순서"
             dataAiId="copy-ai-id-editor-visual-z-index"
             disabled={!canEdit}
             placeholder="auto"
@@ -217,20 +217,20 @@ export function LayoutControls({ disabled = false }: LayoutControlsProps): React
         </div>
         <StylePresetSelect
           property="overflow"
-          label="Overflow"
+          label="넘침 처리"
           dataAiId="copy-ai-id-editor-visual-overflow"
           disabled={!canEdit}
         />
         <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-layout-overflow-axis-grid">
           <StylePresetSelect
             property="overflow-x"
-            label="Overflow X"
+            label="가로 넘침"
             dataAiId="copy-ai-id-editor-visual-overflow-x"
             disabled={!canEdit}
           />
           <StylePresetSelect
             property="overflow-y"
-            label="Overflow Y"
+            label="세로 넘침"
             dataAiId="copy-ai-id-editor-visual-overflow-y"
             disabled={!canEdit}
           />

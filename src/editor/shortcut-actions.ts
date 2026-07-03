@@ -127,6 +127,36 @@ export function appendTargetReferenceToNotebook(
   return true;
 }
 
+// Reverse navigation for preview chip badges: badge click → focus the note
+// panel (opening the floating panel near the element when enabled) and flash
+// the matching chip.
+export function focusNotebookChipFromBadge(
+  chipId: string,
+  options: AppendTargetReferenceOptions = {},
+): void {
+  const flashChip = (): void => {
+    useNotebookStore.getState().flashChip?.(chipId);
+  };
+  const chip = useNotebookStore.getState().activeChipTargets
+    .find((candidate) => candidate.chipId === chipId);
+  const floatingNotePanel = useFloatingNotePanelStore.getState();
+
+  if (floatingNotePanel.enabled && chip) {
+    const anchor = captureNotePanelAnchor(
+      { target: chip.target, nodeId: chip.nodeId },
+      resolveTargetReferenceGeometry(options),
+    );
+    floatingNotePanel.openNearTarget(anchor);
+    options.onFloatingNotePanelOpen?.();
+    window.requestAnimationFrame(() => {
+      requestNotePanelFocus({ afterFocus: flashChip });
+    });
+    return;
+  }
+
+  requestNotePanelFocus({ afterFocus: flashChip });
+}
+
 export function insertTargetReferenceIntoNotebook(reference: EditorTargetReference): void {
   const notebook = useNotebookStore.getState();
   if (notebook.insertTargetReference) {

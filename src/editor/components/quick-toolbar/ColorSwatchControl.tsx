@@ -1,6 +1,5 @@
 import { useState, type ReactElement } from 'react';
 
-import { getCurrentMessages } from '../../../shared/i18n';
 import { ToolbarPopover } from './ToolbarPopover';
 
 export interface ColorSwatchControlProps {
@@ -26,8 +25,6 @@ export function ColorSwatchControl({
   dataAiId,
   onCommit,
 }: ColorSwatchControlProps): ReactElement {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
-
   return (
     <ToolbarPopover
       label={label}
@@ -49,9 +46,9 @@ export function ColorSwatchControl({
       {(close) => (
         <ColorSwatchPanel
           value={value}
-          messagesApply={messages.apply}
-          messagesCustom={messages.color.custom}
-          messagesPresets={messages.color.presetsLabel}
+          messagesApply="적용"
+          messagesCustom="직접 고르기"
+          messagesPresets="색상 고르기"
           dataAiId={dataAiId}
           onCommit={(nextValue) => {
             onCommit(nextValue);
@@ -105,7 +102,6 @@ function ColorSwatchPanel({
             role="option"
             aria-selected={colorsEqual(preset, value)}
             aria-label={preset}
-            title={preset}
             onClick={() => onCommit(preset)}
             data-ai-id={`${dataAiId}-preset-swatch`}
           />
@@ -117,7 +113,6 @@ function ColorSwatchPanel({
           className="h-7 w-8 shrink-0 cursor-pointer rounded border border-gray-600 bg-transparent p-0.5"
           value={customValue}
           aria-label={messagesCustom}
-          title={messagesCustom}
           onChange={(event) => {
             setCustomValue(event.currentTarget.value);
             setHexDraft(event.currentTarget.value);

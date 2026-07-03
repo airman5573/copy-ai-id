@@ -4,6 +4,7 @@ import {
 } from '../../shared/config';
 import type { VisualDropPosition } from '../../shared/domain/visual';
 import { hideBoxModel, removeBoxModelLayers, showBoxModel } from './box-model';
+import { removeChipBadges, repositionChipBadges } from './chip-badges';
 
 type OverlayKind = 'hover';
 
@@ -46,6 +47,7 @@ export function stopOverlayTracking(): void {
   dropIndicatorBox?.remove();
   dropIndicatorBox = null;
   removeBoxModelLayers();
+  removeChipBadges();
 }
 
 export function showOverlay(kind: OverlayKind, element: Element): void {
@@ -88,6 +90,7 @@ function scheduleUpdate(): void {
 function updateOverlays(): void {
   reposition('hover');
   repositionVisualDropIndicator();
+  repositionChipBadges();
 }
 
 function reposition(kind: OverlayKind): void {

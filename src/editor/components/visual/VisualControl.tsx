@@ -86,7 +86,7 @@ export function VisualControl({
 
 export function VisualResetButton({
   dataAiId,
-  label = 'Reset',
+  label = '초기화',
   disabled = false,
   onClick,
 }: {
@@ -102,7 +102,6 @@ export function VisualResetButton({
       disabled={disabled}
       onClick={onClick}
       aria-label={label}
-      title={label}
       data-ai-id={dataAiId}
     >
       <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" aria-hidden="true" data-ai-id={`${dataAiId}-icon`}>

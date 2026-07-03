@@ -3,7 +3,8 @@ import {
   isNotebookChipId,
   normalizeNextNotebookChipIndex,
 } from './lexical/chip-ids';
-import type { FallbackSelectorKind } from '../../shared/domain/targets';
+import type { EditorTarget, FallbackSelectorKind } from '../../shared/domain/targets';
+import type { ExportedChipTarget } from './lexical/chip-export';
 
 const NOTEBOOK_DRAFT_STORAGE_KEY_PREFIX = 'copy-ai-id:notebook-draft:v1:';
 const NOTEBOOK_DRAFT_SESSION_VERSION = 2;
@@ -114,6 +115,56 @@ export function createNotebookDraftSessionPersistence(
       }
     },
   };
+}
+
+// Extracts the chip set from a restored serialized Lexical state so the store
+// can hydrate activeChipTargets before (or without) a Lexical editor mount —
+// the mount-time reconciliation is tagged history-merge and never re-exports.
+export function collectNotebookChipTargetsFromSerializedEditorState(
+  editorStateJson: string | null,
+): ExportedChipTarget[] {
+  if (!editorStateJson) {
+    return [];
+  }
+
+  const parsedState = parseJsonRecord(editorStateJson);
+  if (!parsedState || !isRecord(parsedState.root)) {
+    return [];
+  }
+
+  const chips: ExportedChipTarget[] = [];
+  collectSerializedNodeChipTargets(parsedState.root, chips, new Set<string>());
+  return chips;
+}
+
+function collectSerializedNodeChipTargets(
+  value: unknown,
+  chips: ExportedChipTarget[],
+  seenChipIds: Set<string>,
+): void {
+  if (!isRecord(value)) {
+    return;
+  }
+
+  if (
+    value.type === SERIALIZED_CHIP_NODE_TYPE
+    && typeof value.chipId === 'string'
+    && !seenChipIds.has(value.chipId)
+    && getValidSerializedChipIndex(value) !== null
+  ) {
+    chips.push({
+      chipId: value.chipId,
+      target: value.target as EditorTarget,
+      nodeId: (value.nodeId ?? null) as string | null,
+    });
+    seenChipIds.add(value.chipId);
+  }
+
+  if (Array.isArray(value.children)) {
+    for (const child of value.children) {
+      collectSerializedNodeChipTargets(child, chips, seenChipIds);
+    }
+  }
 }
 
 function normalizeNotebookDraftSessionValue(value: string): NotebookDraftSessionSnapshot | null {

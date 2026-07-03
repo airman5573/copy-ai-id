@@ -35,7 +35,7 @@ export function AttributeControls({ disabled = false }: AttributeControlsProps):
 
   return (
     <AttributeControlSection
-      title="Attributes"
+      title="속성"
       dataAiId="copy-ai-id-editor-content-attribute-group"
     >
       <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-attribute-fields">

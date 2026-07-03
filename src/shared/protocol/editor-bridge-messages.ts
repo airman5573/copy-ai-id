@@ -69,6 +69,8 @@ export const EDITOR_MESSAGE_TYPES = {
   visualMutationError: 'copy-ai-id:visual-mutation-error',
   highlightVisualBoxRegion: 'copy-ai-id:highlight-visual-box-region',
   inlineTextEditCommitted: 'copy-ai-id:inline-text-edit-committed',
+  setChipBadges: 'copy-ai-id:set-chip-badges',
+  chipBadgeClicked: 'copy-ai-id:chip-badge-clicked',
 } as const;
 
 export type EditorMessageType = typeof EDITOR_MESSAGE_TYPES[keyof typeof EDITOR_MESSAGE_TYPES];
@@ -347,6 +349,28 @@ export interface InlineTextEditCommittedMessage extends EditorTargetReference {
   previousValue: string;
 }
 
+// Persistent numbered badges in the preview marking elements that currently
+// have a notebook chip. The editor pushes the full badge list whenever the
+// chip set changes (and again on bridgeReady); the bridge resolves each
+// target and renders the badges. `label` is the display text (the chip
+// number without the `el-` prefix).
+export interface ChipBadgeDescriptor extends EditorTargetReference {
+  chipId: string;
+  label: string;
+}
+
+export interface SetChipBadgesMessage {
+  type: typeof EDITOR_MESSAGE_TYPES.setChipBadges;
+  badges: ChipBadgeDescriptor[];
+}
+
+export interface ChipBadgeClickedMessage {
+  type: typeof EDITOR_MESSAGE_TYPES.chipBadgeClicked;
+  chipId: string;
+  elementRect?: BridgeViewportRect | null;
+  viewport?: BridgeViewportSize;
+}
+
 export type EditorToBridgeMessage =
   | RevealTreeNodeMessage
   | KeyboardShortcutMessage
@@ -366,7 +390,8 @@ export type EditorToBridgeMessage =
   | PreviewVisualDragMoveMessage
   | ClearVisualDragMovePreviewMessage
   | RequestVisualDragMoveMessage
-  | HighlightVisualBoxRegionMessage;
+  | HighlightVisualBoxRegionMessage
+  | SetChipBadgesMessage;
 
 export type BridgeToEditorMessage =
   | BridgeReadyMessage
@@ -389,4 +414,5 @@ export type BridgeToEditorMessage =
   | VisualElementRestoredMessage
   | VisualDragMoveCompletedMessage
   | VisualMutationErrorMessage
-  | InlineTextEditCommittedMessage;
+  | InlineTextEditCommittedMessage
+  | ChipBadgeClickedMessage;

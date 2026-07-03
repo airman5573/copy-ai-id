@@ -5,7 +5,6 @@ import type {
   QuickActionCategory,
   VisualTargetSnapshot,
 } from '../../../shared/domain/visual';
-import { getCurrentMessages } from '../../../shared/i18n';
 import { formatStepperLengthDisplay } from '../../utils/stepperMath';
 import { dispatchVisualAttributeMutation } from '../../visual/visualMutationClient';
 import { showEditorToast } from '../../toast';
@@ -39,8 +38,6 @@ export function AttributeEditPopover({
   disabled = false,
   dataAiId,
 }: AttributeEditPopoverProps): ReactElement {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
-
   return (
     <ToolbarPopover
       label={label}
@@ -54,7 +51,7 @@ export function AttributeEditPopover({
           fields={fields}
           reference={reference}
           snapshot={snapshot}
-          applyLabel={messages.apply}
+          applyLabel="적용"
           dataAiId={dataAiId}
           onApplied={close}
         />
@@ -217,8 +214,7 @@ export function SizeHybridControl({
   dataAiId,
   commitKeyword,
 }: SizeHybridControlProps): ReactElement {
-  const messages = getCurrentMessages().visualEditor.quickToolbar;
-  const label = dimension === 'width' ? messages.controls.width : messages.controls.height;
+  const label = dimension === 'width' ? '너비' : '높이';
   const computedValue = snapshot?.computedStyle[dimension] ?? '';
   const inlineValue = snapshot?.inlineStyle[dimension] ?? '';
   const category: QuickActionCategory = 'size';
@@ -243,9 +239,9 @@ export function SizeHybridControl({
       <div className="flex flex-col gap-2.5" data-ai-id={`${dataAiId}-panel-body`}>
         <SegmentControl
           options={[
-            { value: SIZE_KEYWORD_VALUES.auto, label: messages.sizeKeywords.auto },
-            { value: SIZE_KEYWORD_VALUES.full, label: messages.sizeKeywords.full },
-            { value: SIZE_KEYWORD_VALUES.fitContent, label: messages.sizeKeywords.fitContent },
+            { value: SIZE_KEYWORD_VALUES.auto, label: '자동' },
+            { value: SIZE_KEYWORD_VALUES.full, label: '꽉 차게' },
+            { value: SIZE_KEYWORD_VALUES.fitContent, label: '내용만큼' },
           ]}
           value={activeKeyword}
           ariaLabel={label}

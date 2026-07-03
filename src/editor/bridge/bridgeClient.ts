@@ -2,6 +2,7 @@ import { type EditorTargetReference } from '../../shared/domain/targets';
 import {
   type BridgeReadyMessage,
   type BridgeToEditorMessage,
+  type ChipBadgeClickedMessage,
   EDITOR_MESSAGE_TYPES,
   type EditorKeyboardShortcut,
   type EditorToBridgeMessage,
@@ -16,7 +17,7 @@ import {
   type VisualTargetSnapshotMessage,
 } from '../../shared/protocol/editor-bridge-messages';
 import { isBridgeToEditorMessage } from '../../shared/protocol/guards';
-import { hasSameEditorTarget } from '../../shared/editor-targets';
+import { hasSameEditorTarget, targetIdentityKey } from '../../shared/editor-targets';
 import { isVisualTargetResolutionError } from '../../shared/visual-targets';
 import {
   bridgeViewportRectToEditorViewportRect,
@@ -33,9 +34,13 @@ import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useVisualSelectionStore, type VisualMutationResultMessage } from '../stores/useVisualSelectionStore';
 import {
   appendTargetReferenceToNotebook,
+  focusNotebookChipFromBadge,
   handleEditorEscapeAction,
   handleEditorShortcutAction,
 } from '../shortcut-actions';
+import { type ExportedChipTarget } from '../notebook/lexical/chip-export';
+import { getNotebookChipIndex } from '../notebook/lexical/chip-ids';
+import { useNotebookStore } from '../stores/useNotebookStore';
 import { useRuntimeStore } from '../stores/useRuntimeStore';
 import {
   isNoteEditorHoverProtected,
@@ -60,6 +65,7 @@ const PREVIEW_QUERY_PARAM = 'copy-ai-id-preview';
 export { getBridgeIframeElement } from './geometry';
 
 let pendingPostMutationSnapshotRefresh: EditorTargetReference | null = null;
+let lastPushedChipBadgesKey: string | null = null;
 
 export function createPreviewUrl(sourceUrl: string): string {
   try {
@@ -117,6 +123,35 @@ export function syncVisualBridgeGeometry(): void {
 
 }
 
+// Mirrors the current chip set into preview chip badges. The chip export
+// produces a new array on every Lexical change, so pushes are deduped by a
+// content key; bridgeReady forces a re-push because the reloaded preview
+// starts badge-less.
+export function postChipBadgesToBridge(options: { force?: boolean } = {}): void {
+  const chips = useNotebookStore.getState().activeChipTargets;
+  const syncKey = chipBadgesSyncKey(chips);
+  if (!options.force && syncKey === lastPushedChipBadgesKey) {
+    return;
+  }
+
+  lastPushedChipBadgesKey = syncKey;
+  postToBridge({
+    type: EDITOR_MESSAGE_TYPES.setChipBadges,
+    badges: chips.map((chip) => ({
+      chipId: chip.chipId,
+      label: String(getNotebookChipIndex(chip.chipId) ?? chip.chipId),
+      target: chip.target,
+      nodeId: chip.nodeId,
+    })),
+  });
+}
+
+function chipBadgesSyncKey(chips: readonly ExportedChipTarget[]): string {
+  return chips
+    .map((chip) => `${chip.chipId}:${targetIdentityKey(chip.target)}:${chip.nodeId ?? ''}`)
+    .join('|');
+}
+
 export function requestVisualTargetSnapshot(
   reference: EditorTargetReference,
   options: Pick<RequestVisualTargetSnapshotMessage, 'includeComputedProperties'> = {},
@@ -137,6 +172,12 @@ export function installBridgeClient(): () => void {
       type: EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed,
       suppressed: protectedFromHover,
     });
+  });
+
+  const unsubscribeChipBadges = useNotebookStore.subscribe((state, previousState) => {
+    if (state.activeChipTargets !== previousState.activeChipTargets) {
+      postChipBadgesToBridge();
+    }
   });
 
   const handleMessage = (event: MessageEvent): void => {
@@ -168,6 +209,7 @@ export function installBridgeClient(): () => void {
   return () => {
     window.removeEventListener('message', handleMessage);
     cleanupHoverProtection();
+    unsubscribeChipBadges();
   };
 }
 
@@ -222,6 +264,9 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       handleKeyboardShortcut(message);
       return;
+    case EDITOR_MESSAGE_TYPES.chipBadgeClicked:
+      handleChipBadgeClicked(message);
+      return;
     default:
       return;
   }
@@ -234,6 +279,7 @@ function handleBridgeReady(message: BridgeReadyMessage): void {
   useBridgeStore.getState().markReady(message.url, message.aiIdCount);
   useRuntimeStore.getState().setPreviewUrl(message.url);
   postCurrentCanvasZoomToBridge();
+  postChipBadgesToBridge({ force: true });
   if (isNoteEditorHoverProtected()) {
     postToBridge({ type: EDITOR_MESSAGE_TYPES.setHoverHighlightSuppressed, suppressed: true });
   }
@@ -361,6 +407,14 @@ function handleInlineTextEditCommitted(message: InlineTextEditCommittedMessage):
   } catch (error) {
     console.warn('[Copy AI ID] Failed to record inline text edit.', error);
   }
+}
+
+function handleChipBadgeClicked(message: ChipBadgeClickedMessage): void {
+  focusNotebookChipFromBadge(message.chipId, {
+    elementRect: message.elementRect ?? null,
+    viewport: message.viewport ?? null,
+    onFloatingNotePanelOpen: requestBridgeQuickActionSelectionClear,
+  });
 }
 
 function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {

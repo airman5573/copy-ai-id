@@ -24,6 +24,7 @@ const EDITOR_TO_BRIDGE_MESSAGE_TYPES: ReadonlySet<string> = new Set<string>([
   EDITOR_MESSAGE_TYPES.clearVisualDragMovePreview,
   EDITOR_MESSAGE_TYPES.requestVisualDragMove,
   EDITOR_MESSAGE_TYPES.highlightVisualBoxRegion,
+  EDITOR_MESSAGE_TYPES.setChipBadges,
 ]);
 
 const BRIDGE_TO_EDITOR_MESSAGE_TYPES: ReadonlySet<string> = new Set<string>([
@@ -48,6 +49,7 @@ const BRIDGE_TO_EDITOR_MESSAGE_TYPES: ReadonlySet<string> = new Set<string>([
   EDITOR_MESSAGE_TYPES.visualDragMoveCompleted,
   EDITOR_MESSAGE_TYPES.visualMutationError,
   EDITOR_MESSAGE_TYPES.inlineTextEditCommitted,
+  EDITOR_MESSAGE_TYPES.chipBadgeClicked,
 ]);
 
 /**

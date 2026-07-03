@@ -31,7 +31,7 @@ export function FormValueControls({ disabled = false }: FormValueControlsProps):
     >
       <div className="mb-3" data-ai-id="copy-ai-id-editor-content-form-value-header">
         <h4 className="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id="copy-ai-id-editor-content-form-value-title-text">
-          Form value
+          입력 값
         </h4>
       </div>
 
@@ -85,7 +85,7 @@ function FormValueTextField({
 
     lastDispatchedRef.current = nextValue;
     edit.commitFormValue({ value: nextValue }, {
-      control: { id: 'form-value:value', label: 'Form value' },
+      control: { id: 'form-value:value', label: '입력 값' },
     });
   }, [canEdit, edit, value]);
 
@@ -100,7 +100,7 @@ function FormValueTextField({
 
   return (
     <VisualControl
-      label="Value"
+      label="값"
       dataAiId="copy-ai-id-editor-content-form-value-value-control"
       helperText="현재 value를 수정합니다. checkbox/radio에서는 value attribute와 checked 상태를 별도로 기록합니다."
       disabled={!canEdit}
@@ -110,7 +110,7 @@ function FormValueTextField({
         disabled={!canEdit}
         rows={edit.targetKind === 'textarea' || edit.targetKind === 'contenteditable' ? 4 : 2}
         className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
-        placeholder="폼 value"
+        placeholder="폼 값"
         onFocus={() => {
           focusedRef.current = true;
         }}
@@ -148,7 +148,7 @@ function FormValueCheckedField({
 
   return (
     <VisualControl
-      label="Checked"
+      label="체크 상태"
       dataAiId="copy-ai-id-editor-content-form-value-checked-control"
       helperText="checkbox/radio의 checked 상태를 value와 별도로 기록합니다."
       disabled={!canEdit}
@@ -166,7 +166,7 @@ function FormValueCheckedField({
           disabled={!canEdit}
           className="h-4 w-4 rounded border-gray-600 bg-gray-950 text-blue-500 focus:ring-blue-500/40 disabled:cursor-not-allowed"
           onChange={(event) => edit.commitFormValue({ checked: event.currentTarget.checked }, {
-            control: { id: 'form-value:checked', label: 'Checked state' },
+            control: { id: 'form-value:checked', label: '체크 상태' },
           })}
           data-ai-id="copy-ai-id-editor-content-form-value-checked-input"
         />
@@ -195,7 +195,7 @@ function FormValueSelectFields({
   const commitSelectedIndex = (): void => {
     const nextIndex = Number.parseInt(selectedIndexDraft, 10);
     edit.commitFormValue({ selectedIndex: Number.isFinite(nextIndex) ? nextIndex : -1 }, {
-      control: { id: 'form-value:selected-index', label: 'Selected index' },
+      control: { id: 'form-value:selected-index', label: '선택 인덱스' },
     });
   };
 
@@ -213,14 +213,14 @@ function FormValueSelectFields({
     }
 
     edit.commitFormValue(mutation, {
-      control: { id: 'form-value:selected-values', label: 'Selected values' },
+      control: { id: 'form-value:selected-values', label: '선택된 값' },
     });
   };
 
   return (
     <div className="space-y-3" data-ai-id="copy-ai-id-editor-content-form-value-select-fields">
       <VisualControl
-        label="Selected index"
+        label="선택 인덱스"
         dataAiId="copy-ai-id-editor-content-form-value-selected-index-control"
         helperText="select의 selectedIndex입니다. -1은 선택 없음입니다."
         disabled={!canEdit}
@@ -248,7 +248,7 @@ function FormValueSelectFields({
         />
       </VisualControl>
       <VisualControl
-        label="Selected values"
+        label="선택된 값"
         dataAiId="copy-ai-id-editor-content-form-value-selected-values-control"
         helperText="multiple select는 줄마다 하나의 option value를 입력합니다. 단일 select는 첫 값이 value로도 적용됩니다."
         disabled={!canEdit}

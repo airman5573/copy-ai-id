@@ -1,4 +1,5 @@
 import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
+import { isChipBadgeEventTarget } from './chip-badges';
 import { classifyElementIntents } from './element-intent';
 import { setInlineTextEditHighlightSuppressed } from './highlight';
 import { tagNameOf } from './lib/dom';
@@ -27,7 +28,7 @@ let activeSession: InlineTextEditSession | null = null;
 
 export function installInlineTextEdit(post: BridgePost): () => void {
   const handleDoubleClick = (event: MouseEvent): void => {
-    if (activeSession) {
+    if (activeSession || isChipBadgeEventTarget(event.target)) {
       return;
     }
 

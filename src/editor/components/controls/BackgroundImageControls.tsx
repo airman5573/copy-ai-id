@@ -12,29 +12,29 @@ export type BackgroundImageControlsProps = {
 };
 
 const BACKGROUND_SIZE_OPTIONS = [
-  { value: 'cover', label: 'Cover' },
-  { value: 'contain', label: 'Contain' },
-  { value: 'auto', label: 'Auto' },
+  { value: 'cover', label: '꽉 채우기' },
+  { value: 'contain', label: '모두 보기' },
+  { value: 'auto', label: '자동' },
 ];
 
 const BACKGROUND_REPEAT_OPTIONS = [
-  { value: 'no-repeat', label: 'No repeat' },
-  { value: 'repeat', label: 'Repeat' },
-  { value: 'repeat-x', label: 'Repeat X' },
-  { value: 'repeat-y', label: 'Repeat Y' },
-  { value: 'round', label: 'Round' },
-  { value: 'space', label: 'Space' },
+  { value: 'no-repeat', label: '반복 없음' },
+  { value: 'repeat', label: '반복' },
+  { value: 'repeat-x', label: '가로 반복' },
+  { value: 'repeat-y', label: '세로 반복' },
+  { value: 'round', label: '둥글게 반복' },
+  { value: 'space', label: '간격 반복' },
 ];
 
 const BACKGROUND_POSITION_PRESETS = [
-  { value: 'center', label: 'Center' },
-  { value: 'top', label: 'Top' },
-  { value: 'right', label: 'Right' },
-  { value: 'bottom', label: 'Bottom' },
-  { value: 'left', label: 'Left' },
+  { value: 'center', label: '가운데' },
+  { value: 'top', label: '위' },
+  { value: 'right', label: '오른쪽' },
+  { value: 'bottom', label: '아래' },
+  { value: 'left', label: '왼쪽' },
   { value: '50% 50%', label: '50% 50%' },
-  { value: 'top right', label: 'Top right' },
-  { value: 'bottom left', label: 'Bottom left' },
+  { value: 'top right', label: '오른쪽 위' },
+  { value: 'bottom left', label: '왼쪽 아래' },
 ];
 
 export function BackgroundImageControls({ disabled = false }: BackgroundImageControlsProps): ReactElement {
@@ -48,17 +48,17 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
     setDraft(backgroundImageToInputValue(next));
     edit.commitStyle('background-image', next, {
       category: 'style',
-      control: { id: 'style:background-image', label: 'Background image' },
+      control: { id: 'style:background-image', label: '배경 이미지' },
     });
   };
 
   return (
     <StyleControlGroup
-      title="Background image"
+      title="배경 이미지"
       dataAiId="copy-ai-id-editor-style-background-image-group"
     >
       <VisualControl
-        label="Image URL / CSS image"
+        label="이미지 주소 / CSS"
         dataAiId="copy-ai-id-editor-visual-background-image-field"
         disabled={!canEdit}
         actions={
@@ -69,7 +69,7 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
               setDraft('');
               edit.resetStyle('background-image', {
                 category: 'style',
-                control: { id: 'style:background-image', label: 'Background image' },
+                control: { id: 'style:background-image', label: '배경 이미지' },
               });
             }}
           />
@@ -97,14 +97,14 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
       <div className="grid grid-cols-2 gap-3" data-ai-id="copy-ai-id-editor-style-background-options-grid">
         <CssPresetSelect
           property="background-size"
-          label="Size"
+          label="크기"
           dataAiId="copy-ai-id-editor-visual-background-size"
           disabled={!canEdit}
           options={BACKGROUND_SIZE_OPTIONS}
         />
         <CssPresetSelect
           property="background-repeat"
-          label="Repeat"
+          label="반복"
           dataAiId="copy-ai-id-editor-visual-background-repeat"
           disabled={!canEdit}
           options={BACKGROUND_REPEAT_OPTIONS}
@@ -112,7 +112,7 @@ export function BackgroundImageControls({ disabled = false }: BackgroundImageCon
       </div>
       <CssTextInput
         property="background-position"
-        label="Position"
+        label="위치"
         dataAiId="copy-ai-id-editor-visual-background-position"
         disabled={!canEdit}
         placeholder="center"

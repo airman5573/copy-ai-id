@@ -11,7 +11,6 @@ import {
 } from 'react';
 
 import { type BreakpointId } from '../../../shared/breakpoints';
-import { getCurrentMessages } from '../../../shared/i18n';
 import {
   bridgeViewportRectToEditorViewportRect,
   calculateFloatingOverlayPlacement,
@@ -23,7 +22,9 @@ import {
 } from '../../bridge/geometry';
 import { useBreakpointStore } from '../../stores/useBreakpointStore';
 import {
+  FLOATING_VISUAL_PANEL_CATEGORIES,
   useFloatingVisualPanelStore,
+  type FloatingVisualPanelCategory,
 } from '../../stores/useFloatingVisualPanelStore';
 import {
   useVisualSelectionStore,
@@ -55,10 +56,23 @@ interface FloatingPanelPlacement {
 
 const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
 
-// The "everything else" panel: no tabs, no category state — one scrollable
-// intent-driven section list. Opened from the quick toolbar's More button.
+const CATEGORY_TAB_LABELS: Record<FloatingVisualPanelCategory, string> = {
+  content: '콘텐츠',
+  image: '이미지',
+  layout: '레이아웃',
+  spacing: '간격',
+  size: '크기',
+  style: '스타일',
+  border: '선',
+};
+
+// The 모든 옵션 panel: every edit control grouped under category tabs
+// (toolbar-duplicated controls included on purpose). Opened from the quick
+// toolbar's 모든 옵션 button.
 export function FloatingVisualPanel(): ReactElement | null {
   const isOpen = useFloatingVisualPanelStore((state) => state.isOpen);
+  const activeCategory = useFloatingVisualPanelStore((state) => state.activeCategory);
+  const setCategory = useFloatingVisualPanelStore((state) => state.setCategory);
   const target = useVisualSelectionStore((state) => state.panelTarget);
   const snapshot = useVisualSelectionStore((state) => state.snapshot);
   const closePanel = useFloatingVisualPanelStore((state) => state.closePanel);
@@ -152,7 +166,6 @@ export function FloatingVisualPanel(): ReactElement | null {
     return null;
   }
 
-  const messages = getCurrentMessages();
   const tagName = snapshot?.tagName?.toLowerCase()
     ?? (target.target.kind === 'fallback' ? target.target.tagName.toLowerCase() : null);
   const label = snapshot?.label ?? getTargetLabel(target);
@@ -171,7 +184,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         className="copy-ai-id-editor-floating-visual-panel pointer-events-auto fixed flex min-h-0 flex-col overflow-hidden rounded-2xl border border-blue-500/30 bg-[color:var(--ai-editor-chrome-bg)] text-[color:var(--ai-editor-chrome-text)] shadow-[0_20px_54px_rgba(0,0,0,0.48)] ring-1 ring-white/5 backdrop-blur-md"
         style={panelStyle}
         role="dialog"
-        aria-label={`${label} ${messages.visualEditor.panel.editPanelLabelSuffix}`}
+        aria-label={`${label} 편집 패널`}
         data-ai-id="copy-ai-id-editor-floating-visual-panel"
         data-ai-editor-floating-visual-panel="1"
         data-copy-ai-id-visual-focus-guard="true"
@@ -180,7 +193,7 @@ export function FloatingVisualPanel(): ReactElement | null {
         data-ai-editor-floating-panel-target-ai-id={target.target.kind === 'ai-id' ? target.target.aiId : ''}
       >
         <header
-          className="copy-ai-id-editor-floating-visual-panel__header shrink-0 border-b border-[color:var(--ai-editor-chrome-border)] bg-[color:var(--ai-editor-chrome-bg-translucent)] px-3.5 py-3"
+          className="copy-ai-id-editor-floating-visual-panel__header shrink-0 border-b border-[color:var(--ai-editor-chrome-border)] bg-[color:var(--ai-editor-chrome-bg-translucent)] px-3 py-2.5"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-header"
         >
           <div className="flex items-center gap-3" data-ai-id="copy-ai-id-editor-floating-visual-panel-header-row">
@@ -203,21 +216,47 @@ export function FloatingVisualPanel(): ReactElement | null {
             <button
               type="button"
               className="copy-ai-id-editor-floating-visual-panel__close inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-600 bg-gray-950/70 text-gray-200 transition hover:border-gray-500 hover:bg-gray-900 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
-              title={messages.visualEditor.panel.close}
-              aria-label={messages.visualEditor.panel.close}
+              aria-label="패널 닫기"
               onClick={handleClosePanel}
               data-ai-id="copy-ai-id-editor-floating-visual-panel-close-button"
             >
               <span aria-hidden="true" data-ai-id="copy-ai-id-editor-floating-visual-panel-close-icon-text">×</span>
             </button>
           </div>
+          <div
+            className="mt-2 flex gap-1 overflow-x-auto pb-0.5"
+            role="tablist"
+            aria-label="편집 카테고리"
+            data-ai-id="copy-ai-id-editor-floating-visual-panel-category-tabs"
+          >
+            {FLOATING_VISUAL_PANEL_CATEGORIES.map((category) => {
+              const active = activeCategory === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70 ${
+                    active
+                      ? 'border-blue-400/70 bg-blue-500/25 text-blue-50 shadow-sm shadow-blue-950/30'
+                      : 'border-gray-700 bg-gray-950/40 text-gray-400 hover:border-gray-600 hover:bg-gray-900 hover:text-gray-100'
+                  }`}
+                  onClick={() => setCategory(category)}
+                  data-ai-id={`copy-ai-id-editor-floating-visual-panel-${category}-tab-button`}
+                >
+                  {CATEGORY_TAB_LABELS[category]}
+                </button>
+              );
+            })}
+          </div>
         </header>
 
         <div
-          className="copy-ai-id-editor-floating-visual-panel__body min-h-0 flex-1 overflow-y-auto bg-[color:var(--ai-editor-panel-body-bg)] p-3.5"
+          className="copy-ai-id-editor-floating-visual-panel__body min-h-0 flex-1 overflow-y-auto bg-[color:var(--ai-editor-panel-body-bg)] p-3"
           data-ai-id="copy-ai-id-editor-floating-visual-panel-body"
         >
-          <VisualPanelContent target={target} />
+          <VisualPanelContent target={target} category={activeCategory} />
         </div>
       </section>
     </div>
