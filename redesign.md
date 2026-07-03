@@ -77,15 +77,15 @@
   - Files/areas: `src/editor/stores/useVisualSelectionStore.ts`, `src/editor/bridge/bridgeClient.ts`(`handleQuickActionAnchorChanged`)
   - Notes: `activeToolbarTarget`에 `intents` 저장. `reason:'pinned'` 수신 시 `requestVisualTargetSnapshot` 즉시 발신(현재는 category 클릭 후에만 요청). `reason:'repositioned'`는 elementRect/editorRect만 갱신(스냅샷 재요청 없음).
   - Parallelizable: no
-- [ ] 공용 스테퍼 UI 컴포넌트 신설
+- [x] 공용 스테퍼 UI 컴포넌트 신설
   - Files/areas: 신규 `src/editor/components/visual/StepperControl.tsx`, 신규 `src/editor/utils/stepperMath.ts`
   - Notes: `[-] 16px [+]` 형태. props: label/현재 computed 값/step 콜백. `stepperMath`: base 캡처, ±10% 가산, 시드값(Assumptions 참조), opacity %p 모드, 결과 px 계산·clamp. 길게 눌러 반복은 구현하지 않음(클릭 단위 유지).
   - Parallelizable: yes
-- [ ] 공용 세그먼트·팝오버·색상 스와치 컴포넌트 신설
+- [x] 공용 세그먼트·팝오버·색상 스와치 컴포넌트 신설
   - Files/areas: 신규 `src/editor/components/quick-toolbar/ToolbarPopover.tsx`, `SegmentControl.tsx`, `ColorSwatchControl.tsx`(기존 `ColorInput`/`dropdownCoordinator` 재사용)
   - Notes: 팝오버는 동시 1개만 열림(dropdownCoordinator 연동), Escape 시 팝오버만 닫힘(툴바 unpin보다 먼저). 색상 = 프리셋 팔레트 그리드 + 커스텀 피커.
   - Parallelizable: yes
-- [ ] intent → 툴바 컨트롤 구성 정의 모듈
+- [x] intent → 툴바 컨트롤 구성 정의 모듈
   - Files/areas: 신규 `src/editor/components/quick-toolbar/toolbarConfig.ts`
   - Notes: Assumptions의 intent별 1행 구성 + 공통 2행(스페이싱 3버튼/구조 4버튼/드래그 그립/기타)을 선언적 데이터로 정의. 복수 intent 병합·중복 제거 로직 포함.
   - Parallelizable: yes

@@ -110,6 +110,61 @@ export interface CopyAiIdMessages {
         title: string;
       }>;
     };
+    quickToolbar: {
+      toolbarLabel: string;
+      increase: string;
+      decrease: string;
+      more: string;
+      moreTitle: string;
+      apply: string;
+      dragHandleTitle: string;
+      controls: {
+        imageReplace: string;
+        width: string;
+        height: string;
+        objectFit: string;
+        radius: string;
+        fontSize: string;
+        fontWeight: string;
+        textColor: string;
+        textAlign: string;
+        gap: string;
+        flexDirection: string;
+        justifyContent: string;
+        alignItems: string;
+        backgroundColor: string;
+        hrefEdit: string;
+        placeholderEdit: string;
+      };
+      spacing: {
+        padding: string;
+        margin: string;
+        gap: string;
+        scopeAll: string;
+        scopeX: string;
+        scopeY: string;
+        scopeEach: string;
+        top: string;
+        right: string;
+        bottom: string;
+        left: string;
+      };
+      attribute: {
+        imageSrcLabel: string;
+        imageAltLabel: string;
+        hrefLabel: string;
+        placeholderLabel: string;
+      };
+      color: {
+        custom: string;
+        presetsLabel: string;
+      };
+      sizeKeywords: {
+        auto: string;
+        full: string;
+        fitContent: string;
+      };
+    };
     panel: {
       editPanelLabelSuffix: string;
       categoriesLabel: string;
@@ -284,6 +339,61 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
           'move-up': { label: '↑', title: 'Move before the previous sibling' },
           'move-down': { label: '↓', title: 'Move after the next sibling' },
           delete: { label: 'Delete', title: 'Delete' },
+        },
+      },
+      quickToolbar: {
+        toolbarLabel: 'Quick edit toolbar',
+        increase: 'Increase',
+        decrease: 'Decrease',
+        more: 'More',
+        moreTitle: 'Open all editing controls',
+        apply: 'Apply',
+        dragHandleTitle: 'Drag to move',
+        controls: {
+          imageReplace: 'Image',
+          width: 'W',
+          height: 'H',
+          objectFit: 'Fit',
+          radius: 'Radius',
+          fontSize: 'Size',
+          fontWeight: 'Weight',
+          textColor: 'Text',
+          textAlign: 'Align',
+          gap: 'Gap',
+          flexDirection: 'Direction',
+          justifyContent: 'Justify',
+          alignItems: 'Align items',
+          backgroundColor: 'BG',
+          hrefEdit: 'Link',
+          placeholderEdit: 'Placeholder',
+        },
+        spacing: {
+          padding: 'Padding',
+          margin: 'Margin',
+          gap: 'Gap',
+          scopeAll: 'All',
+          scopeX: 'X',
+          scopeY: 'Y',
+          scopeEach: 'Each',
+          top: 'Top',
+          right: 'Right',
+          bottom: 'Bottom',
+          left: 'Left',
+        },
+        attribute: {
+          imageSrcLabel: 'Image URL',
+          imageAltLabel: 'Alt text',
+          hrefLabel: 'Link URL',
+          placeholderLabel: 'Placeholder',
+        },
+        color: {
+          custom: 'Custom',
+          presetsLabel: 'Color presets',
+        },
+        sizeKeywords: {
+          auto: 'Auto',
+          full: 'Full',
+          fitContent: 'Fit',
         },
       },
       panel: {
@@ -489,6 +599,61 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
           'move-up': { label: '↑', title: '이전 형제 앞으로 이동' },
           'move-down': { label: '↓', title: '다음 형제 뒤로 이동' },
           delete: { label: '삭제', title: '삭제' },
+        },
+      },
+      quickToolbar: {
+        toolbarLabel: '퀵 편집 툴바',
+        increase: '증가',
+        decrease: '감소',
+        more: '기타',
+        moreTitle: '전체 편집 컨트롤 열기',
+        apply: '적용',
+        dragHandleTitle: '드래그해서 이동',
+        controls: {
+          imageReplace: '이미지',
+          width: 'W',
+          height: 'H',
+          objectFit: 'Fit',
+          radius: '라운드',
+          fontSize: '크기',
+          fontWeight: '굵기',
+          textColor: '글자색',
+          textAlign: '정렬',
+          gap: '간격',
+          flexDirection: '방향',
+          justifyContent: '주축 정렬',
+          alignItems: '교차 정렬',
+          backgroundColor: '배경',
+          hrefEdit: '링크',
+          placeholderEdit: '플레이스홀더',
+        },
+        spacing: {
+          padding: '패딩',
+          margin: '마진',
+          gap: '간격',
+          scopeAll: '전체',
+          scopeX: '좌우',
+          scopeY: '위아래',
+          scopeEach: '개별',
+          top: '위',
+          right: '오른쪽',
+          bottom: '아래',
+          left: '왼쪽',
+        },
+        attribute: {
+          imageSrcLabel: '이미지 URL',
+          imageAltLabel: '대체 텍스트',
+          hrefLabel: '링크 URL',
+          placeholderLabel: '플레이스홀더',
+        },
+        color: {
+          custom: '커스텀',
+          presetsLabel: '색상 프리셋',
+        },
+        sizeKeywords: {
+          auto: 'Auto',
+          full: 'Full',
+          fitContent: 'Fit',
         },
       },
       panel: {
