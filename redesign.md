@@ -55,19 +55,19 @@
   - Parallelizable: yes
 
 ### Phase 2 - 브리지: intent 판별·앵커 스트림·스냅샷·더블클릭 편집
-- [ ] intent 분류기 모듈 신설
+- [x] intent 분류기 모듈 신설
   - Files/areas: 신규 `src/content/editor-bridge/element-intent.ts`
   - Notes: Phase 1 규칙 구현 `classifyElementIntents(element): ElementIntent[]`(우선순위 정렬 반환). 확장 소유 요소 제외(`isExtensionOwnedElement`).
   - Parallelizable: yes
-- [ ] pin 시 intent 포함 앵커 발신 + pin 유지 중 rAF 앵커 rect 스트림
+- [x] pin 시 intent 포함 앵커 발신 + pin 유지 중 rAF 앵커 rect 스트림
   - Files/areas: `src/content/editor-bridge/highlight.ts`
   - Notes: `syncPinnedQuickActionToolbar`에서 `quickActionAnchorChanged` payload에 `intents` 포함. pin 상태 동안 capture-phase scroll/resize → rAF throttle로 `reason:'repositioned'` 앵커 메시지 발신(요소 disconnect 시 clear). 기존 브리지 툴바 `showQuickActionToolbar` 호출은 Phase 3 전환 항목에서 제거하므로 여기선 유지.
   - Parallelizable: no (앞 항목 의존)
-- [ ] 스냅샷 직렬화에 intents 포함
+- [x] 스냅샷 직렬화에 intents 포함
   - Files/areas: `src/content/editor-bridge/visual-target-snapshot.ts`
   - Notes: `classifyElementIntents` 호출 결과를 스냅샷에 실어 에디터가 툴바 구성·현재값·형제 유무(move 버튼 disable)를 스냅샷 하나로 판단하게 한다.
   - Parallelizable: yes
-- [ ] 프리뷰 더블클릭 인라인 텍스트 편집 모듈 신설
+- [x] 프리뷰 더블클릭 인라인 텍스트 편집 모듈 신설
   - Files/areas: 신규 `src/content/editor-bridge/inline-text-edit.ts`, `src/content/editor-bridge/index.ts`(리스너 설치/해제), `src/content/editor-bridge/highlight.ts`(편집 중 hover/pin 억제)
   - Notes: 대상 조건 = text intent 보유 && form/media 요소 아님. dblclick → `contenteditable='plaintext-only'`(미지원 브라우저는 `true`+paste plain화) + 원본 `textContent` 보관. Enter/blur = 커밋: 요소를 previousValue로 **되돌린 뒤** `inlineTextEditCommitted{value, previousValue}` 발신(실제 적용·기록은 에디터가 정규 `updateVisualText` 뮤테이션으로 재수행 → 기존 record/undo 파이프라인 재사용). Escape = 원복 후 취소. 편집 중 keyboard.ts 단축키 무시 가드.
   - Parallelizable: yes

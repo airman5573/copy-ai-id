@@ -5,6 +5,7 @@ import {
 import { createSetTopEditorEnabledMessage } from '../../shared/protocol/frame-messages';
 import { handleNavigationShortcut } from './navigation';
 import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference } from './highlight';
+import { isInlineTextEditActive } from './inline-text-edit';
 import type { BridgePost } from './types';
 
 const Z_CODE = 'KeyZ';
@@ -16,6 +17,12 @@ export function installBridgeKeyboard(post: BridgePost): () => void {
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.code === Z_CODE) {
       zKeyPressed = true;
+    }
+
+    // An active inline text edit owns the keyboard (Enter/Escape commit or
+    // cancel inside inline-text-edit.ts); bridge shortcuts must stay out.
+    if (isInlineTextEditActive()) {
+      return;
     }
 
     if (isShiftZSpace(event, zKeyPressed)) {

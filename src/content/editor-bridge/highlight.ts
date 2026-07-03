@@ -6,6 +6,7 @@ import { type QuickActionCategory } from '../../shared/domain/visual';
 import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { hasSameEditorTarget } from '../../shared/editor-targets';
 import type { BridgePost } from './types';
+import { classifyElementIntents } from './element-intent';
 import { resolveTreeNode } from './layout-tree';
 import { viewportSize } from './lib/viewport';
 import {
@@ -40,8 +41,11 @@ let highlightedOrigin: HighlightOrigin | null = null;
 let pinnedElement: Element | null = null;
 let hoverHighlightSuppressed = false;
 let keyboardNavigationHoverSuppressed = false;
+let inlineTextEditSuppressed = false;
 let lastMousePosition: MousePosition | null = null;
 let suppressionStartPosition: MousePosition | null = null;
+let pinnedAnchorRafHandle: number | null = null;
+let stopPinnedAnchorTracking: (() => void) | null = null;
 
 const DEFAULT_QUICK_ACTION_CATEGORIES: QuickActionCategory[] = [
   'content',
@@ -105,7 +109,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
   };
 
   const handleClick = (event: MouseEvent): void => {
-    if (event.button !== 0 || isQuickActionToolbarElement(event.target)) {
+    if (event.button !== 0 || inlineTextEditSuppressed || isQuickActionToolbarElement(event.target)) {
       return;
     }
 
@@ -134,9 +138,11 @@ export function installHoverHighlight(post: BridgePost): () => void {
     document.removeEventListener('mousemove', handleMouseMove, true);
     document.removeEventListener('click', handleClick, true);
     window.removeEventListener('blur', handleBlur);
+    endPinnedAnchorTracking();
     pinnedElement = null;
     hoverHighlightSuppressed = false;
     keyboardNavigationHoverSuppressed = false;
+    inlineTextEditSuppressed = false;
     lastMousePosition = null;
     suppressionStartPosition = null;
   };
@@ -152,6 +158,7 @@ export function clearHighlightedElement(post: BridgePost): void {
 
 export function clearQuickActionSelection(post: BridgePost): void {
   pinnedElement = null;
+  endPinnedAnchorTracking();
   hideQuickActionToolbar();
   post({
     type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
@@ -167,6 +174,12 @@ export function clearQuickActionSelection(post: BridgePost): void {
 
 export function setHoverHighlightSuppressed(suppressed: boolean): void {
   hoverHighlightSuppressed = suppressed;
+}
+
+// While a preview inline text edit is active, hover highlighting and click
+// pinning must not fight the contenteditable session.
+export function setInlineTextEditHighlightSuppressed(suppressed: boolean): void {
+  inlineTextEditSuppressed = suppressed;
 }
 
 export function suppressHoverHighlightUntilMouseMove(): void {
@@ -264,6 +277,7 @@ function pinQuickActionToolbar(element: Element, post: BridgePost): void {
   pinnedElement = reference.element;
   setHighlightedElement(reference.element, post, 'preview', { force: true });
   syncPinnedQuickActionToolbar(reference, post);
+  beginPinnedAnchorTracking(post);
 }
 
 function refreshPinnedQuickActionToolbar(post: BridgePost): void {
@@ -294,7 +308,7 @@ function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: Bri
     elementRect: reference.elementRect,
     viewport: reference.viewport,
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
-    intents: [],
+    intents: classifyElementIntents(reference.element),
     reason: 'pinned',
   });
 
@@ -304,6 +318,67 @@ function syncPinnedQuickActionToolbar(reference: LocalTargetReference, post: Bri
     element: reference.element,
     availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
     post,
+  });
+}
+
+// While an element is pinned, preview scroll/resize would let the editor-side
+// toolbar drift away from its anchor. Stream fresh rects (rAF-throttled) with
+// reason 'repositioned' so the editor can follow; snapshots are not re-requested.
+function beginPinnedAnchorTracking(post: BridgePost): void {
+  if (stopPinnedAnchorTracking) {
+    return;
+  }
+
+  const schedule = (): void => {
+    if (pinnedAnchorRafHandle !== null) {
+      return;
+    }
+
+    pinnedAnchorRafHandle = window.requestAnimationFrame(() => {
+      pinnedAnchorRafHandle = null;
+      postRepositionedAnchor(post);
+    });
+  };
+
+  window.addEventListener('scroll', schedule, { capture: true, passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+
+  stopPinnedAnchorTracking = () => {
+    window.removeEventListener('scroll', schedule, true);
+    window.removeEventListener('resize', schedule);
+    if (pinnedAnchorRafHandle !== null) {
+      window.cancelAnimationFrame(pinnedAnchorRafHandle);
+      pinnedAnchorRafHandle = null;
+    }
+  };
+}
+
+function endPinnedAnchorTracking(): void {
+  stopPinnedAnchorTracking?.();
+  stopPinnedAnchorTracking = null;
+}
+
+function postRepositionedAnchor(post: BridgePost): void {
+  if (!pinnedElement) {
+    return;
+  }
+
+  const connected = connectedPickableElement(pinnedElement);
+  const reference = connected ? targetReferenceForElement(connected) : null;
+  if (!connected || !reference?.target) {
+    clearQuickActionSelection(post);
+    return;
+  }
+
+  post({
+    type: EDITOR_MESSAGE_TYPES.quickActionAnchorChanged,
+    target: reference.target,
+    nodeId: reference.nodeId,
+    elementRect: reference.elementRect,
+    viewport: reference.viewport,
+    availableCategories: DEFAULT_QUICK_ACTION_CATEGORIES,
+    intents: classifyElementIntents(connected),
+    reason: 'repositioned',
   });
 }
 
@@ -329,7 +404,7 @@ function updateHoverOverlay(): void {
 }
 
 function isHoverHighlightSuppressed(): boolean {
-  return hoverHighlightSuppressed || keyboardNavigationHoverSuppressed;
+  return hoverHighlightSuppressed || keyboardNavigationHoverSuppressed || inlineTextEditSuppressed;
 }
 
 function hasMouseMovedFromSuppressionStart(event: MouseEvent, position: MousePosition): boolean {

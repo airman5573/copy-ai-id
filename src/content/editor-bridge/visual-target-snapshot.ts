@@ -17,6 +17,7 @@ import {
   getComposedSiblingElement,
 } from '../target/composed-dom';
 import { editorTargetForElement } from './editor-target';
+import { classifyElementIntents } from './element-intent';
 import { fallbackMetadataForElement } from './fallback-target';
 import { resolveNodeIdForElement } from './layout-tree';
 import {
@@ -56,7 +57,7 @@ export function createVisualTargetSnapshot(
     nodeId,
     tagName: tagNameOf(element),
     label: labelForElement(element, target, fallback),
-    intents: [],
+    intents: classifyElementIntents(element),
     classTokens: sanitizeClassTokens(classTokensForElement(element)),
     attributes: safeAttributeMapForElement(element),
     inlineStyle: inlineStyleMapForElement(element),

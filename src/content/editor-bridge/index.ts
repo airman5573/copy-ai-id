@@ -16,6 +16,7 @@ import {
   revealTreeNode,
   setHoverHighlightSuppressed,
 } from './highlight';
+import { installInlineTextEdit } from './inline-text-edit';
 import { handleVisualTargetSnapshotRequest } from './visual-mutation-results';
 import { handleUpdateVisualStyle } from './visual-style-handler';
 import {
@@ -76,6 +77,7 @@ export function startPreviewBridge(): PreviewBridgeController {
   };
   const cleanupHoverHighlight = installHoverHighlight(post);
   const cleanupBridgeKeyboard = installBridgeKeyboard(post);
+  const cleanupInlineTextEdit = installInlineTextEdit(post);
 
   const postReady = (): void => {
     const { message: layoutTreeMessage, aiIdCount } = buildLayoutTreeSnapshot();
@@ -119,6 +121,7 @@ export function startPreviewBridge(): PreviewBridgeController {
       document.removeEventListener('DOMContentLoaded', postReady);
       cleanupHoverHighlight();
       cleanupBridgeKeyboard();
+      cleanupInlineTextEdit();
       cleanupOverlayTracking();
       destroyQuickActionToolbar();
     },
