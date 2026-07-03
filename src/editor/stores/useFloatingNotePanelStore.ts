@@ -35,6 +35,7 @@ interface FloatingNotePanelStore extends FloatingNotePanelStateSnapshot {
   hydrateEnabled(): Promise<void>;
   setEnabled(enabled: boolean): void;
   toggleEnabled(): void;
+  openPanel(): void;
   openNearTarget(input: FloatingNotePanelAnchorInput): void;
   updateAnchorRects(rects: Pick<FloatingNotePanelAnchor, 'elementRect' | 'editorRect'> & {
     viewport?: BridgeViewportSize | null;
@@ -114,6 +115,18 @@ export const useFloatingNotePanelStore = create<FloatingNotePanelStore>((set, ge
   },
   toggleEnabled: () => {
     get().setEnabled(!get().enabled);
+  },
+  openPanel: () => {
+    const now = Date.now();
+    // Anchor-less open (e.g. the toolbar note button): clearing the anchor
+    // makes FloatingNotePanel fall back to its default placement near the
+    // preview frame instead of reusing a stale element anchor.
+    set((state) => ({
+      isOpen: true,
+      anchor: null,
+      openedAt: state.isOpen ? state.openedAt : now,
+      updatedAt: now,
+    }));
   },
   openNearTarget: (input) => {
     const now = Date.now();

@@ -20,9 +20,9 @@ export interface CopyAiIdMessages {
     title: string;
     subtitle: string;
     notePanel: string;
-    notePanelFloatingToggle: string;
-    notePanelFloatingEnableTitle: string;
-    notePanelFloatingDisableTitle: string;
+    notePanelToggle: string;
+    notePanelOpenTitle: string;
+    notePanelCloseTitle: string;
     preview: string;
     close: string;
     duplicateWarning: string;
@@ -131,9 +131,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id editor',
       notePanel: 'Note panel',
-      notePanelFloatingToggle: 'Floating note',
-      notePanelFloatingEnableTitle: 'Open the Note panel near hovered or selected elements.',
-      notePanelFloatingDisableTitle: 'Use the docked right Note panel instead.',
+      notePanelToggle: 'Note',
+      notePanelOpenTitle: 'Open the floating note panel.',
+      notePanelCloseTitle: 'Close the floating note panel.',
       preview: 'Preview',
       close: 'Close editor',
       duplicateWarning: 'Duplicate data-ai-id',
@@ -248,9 +248,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       title: 'Copy AI ID',
       subtitle: 'data-ai-id 에디터',
       notePanel: '노트 패널',
-      notePanelFloatingToggle: '노트 플로팅',
-      notePanelFloatingEnableTitle: '노트 패널을 hover 또는 선택한 요소 근처에 띄웁니다.',
-      notePanelFloatingDisableTitle: '오른쪽 고정 노트 패널을 사용합니다.',
+      notePanelToggle: '노트',
+      notePanelOpenTitle: '플로팅 노트 패널을 엽니다.',
+      notePanelCloseTitle: '플로팅 노트 패널을 닫습니다.',
       preview: '미리보기',
       close: '에디터 닫기',
       duplicateWarning: '중복 data-ai-id',

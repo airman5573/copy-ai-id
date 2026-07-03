@@ -1,6 +1,7 @@
 import { Copy, NotebookText, X } from 'lucide-react';
 
 import { getCurrentMessages } from '../../shared/i18n';
+import { requestNotePanelFocus } from '../note-panel-focus';
 import { copyNotebookDraftFromStore } from '../notebook/copy';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { type FitZoomOptions } from '../stores/useBreakpointStore';
@@ -18,20 +19,30 @@ import { ToolbarButton } from './ui/builderChrome';
 export interface TopToolbarProps {
   onRequestClose?: () => void;
   onFitZoom?: (options?: FitZoomOptions) => void;
-  onToggleNotePanelFloating?: () => void;
 }
 
 export function TopToolbar({
   onRequestClose,
   onFitZoom,
-  onToggleNotePanelFloating,
 }: TopToolbarProps) {
   const messages = getCurrentMessages();
-  const notePanelFloatingEnabled = useFloatingNotePanelStore((state) => state.enabled);
-  const toggleNotePanelFloating = useFloatingNotePanelStore((state) => state.toggleEnabled);
-  const notePanelFloatingTitle = notePanelFloatingEnabled
-    ? messages.editor.notePanelFloatingDisableTitle
-    : messages.editor.notePanelFloatingEnableTitle;
+  const notePanelOpen = useFloatingNotePanelStore((state) => state.isOpen);
+  const openNotePanel = useFloatingNotePanelStore((state) => state.openPanel);
+  const closeNotePanel = useFloatingNotePanelStore((state) => state.closePanel);
+  const notePanelTitle = notePanelOpen
+    ? messages.editor.notePanelCloseTitle
+    : messages.editor.notePanelOpenTitle;
+  const handleToggleNotePanel = (): void => {
+    if (notePanelOpen) {
+      closeNotePanel();
+      return;
+    }
+
+    openNotePanel();
+    window.requestAnimationFrame(() => {
+      requestNotePanelFocus();
+    });
+  };
   const copyStatus = useNotebookStore((state) => state.copyStatus);
   const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
   const hasCopyableVisualEdits = useVisualEditStore(selectHasVisualEdits);
@@ -69,15 +80,15 @@ export function TopToolbar({
 
       <div className="copy-ai-id-editor-toolbar__right">
         <ToolbarButton
-          className={`copy-ai-id-editor-note-panel-floating-toggle${notePanelFloatingEnabled ? ' is-active' : ''}`}
-          data-ai-id="copy-ai-id-editor-note-panel-floating-toggle-button"
-          onClick={onToggleNotePanelFloating ?? toggleNotePanelFloating}
-          title={notePanelFloatingTitle}
-          aria-label={messages.editor.notePanelFloatingToggle}
-          aria-pressed={notePanelFloatingEnabled}
+          className={`copy-ai-id-editor-note-panel-toggle${notePanelOpen ? ' is-active' : ''}`}
+          data-ai-id="copy-ai-id-editor-note-panel-toggle-button"
+          onClick={handleToggleNotePanel}
+          title={notePanelTitle}
+          aria-label={messages.editor.notePanelToggle}
+          aria-pressed={notePanelOpen}
         >
           <NotebookText size={14} aria-hidden="true" />
-          <span>{messages.editor.notePanelFloatingToggle}</span>
+          <span>{messages.editor.notePanelToggle}</span>
         </ToolbarButton>
 
         <button
