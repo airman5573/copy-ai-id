@@ -27,13 +27,13 @@
   --editor-border-strong: rgba(226, 232, 240, 0.34);
   --editor-text: #eef2f7;
   --editor-text-strong: #ffffff;
-  --editor-text-muted: #aeb8c6;
-  --editor-text-faint: #7d8998;
+  --editor-text-muted: #c3ccd9;
+  --editor-text-faint: #97a3b3;
   --editor-accent: #38bdf8;
   --editor-accent-strong: #0ea5e9;
   --editor-accent-soft: rgba(14, 165, 233, 0.24);
   --editor-accent-hover: rgba(14, 165, 233, 0.34);
-  --editor-accent-border: rgba(56, 189, 248, 0.52);
+  --editor-accent-border: rgba(56, 189, 248, 0.65);
   --editor-accent-text: #e0f7ff;
   --copy-ai-id-resize-track: rgba(226, 232, 240, 0.18);
   --copy-ai-id-resize-track-active: var(--editor-accent);

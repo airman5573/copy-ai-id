@@ -32,8 +32,8 @@ export function VisualControl({
     ? 'flex w-20 shrink-0 items-center gap-1.5'
     : 'mb-1.5 flex items-center justify-between gap-2';
   const labelClassName = inline
-    ? 'block min-w-0 flex-1 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400'
-    : 'block min-w-0 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400';
+    ? 'block min-w-0 flex-1 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-200'
+    : 'block min-w-0 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-200';
   const resolvedInputWrapperClassName = [inline ? 'min-w-0 flex-1' : '', inputWrapperClassName ?? '']
     .filter(Boolean)
     .join(' ') || undefined;
@@ -98,7 +98,7 @@ export function VisualResetButton({
   return (
     <button
       type="button"
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-700 bg-gray-950/70 text-gray-500 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-700 bg-gray-950/70 text-gray-300 transition hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
       disabled={disabled}
       onClick={onClick}
       aria-label={label}

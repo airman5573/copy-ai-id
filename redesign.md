@@ -159,7 +159,7 @@
   - Parallelizable: yes
 
 ### Phase 6 - 다크 대비·액센트 시각 개선
-- [ ] 텍스트/보더 대비 상향 및 액센트 강화 일괄 적용
+- [x] 텍스트/보더 대비 상향 및 액센트 강화 일괄 적용
   - Files/areas: `src/editor/components/visual-panel/*`, `visual/*`, `controls/*`, `quick-toolbar/*`, `tailwind.config.js`, `src/editor/editor.css`(패널 shell BEM 부분)
   - Notes: 본문 `text-gray-500/600` → `text-gray-300/400`, 라벨 `text-[10px] text-gray-400` → `text-[11px] text-gray-200` 수준으로 상향, placeholder `gray-600`→`gray-500`. 액센트 `blue-500` 계열 채도/사용 빈도 강화(활성 세그먼트·스테퍼 hover·포커스 링). 다크 유지, 새 라이트 테마 없음. quick-toolbar도 동일 토큰 체계 사용.
   - Parallelizable: yes

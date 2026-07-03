@@ -153,7 +153,7 @@ export function ColorInput({
     >
       <div className="relative" ref={rootRef} onPointerDown={(event) => event.stopPropagation()} data-ai-id={`${dataAiId}-wrapper`}>
         <div
-          className="flex min-w-0 overflow-hidden rounded-lg border border-gray-700 bg-gray-950/80 focus-within:border-blue-500/70 focus-within:ring-2 focus-within:ring-blue-500/20"
+          className="flex min-w-0 overflow-hidden rounded-lg border border-gray-700 bg-gray-950/80 focus-within:border-blue-500/70 focus-within:ring-2 focus-within:ring-blue-500/30"
           data-ai-id={`${dataAiId}-control-row`}
         >
           <input
@@ -169,7 +169,7 @@ export function ColorInput({
             type="text"
             value={hexFocused ? hexDraft : colorValue}
             disabled={disabled}
-            className="min-w-0 flex-1 bg-transparent px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none placeholder:text-gray-600 disabled:cursor-not-allowed disabled:text-gray-600"
+            className="min-w-0 flex-1 bg-transparent px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:text-gray-600"
             placeholder="#000000"
             onFocus={(event) => {
               setHexFocused(true);
@@ -196,7 +196,7 @@ export function ColorInput({
               inputMode="decimal"
               value={opacityValue}
               disabled={disabled}
-              className="min-w-0 flex-1 bg-transparent px-2 py-2 text-right font-mono text-[11px] text-gray-100 outline-none placeholder:text-gray-600 disabled:cursor-not-allowed disabled:text-gray-600"
+              className="min-w-0 flex-1 bg-transparent px-2 py-2 text-right font-mono text-[11px] text-gray-100 outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:text-gray-600"
               placeholder="100"
               onFocus={(event) => selectTextInputValue(event.currentTarget)}
               onClick={(event) => selectTextInputValue(event.currentTarget)}
@@ -215,14 +215,14 @@ export function ColorInput({
               }}
               data-ai-id={`${dataAiId}-opacity-input`}
             />
-            <span className="pr-2 text-[10px] font-bold text-gray-500" data-ai-id={`${dataAiId}-opacity-unit-text`}>
+            <span className="pr-2 text-[10px] font-bold text-gray-300" data-ai-id={`${dataAiId}-opacity-unit-text`}>
               %
             </span>
           </div>
           {hasPalette ? (
             <button
               type="button"
-              className="relative flex h-9 w-8 shrink-0 items-center justify-center border-l border-gray-700 bg-gray-900 text-gray-500 outline-none transition hover:bg-gray-800 hover:text-blue-200 focus:bg-gray-800 focus:text-blue-200 disabled:cursor-not-allowed disabled:text-gray-600"
+              className="relative flex h-9 w-8 shrink-0 items-center justify-center border-l border-gray-700 bg-gray-900 text-gray-300 outline-none transition hover:bg-gray-800 hover:text-blue-200 focus:bg-gray-800 focus:text-blue-200 disabled:cursor-not-allowed disabled:text-gray-600"
               disabled={disabled}
               aria-haspopup="listbox"
               aria-expanded={paletteOpen}
@@ -253,7 +253,7 @@ export function ColorInput({
               data-ai-id={resolvedPresetDataAiId}
             >
               <span
-                className="flex h-full w-full items-center justify-center text-gray-500"
+                className="flex h-full w-full items-center justify-center text-gray-300"
                 data-ai-id={`${resolvedPresetDataAiId}-toggle-button`}
               >
                 <svg

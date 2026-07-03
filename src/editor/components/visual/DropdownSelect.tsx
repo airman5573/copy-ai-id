@@ -30,7 +30,7 @@ export type DropdownSelectProps = {
 };
 
 const DEFAULT_BUTTON_CLASS =
-  'relative w-full rounded-lg border border-gray-700 bg-gray-950/80 py-2 pl-2.5 pr-8 text-left text-[11px] font-semibold text-gray-100 outline-none transition hover:border-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600';
+  'relative w-full rounded-lg border border-gray-700 bg-gray-950/80 py-2 pl-2.5 pr-8 text-left text-[11px] font-semibold text-gray-100 outline-none transition hover:border-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600';
 const DEFAULT_DROPDOWN_CLASS =
   'absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-lg border border-blue-500/40 bg-gray-950 py-1 shadow-xl shadow-black/40';
 
@@ -137,13 +137,13 @@ export function DropdownSelect({
         data-ai-id={dataAiId}
       >
         <span
-          className={selected ? 'block min-w-0 truncate' : 'block min-w-0 truncate text-gray-500'}
+          className={selected ? 'block min-w-0 truncate' : 'block min-w-0 truncate text-gray-300'}
           data-ai-id={`${dataAiId}-value-text`}
         >
           {label || placeholderLabel}
         </span>
         <span
-          className="absolute inset-y-0 right-0 flex w-8 items-center justify-center text-gray-500 transition hover:text-blue-200"
+          className="absolute inset-y-0 right-0 flex w-8 items-center justify-center text-gray-300 transition hover:text-blue-200"
           data-ai-id={`${dataAiId}-toggle-button`}
         >
           <svg

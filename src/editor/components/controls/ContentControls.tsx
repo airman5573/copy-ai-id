@@ -114,7 +114,7 @@ function PlainTextContentControl({
         value={draft}
         disabled={!canEdit}
         rows={5}
-        className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+        className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
         placeholder="선택 요소의 텍스트를 입력하세요."
         onFocus={() => {
           focusedRef.current = true;
@@ -229,7 +229,7 @@ function RichHtmlContentControl({
       >
         <div
           ref={richEditorRef}
-          className="min-h-28 max-h-56 overflow-auto rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 text-[12px] leading-relaxed text-gray-100 outline-none transition empty:before:text-gray-600 empty:before:content-[attr(data-placeholder)] focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 aria-disabled:cursor-not-allowed aria-disabled:text-gray-600"
+          className="min-h-28 max-h-56 overflow-auto rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 text-[12px] leading-relaxed text-gray-100 outline-none transition empty:before:text-gray-600 empty:before:content-[attr(data-placeholder)] focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 aria-disabled:cursor-not-allowed aria-disabled:text-gray-600"
           contentEditable={canEdit}
           suppressContentEditableWarning
           role="textbox"
@@ -268,7 +268,7 @@ function RichHtmlContentControl({
           value={draft}
           disabled={!canEdit}
           rows={7}
-          className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+          className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
           placeholder="<span>수정할 HTML</span>"
           spellCheck={false}
           onFocus={() => {
@@ -313,7 +313,7 @@ function ContentControlGroup({
       data-ai-id={dataAiId}
     >
       <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
           {title}
         </h4>
       </div>

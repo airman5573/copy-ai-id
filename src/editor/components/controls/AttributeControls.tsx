@@ -78,7 +78,7 @@ export function AttributeControlSection({
       data-ai-id={dataAiId}
     >
       <div className="mb-3" data-ai-id={`${dataAiId}-header`}>
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id={`${dataAiId}-title-text`}>
           {title}
         </h4>
       </div>
@@ -159,7 +159,7 @@ export function VisualAttributeTextField({
         value={draft}
         disabled={!canEdit}
         placeholder={definition.placeholder}
-        className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+        className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
         onChange={(event) => setDraft(event.currentTarget.value)}
         onBlur={() => commit(draft)}
         onKeyDown={(event) => {
@@ -230,7 +230,7 @@ export function VisualAttributeSelectField({
       <select
         value={currentValue}
         disabled={!canEdit}
-        className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+        className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
         onChange={(event) => commit(event.currentTarget.value || null)}
         data-ai-id={dataAiId}
       >

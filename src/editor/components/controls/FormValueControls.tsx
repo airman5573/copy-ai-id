@@ -30,7 +30,7 @@ export function FormValueControls({ disabled = false }: FormValueControlsProps):
       data-ai-editor-form-value-target-kind={edit.targetKind}
     >
       <div className="mb-3" data-ai-id="copy-ai-id-editor-content-form-value-header">
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id="copy-ai-id-editor-content-form-value-title-text">
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.14em] text-blue-300" data-ai-id="copy-ai-id-editor-content-form-value-title-text">
           Form value
         </h4>
       </div>
@@ -109,7 +109,7 @@ function FormValueTextField({
         value={draft}
         disabled={!canEdit}
         rows={edit.targetKind === 'textarea' || edit.targetKind === 'contenteditable' ? 4 : 2}
-        className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+        className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
         placeholder="폼 value"
         onFocus={() => {
           focusedRef.current = true;
@@ -229,7 +229,7 @@ function FormValueSelectFields({
           type="number"
           value={selectedIndexDraft}
           disabled={!canEdit}
-          className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+          className="w-full rounded-lg border border-gray-700 bg-gray-950/80 px-2.5 py-2 font-mono text-[11px] text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
           onChange={(event) => setSelectedIndexDraft(event.currentTarget.value)}
           onBlur={commitSelectedIndex}
           onKeyDown={(event) => {
@@ -257,7 +257,7 @@ function FormValueSelectFields({
           value={selectedValuesDraft}
           disabled={!canEdit}
           rows={3}
-          className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-600 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:text-gray-600"
+          className="w-full resize-y rounded-lg border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-100 outline-none transition placeholder:text-gray-500 focus:border-blue-500/70 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:text-gray-600"
           placeholder="option value를 줄마다 입력"
           onChange={(event) => setSelectedValuesDraft(event.currentTarget.value)}
           onBlur={commitSelectedValues}
