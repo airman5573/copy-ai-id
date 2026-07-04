@@ -7,6 +7,8 @@
     "dev": "vite build --watch",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "codex-bridge": "node scripts/codex-local-bridge.mjs",
+    "codex-server": "node scripts/codex-server.mjs",
     "deploy-to-chrome-extension-store": "node scripts/deploy-to-chrome-extension-store.mjs"
   },
   "dependencies": {

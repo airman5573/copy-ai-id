@@ -6,6 +6,10 @@ import {
   type RuntimeStateMessageResponse,
 } from '../shared/runtime-messages';
 import {
+  readNotebookTargetNotice,
+  writeNotebookTargetNotice,
+} from '../shared/notebook-notice';
+import {
   type PopupScopeContext,
   resolveActiveTabScopeContext,
 } from './active-tab-scope';
@@ -110,9 +114,54 @@ async function toggleEnabledFromPopup(): Promise<void> {
   }
 }
 
+async function openNoticeEditorFromPopup(): Promise<void> {
+  popupView.setNoticeSaving(true);
+  try {
+    popupView.openNoticeEditor(await readNotebookTargetNotice());
+  } finally {
+    popupView.setNoticeSaving(false);
+  }
+}
+
+async function saveNoticeEditorFromPopup(): Promise<void> {
+  popupView.setNoticeSaving(true);
+  try {
+    await writeNotebookTargetNotice(popupView.getNoticeDraft());
+    popupView.closeNoticeEditor();
+  } catch (error) {
+    popupView.setNoticeSaving(false);
+    throw error;
+  }
+}
+
 function bindPopupEvents(): () => void {
   const handleToggleClick = (): void => {
     void toggleEnabledFromPopup();
+  };
+
+  const handleNoticeClick = (): void => {
+    void openNoticeEditorFromPopup();
+  };
+
+  const handleNoticeCancel = (): void => {
+    popupView.closeNoticeEditor();
+  };
+
+  const handleNoticeSave = (): void => {
+    void saveNoticeEditorFromPopup();
+  };
+
+  const handleNoticeBackdropMouseDown = (event: MouseEvent): void => {
+    if (event.target === event.currentTarget) {
+      popupView.closeNoticeEditor();
+    }
+  };
+
+  const handleNoticeBackdropKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      popupView.closeNoticeEditor();
+    }
   };
 
   const handleWindowFocus = (): void => {
@@ -124,27 +173,51 @@ function bindPopupEvents(): () => void {
     throw new Error('Copy AI ID popup toggle button is missing.');
   }
 
+  const noticeButton = document.querySelector<HTMLButtonElement>('[data-ai-id="popup-notice-button"]');
+  const noticeBackdrop = document.querySelector<HTMLElement>('[data-ai-id="popup-notice-dialog-backdrop"]');
+  const noticeCancelButton = document.querySelector<HTMLButtonElement>('[data-ai-id="popup-notice-cancel-button"]');
+  const noticeSaveButton = document.querySelector<HTMLButtonElement>('[data-ai-id="popup-notice-save-button"]');
+  if (!noticeButton || !noticeBackdrop || !noticeCancelButton || !noticeSaveButton) {
+    throw new Error('Copy AI ID popup notice editor controls are missing.');
+  }
+
   toggleButton.addEventListener('click', handleToggleClick);
+  noticeButton.addEventListener('click', handleNoticeClick);
+  noticeCancelButton.addEventListener('click', handleNoticeCancel);
+  noticeSaveButton.addEventListener('click', handleNoticeSave);
+  noticeBackdrop.addEventListener('mousedown', handleNoticeBackdropMouseDown);
+  noticeBackdrop.addEventListener('keydown', handleNoticeBackdropKeyDown);
   window.addEventListener('focus', handleWindowFocus);
 
   return () => {
     toggleButton.removeEventListener('click', handleToggleClick);
+    noticeButton.removeEventListener('click', handleNoticeClick);
+    noticeCancelButton.removeEventListener('click', handleNoticeCancel);
+    noticeSaveButton.removeEventListener('click', handleNoticeSave);
+    noticeBackdrop.removeEventListener('mousedown', handleNoticeBackdropMouseDown);
+    noticeBackdrop.removeEventListener('keydown', handleNoticeBackdropKeyDown);
     window.removeEventListener('focus', handleWindowFocus);
   };
 }
 
 async function bootstrap(): Promise<void> {
-  await Promise.all([
-    refreshRuntimeState(),
-    refreshFileAccessHint(),
-  ]);
-
   const cleanupPopupEvents = bindPopupEvents();
+  popupView.setTogglePending(true);
 
   window.addEventListener('pagehide', () => {
     popupView.destroy();
     cleanupPopupEvents();
   });
+
+  try {
+    await Promise.all([
+      refreshRuntimeState(),
+      refreshFileAccessHint(),
+    ]);
+  } catch (error) {
+    console.error('Copy AI ID popup failed to initialize runtime state', error);
+    popupView.renderUnavailable();
+  }
 }
 
 void bootstrap().catch((error) => {

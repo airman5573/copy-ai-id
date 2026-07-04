@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { createPreviewUrl } from './bridge/bridgeClient';
+import { CodexConfirmDialog } from './components/CodexConfirmDialog';
 import { FloatingNotePanel } from './components/FloatingNotePanel';
 import { MainArea } from './components/MainArea';
 import { QuickToolbar } from './components/quick-toolbar/QuickToolbar';
@@ -100,6 +101,7 @@ export function App({ onRequestClose }: AppProps) {
       <FloatingNotePanel />
       <QuickToolbar />
       <FloatingVisualPanel />
+      <CodexConfirmDialog />
       {toastMessage ? (
         <div
           className={`copy-ai-id-editor-toast copy-ai-id-editor-toast--${toastTone}`}

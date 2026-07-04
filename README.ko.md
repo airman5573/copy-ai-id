@@ -65,6 +65,27 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 
 편집 가능한 필드에 입력 중이거나 IME 조합 중일 때는 단축키를 가로채지 않습니다. 단, 노트북 안의 **Shift + Enter**는 현재 노트북을 복사합니다.
 
+## Codex로 전송 (선택, 로컬 전용)
+
+에디터는 **복사** 버튼이 만드는 것과 동일한 Markdown을 클립보드를 거치지 않고 내 컴퓨터의 [OpenAI Codex CLI](https://github.com/openai/codex)로 바로 보낼 수 있습니다.
+
+1. 이 저장소에서 로컬 서버를 실행하고 터미널을 켜둡니다:
+
+   ```bash
+   npm run codex-server        # 또는 scripts/start-codex-server.sh
+   ```
+
+2. **localhost 개발 서버 페이지**나 **file:// 페이지**에서 에디터를 열고 **Codex** 버튼(상단 툴바 또는 노트 패널)을 클릭합니다.
+3. 서버가 페이지의 로컬 프로젝트를 자동 감지합니다 — localhost 페이지는 포트를 개발 서버 프로세스의 작업 디렉터리로 매핑하고, `file://` 페이지는 가장 가까운 `.git`/`package.json`까지 상위 탐색합니다 — 실행 전에 감지된 경로를 확인 다이얼로그로 보여줍니다.
+4. **실행**을 누르면 서버가:
+   - 프로젝트에 저장소가 없으면 `git init`(기본 `.gitignore` 포함)을 먼저 수행하고,
+   - 기존 미커밋 변경이 있으면 `auto-commit: <타임스탬프>`로 먼저 커밋한 뒤,
+   - 프로젝트 안에서 `codex exec`를 실행하고(workspace-write 샌드박스, 기본 타임아웃 5분),
+   - Codex의 변경을 `codex: <요청 첫 줄>`로 커밋합니다.
+5. 성공하면 복사와 동일하게 노트 드래프트와 visual edit이 초기화됩니다. 실패하거나 시간 초과되면 프롬프트를 클립보드에 대신 복사해 수동으로 붙여넣을 수 있게 합니다.
+
+모든 동작은 내 컴퓨터 안에서만 일어납니다: 서버는 `127.0.0.1`에만 바인딩되며 일반 웹페이지가 붙일 수 없는 요청 헤더를 요구합니다. 환경 변수: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT`(기본 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS`(기본 300000), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+
 ## `data-ai-id`란 무엇인가요?
 
 `data-ai-id`는 AI 도구, 브라우저 자동화, QA 리뷰어, 유지보수 담당자가 UI 요소를 정확히 지정할 수 있도록 해주는 안정적인 semantic HTML 속성입니다.
@@ -114,4 +135,4 @@ Chrome은 해당 확장 프로그램에 파일 접근 권한을 켜지 않는 �
 
 ## 제품 범위
 
-Copy AI ID는 이제 에디터 전용입니다. Codex 사이드패널, native messaging host, AI 채팅, 히스토리, 설정 화면, 원격 prompt 전송, analytics, 원격 AI 처리는 포함하지 않습니다. 노트와 preview-only visual edit 지시는 사용자가 명시적으로 **복사**를 누르거나 **Shift + Enter**를 눌렀을 때만 클립보드에 기록됩니다.
+Copy AI ID는 에디터 우선 제품입니다. Codex 사이드패널, native messaging host, AI 채팅, 히스토리, 설정 화면, analytics, 원격 AI 처리는 포함하지 않습니다. 노트와 preview-only visual edit 지시는 사용자가 명시적으로 복사(**복사** / **Shift + Enter**)하거나 **Codex로 전송** 실행을 명시적으로 확인했을 때만 에디터 밖으로 나가며, 선택적 Codex 경로는 사용자가 직접 실행한 로컬 `127.0.0.1` 서버와만 통신합니다 — 원격 서비스로는 아무것도 전송되지 않습니다.

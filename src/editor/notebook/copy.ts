@@ -1,23 +1,9 @@
 import { copyText } from './clipboard';
 import type { CopyStatus } from '../types';
-import {
-  selectHasNotebookDraftForCopy,
-  useNotebookStore,
-} from '../stores/useNotebookStore';
-import {
-  selectHasVisualEdits,
-  useVisualEditStore,
-} from '../stores/useVisualEditStore';
+import { useNotebookStore } from '../stores/useNotebookStore';
+import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
-import { formatNotebookCopyBody } from './lexical/chip-export';
-import { appendNotebookSuffixes } from './format';
-import {
-  appendVisualEditsSection,
-  formatVisualEditTargetsForNotebookTargets,
-  getVisualOnlyNotebookRequestText,
-  hasAiIdVisualEditTargets,
-  hasFallbackVisualEditTargets,
-} from './visual-edits-export';
+import { buildNotebookExportMarkdown } from './export-markdown';
 
 const COPY_STATUS_RESET_MS = 1200;
 const FLOATING_NOTE_PANEL_CLOSE_AFTER_COPY_MS = 700;
@@ -25,44 +11,13 @@ let copyStatusResetTimer: number | null = null;
 let floatingNotePanelCloseTimer: number | null = null;
 
 export async function copyNotebookDraftFromStore(): Promise<CopyStatus> {
-  const notebook = useNotebookStore.getState();
-  const visualEditStore = useVisualEditStore.getState();
-  const visualEditRecords = visualEditStore.getExportableRecords();
-  const hasVisualEdits = selectHasVisualEdits(visualEditStore);
-  const hasNotebookDraft = selectHasNotebookDraftForCopy(notebook);
-
-  if (!hasNotebookDraft && !hasVisualEdits) {
+  const exportMarkdown = await buildNotebookExportMarkdown();
+  if (!exportMarkdown) {
     setCopyStatusWithReset('empty');
     return 'empty';
   }
 
-  const notebookRequest = hasNotebookDraft
-    ? notebook.draft.trim()
-    : getVisualOnlyNotebookRequestText();
-  const visualEditTargetDetails = formatVisualEditTargetsForNotebookTargets(
-    visualEditRecords,
-    notebook.activeChipTargets,
-  );
-  const copiedBody = formatNotebookCopyBody(notebookRequest, notebook.activeChipTargets, {
-    additionalTargetDetails: visualEditTargetDetails,
-  });
-  const hasAiIdTargets = notebook.activeChipTargets.some((chip) => chip.target.kind === 'ai-id')
-    || hasAiIdVisualEditTargets(visualEditRecords);
-  const hasFallbackTargets = notebook.hasFallbackTargets
-    || hasFallbackVisualEditTargets(visualEditRecords);
-  const copiedMarkdown = appendVisualEditsSection(
-    appendNotebookSuffixes(
-      copiedBody,
-      notebook.suffixSettings,
-      {
-        hasAiIdTargets,
-        hasFallbackTargets,
-        hasVisualEdits,
-      },
-    ),
-    visualEditRecords,
-  );
-  const result = await copyText(copiedMarkdown);
+  const result = await copyText(exportMarkdown.markdown);
   if (!result.ok) {
     setCopyStatusWithReset('failed');
     return 'failed';

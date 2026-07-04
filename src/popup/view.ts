@@ -9,6 +9,10 @@ export interface PopupView {
   renderScope(scopeContext: PopupScopeContext | null): void;
   renderFileAccessHint(show: boolean): void;
   setTogglePending(isPending: boolean): void;
+  openNoticeEditor(targetNotice: string): void;
+  closeNoticeEditor(): void;
+  getNoticeDraft(): string;
+  setNoticeSaving(isSaving: boolean): void;
   scheduleClose(): void;
   destroy(): void;
 }
@@ -38,9 +42,17 @@ export function createPopupView(): PopupView {
   const shortcutHint = queryRequiredPopupElement<HTMLElement>('[data-ai-id="popup-shortcut-hint"]');
   const toggleButton = queryRequiredPopupElement<HTMLButtonElement>('[data-ai-id="popup-toggle-button"]');
   const fileAccessHint = document.querySelector<HTMLElement>('[data-ai-id="popup-file-access-hint"]');
+  const noticeButton = queryRequiredPopupElement<HTMLButtonElement>('[data-ai-id="popup-notice-button"]');
+  const noticeBackdrop = queryRequiredPopupElement<HTMLElement>('[data-ai-id="popup-notice-dialog-backdrop"]');
+  const noticeTitle = queryRequiredPopupElement<HTMLElement>('[data-ai-id="popup-notice-dialog-title"]');
+  const noticeDescription = queryRequiredPopupElement<HTMLElement>('[data-ai-id="popup-notice-dialog-description"]');
+  const noticeTextarea = queryRequiredPopupElement<HTMLTextAreaElement>('[data-ai-id="popup-notice-textarea"]');
+  const noticeCancelButton = queryRequiredPopupElement<HTMLButtonElement>('[data-ai-id="popup-notice-cancel-button"]');
+  const noticeSaveButton = queryRequiredPopupElement<HTMLButtonElement>('[data-ai-id="popup-notice-save-button"]');
 
   let currentScopeKey: string | null = null;
   let closePopupTimer: number | null = null;
+  let noticeFocusFrame: number | null = null;
 
   function clearClosePopupTimer(): void {
     if (closePopupTimer === null) {
@@ -54,6 +66,14 @@ export function createPopupView(): PopupView {
   function renderStaticText(): void {
     document.documentElement.lang = messages.htmlLang;
     renderTrustedPopupMarkup(shortcutHint, messages.popup.shortcutHintHtml);
+    noticeButton.textContent = messages.notebook.noticeButton;
+    noticeButton.title = messages.notebook.noticeDialogTitle;
+    noticeButton.setAttribute('aria-label', messages.notebook.noticeDialogTitle);
+    noticeTitle.textContent = messages.notebook.noticeDialogTitle;
+    noticeDescription.textContent = messages.notebook.noticeDescription;
+    noticeTextarea.placeholder = messages.notebook.noticePlaceholder;
+    noticeCancelButton.textContent = messages.notebook.noticeCancel;
+    noticeSaveButton.textContent = messages.notebook.noticeSave;
 
     if (fileAccessHint) {
       renderTrustedPopupMarkup(fileAccessHint, messages.popup.fileAccessHintHtml);
@@ -69,6 +89,7 @@ export function createPopupView(): PopupView {
     renderEnabled(enabled: boolean) {
       card.dataset.enabled = String(enabled);
       card.dataset.state = enabled ? 'on' : 'off';
+      toggleButton.disabled = false;
       toggleButton.textContent = enabled ? messages.popup.turnOff : messages.popup.turnOn;
       toggleButton.dataset.enabled = String(enabled);
       toggleButton.setAttribute('aria-pressed', String(enabled));
@@ -93,6 +114,42 @@ export function createPopupView(): PopupView {
     setTogglePending(isPending: boolean) {
       toggleButton.disabled = isPending;
     },
+    openNoticeEditor(targetNotice: string) {
+      if (noticeFocusFrame !== null) {
+        window.cancelAnimationFrame(noticeFocusFrame);
+      }
+
+      noticeTextarea.value = targetNotice;
+      noticeBackdrop.hidden = false;
+      noticeButton.setAttribute('aria-expanded', 'true');
+      noticeCancelButton.disabled = false;
+      noticeSaveButton.disabled = false;
+      noticeFocusFrame = window.requestAnimationFrame(() => {
+        noticeFocusFrame = null;
+        noticeTextarea.focus();
+        noticeTextarea.select();
+      });
+    },
+    closeNoticeEditor() {
+      if (noticeFocusFrame !== null) {
+        window.cancelAnimationFrame(noticeFocusFrame);
+        noticeFocusFrame = null;
+      }
+
+      noticeBackdrop.hidden = true;
+      noticeButton.setAttribute('aria-expanded', 'false');
+      noticeButton.disabled = false;
+      noticeCancelButton.disabled = false;
+      noticeSaveButton.disabled = false;
+    },
+    getNoticeDraft() {
+      return noticeTextarea.value;
+    },
+    setNoticeSaving(isSaving: boolean) {
+      noticeButton.disabled = isSaving;
+      noticeCancelButton.disabled = isSaving;
+      noticeSaveButton.disabled = isSaving;
+    },
     scheduleClose() {
       clearClosePopupTimer();
       closePopupTimer = window.setTimeout(() => {
@@ -101,6 +158,10 @@ export function createPopupView(): PopupView {
     },
     destroy() {
       clearClosePopupTimer();
+      if (noticeFocusFrame !== null) {
+        window.cancelAnimationFrame(noticeFocusFrame);
+        noticeFocusFrame = null;
+      }
     },
   };
 }

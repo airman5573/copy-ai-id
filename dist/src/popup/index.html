@@ -7,9 +7,9 @@
       content="width=device-width, initial-scale=1.0"
     />
     <title>Copy AI ID</title>
-    <script type="module" crossorigin src="/assets/index.html-CQRnrVRr.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/i18n-DSYt5HRX.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-DIMXSB6Z.css">
+    <script type="module" crossorigin src="/assets/index.html-DvrNV9xe.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/notebook-notice-C4DNMC8E.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CmELeRNH.css">
   </head>
   <body class="popup" data-ai-id="popup-page">
     <main class="popup__card" data-ai-id="popup-card" data-enabled="false" data-state="off">
@@ -31,6 +31,60 @@
         </div>
       </section>
 
+      <section class="popup__notice" data-ai-id="popup-notice-section">
+        <button
+          class="popup__notice-button"
+          type="button"
+          data-ai-id="popup-notice-button"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          Copy notice
+        </button>
+      </section>
+      <div
+        class="popup__notice-dialog-backdrop"
+        data-ai-id="popup-notice-dialog-backdrop"
+        hidden
+      >
+        <section
+          class="popup__notice-dialog"
+          data-ai-id="popup-notice-dialog"
+          role="dialog"
+          aria-labelledby="popup-notice-dialog-title"
+        >
+          <div class="popup__notice-dialog-header">
+            <h2 id="popup-notice-dialog-title" data-ai-id="popup-notice-dialog-title">
+              Copy notice
+            </h2>
+            <p data-ai-id="popup-notice-dialog-description">
+              Shown under Rules only when the copied note includes at least one data-ai-id target.
+            </p>
+          </div>
+          <textarea
+            class="popup__notice-textarea"
+            data-ai-id="popup-notice-textarea"
+            spellcheck="false"
+          ></textarea>
+          <div class="popup__notice-dialog-actions">
+            <button
+              class="popup__notice-dialog-button"
+              type="button"
+              data-ai-id="popup-notice-cancel-button"
+            >
+              Cancel
+            </button>
+            <button
+              class="popup__notice-dialog-button popup__notice-dialog-button--primary"
+              type="button"
+              data-ai-id="popup-notice-save-button"
+            >
+              Save
+            </button>
+          </div>
+        </section>
+      </div>
+
       <button
         class="popup__toggle"
         type="button"
@@ -43,6 +97,7 @@
       <p class="popup__warning" role="alert" data-ai-id="popup-file-access-hint" hidden>
         <strong>file://</strong> needs <strong>Allow access to file URLs</strong>.
       </p>
+
     </main>
 
   </body>

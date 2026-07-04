@@ -26,13 +26,17 @@ export function showDeletedVisualTargetToast(): void {
   showEditorToast(getCurrentMessages().editor.deletedVisualTarget, 'info');
 }
 
-export function showEditorToast(message: string, tone: EditorToastTone = 'info'): void {
+export function showEditorToast(
+  message: string,
+  tone: EditorToastTone = 'info',
+  durationMs: number = TOAST_RESET_MS,
+): void {
   clearEditorToastReset();
   useToastStore.getState().showToast(message, tone);
   toastResetTimer = window.setTimeout(() => {
     useToastStore.getState().clearToast();
     toastResetTimer = null;
-  }, TOAST_RESET_MS);
+  }, durationMs);
 }
 
 export function clearEditorToastReset(): void {

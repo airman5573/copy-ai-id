@@ -6,16 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Copy AI ID** is a Chrome extension (Manifest V3) that overlays a full-screen visual editor on any rendered web page. Users highlight elements (preferring stable `data-ai-id` attributes, falling back to generated selectors), make **preview-only** visual edits (style/content/attributes/structure), write notes in a Lexical-based notebook with `@el-N` element chips, and copy an AI-ready Markdown document (`## Requests / ## Targets / ## Rules / ## Visual edits` with a machine-readable JSON diff).
 
-Product scope is intentionally narrow: editor-only. No background/service worker, no side panel, no native messaging, no AI chat, no analytics, no remote data transmission. The only permission is `storage`; host permissions are `<all_urls>`.
+Product scope is intentionally narrow: editor-first. No side panel, no native messaging, no AI chat, no analytics, no remote data transmission. The only permission is `storage`; host permissions are `<all_urls>`. The one background service worker (`src/background/index.ts`) exists solely as a fetch proxy for the optional **Send to Codex** feature, which talks only to a local `127.0.0.1` server the user starts manually (`npm run codex-server`).
 
 Stack: TypeScript (strict) + React 19 + Zustand + Lexical + Radix UI + Tailwind 3, bundled by Vite 7 with `@crxjs/vite-plugin`.
 
 ## Commands
 
 ```bash
-npm run dev        # vite build --watch — rebuilds dist/ on change (reload the unpacked extension in Chrome to pick up changes)
-npm run build      # one-shot build into dist/
-npm run typecheck  # tsc --noEmit
+npm run dev           # vite build --watch — rebuilds dist/ on change (reload the unpacked extension in Chrome to pick up changes)
+npm run build         # one-shot build into dist/
+npm run typecheck     # tsc --noEmit
+npm run codex-server  # local Send-to-Codex server (scripts/codex-server.mjs); scripts/start-codex-server.sh is the shell launcher
 ```
 
 - `npm run typecheck` is the **only automated verification gate**. There is no test framework, no test script, and no ESLint/Prettier config.
@@ -74,6 +75,7 @@ The React editor and the preview bridge communicate over `window.postMessage`. A
 | Editor ⇄ bridge | `src/shared/protocol/editor-bridge-messages.ts` | The main protocol. `EditorToBridgeMessage` (reveal tree node, keyboard shortcut, set zoom, request snapshot, update style/text/rich-text/attribute/form-value, duplicate/move/delete/restore, drag-move) and `BridgeToEditorMessage` (bridgeReady, layoutTree, targetHighlighted, quick-action events, snapshots, `visual*Updated` mutation results, mutation errors). All types namespaced `copy-ai-id:*`. Bridge→editor messages carry `source: 'copy-ai-id-preview-bridge'`. |
 | Frame toggle | `src/shared/protocol/frame-messages.ts` | Child frame → top frame: `copy-ai-id:set-top-editor-enabled` (source `copy-ai-id-content-script`). Used by the hotkey in child frames and by the bridge to turn the editor off. |
 | Popup ⇄ content | `src/shared/runtime-messages.ts` | `chrome.tabs.sendMessage`: `copy-ai-id:get-runtime-state` / `copy-ai-id:set-enabled`, responded with `{ enabled, available }`. |
+| Editor ⇄ background (codex) | `src/shared/codex.ts` | `chrome.runtime.sendMessage` from the editor to the service worker: `copy-ai-id:codex-health` / `codex-resolve-project` / `codex-start-run` / `codex-run-status`. The worker forwards each as a fetch to the local codex server and returns the server's `{ ok, ... } \| { ok: false, code, error }` JSON verbatim. |
 
 Runtime guards in `src/shared/protocol/guards.ts` are **intentionally shallow** — they only validate the `type` string against a direction-specific set. Handlers must narrow payloads via the discriminated unions themselves.
 
@@ -92,7 +94,11 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 
 ### `src/manifest.ts`
 
-`defineManifest` from @crxjs. MV3, `permissions: ['storage']`, `host_permissions: ['<all_urls>']`, popup action, one content-script entry (`src/content/bootstrap/index.ts`, all frames, document_idle), localized name/description via `__MSG_*__` (`public/_locales/{en,ko}`). The dev-only stable `key` is included only when `COPY_AI_ID_INCLUDE_MANIFEST_KEY === '1'`.
+`defineManifest` from @crxjs. MV3, `permissions: ['storage']`, `host_permissions: ['<all_urls>']`, popup action, one content-script entry (`src/content/bootstrap/index.ts`, all frames, document_idle), one background service worker (`src/background/index.ts`, module type — codex proxy only), localized name/description via `__MSG_*__` (`public/_locales/{en,ko}`). The dev-only stable `key` is included only when `COPY_AI_ID_INCLUDE_MANIFEST_KEY === '1'`.
+
+### `src/background/` — service worker (codex proxy only)
+
+`index.ts` — the only background logic in the extension. Listens for the codex runtime messages (guarded by `isCodexRuntimeMessage`; all other messages pass through untouched) and forwards each one as a short fetch to the local codex server (`http://127.0.0.1:45130`). Content-script fetches are subject to the host page's CSP and mixed-content rules; worker fetches are covered by the `<all_urls>` host permission. The worker is stateless — the long codex run is tracked by the editor polling `codex-run-status`, so the worker may be killed/restarted between polls.
 
 ### `src/content/` — content-script side
 
@@ -128,7 +134,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 
 **Entry**
 - `main.tsx` — `mountCopyAiIdEditor(host)`: attaches an open shadow root, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, installs the shadow-selection bridge (Lexical selection fix) and notebook draft session persistence.
-- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / toast.
+- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / `CodexConfirmDialog` / toast.
 
 **`stores/`** — all Zustand. One store per concern:
 
@@ -146,23 +152,24 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 | `useNotebookStore` | notebook draft text, Lexical `editorStateJson`, chip targets/indexes, suffix settings, copy status |
 | `useVisualSelectionStore` | **single owner of visual-selection data**: hoverTarget, activeToolbarTarget, panelTarget, snapshot lifecycle (status/error/staleReason) |
 | `useVisualEditStore` | visual-edit history: records, pending mutations, undo/redo stacks, export document |
+| `useCodexStore` | Send-to-Codex state machine: `phase` (`idle → resolving → confirming → running`) + the pending send payload (markdown, subject, resolved project path/method) |
 
 **`bridge/`**
 - `bridgeClient.ts` — the message hub. `createPreviewUrl` appends `?copy-ai-id-preview=1`; `postToBridge` posts to the iframe; `installBridgeClient` validates inbound `source` + type guard, then `routeBridgeMessage` fans out to per-domain handlers that write into the stores. On `bridgeReady` it resets visual stores and re-pushes zoom state.
 - `geometry.ts` — converts bridge-viewport rects/points ⇄ editor-viewport coordinates (accounting for canvas zoom) and computes floating-panel placement.
 
 **`components/`**
-- Root: `TopToolbar` (note panel open/close toggle + prompt copy button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`.
+- Root: `TopToolbar` (note panel open/close toggle + prompt copy button + Codex send button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/Codex send/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`, `CodexConfirmDialog` (shows the auto-detected project path; the run starts only on explicit confirm).
 - `visual-panel/` — `FloatingVisualPanel` (tabs for the six categories), `VisualPanelContent` (readiness gating, renders the matching controls group).
 - `visual/` — reusable inputs: `UnitValueInput`, `ColorInput`, `DropdownSelect`, `PresetSelect`, `EdgeBoxControl`, `VisualControl`/`VisualSection`; `dropdownCoordinator.ts` keeps only one dropdown open inside the shadow DOM.
 - `controls/` — one component per edit category (`ContentControls`, `LayoutControls`, `SpacingControls`, `SizeControls`, `BorderControls`, `ColorControls`, `TypographyControls`, `BackgroundImageControls`, …) bound to `forms/useVisualStyleForm.ts` and the style-edit hooks.
 - `ui/builderChrome.tsx` — shared toolbar/panel primitives.
 
-**`notebook/`** — the copy/export pipeline (see below) plus `lexical/`:
+**`notebook/`** — the copy/export pipeline (see below), `export-markdown.ts` (shared markdown builder used by both copy and codex send), `codex-send.ts` (Send-to-Codex orchestration: resolve → confirm → start run → poll → success clears draft / failure falls back to clipboard copy), plus `lexical/`:
 - `NotebookLexicalEditor.tsx` (LexicalComposer, plain text + `ChipNode`), `ChipNode.ts` (a `TextNode` subclass carrying `{ chipId, target, nodeId }`, rendered as an `el-N` chip span), `chip-ids.ts` (chip ids are `el-<n>`, never renumbered), `NotebookEditorPlugins.tsx` (state export, draft sync, chip insertion, chip click → highlight + scroll the preview element into view via `revealTreeNode`), `chip-export.ts` (serializes Lexical state to text with `[chip]el-N[/chip]` markers + collected targets).
 
 **Keyboard**
-- `keyboard.ts` — global capture-phase handler. Shift+Enter → copy notebook; Ctrl/Cmd+Z → visual-edit undo; arrows → preview DOM traversal; Space → append highlighted target as chip; Escape → cascaded close (visual panel → floating note panel → toolbar selection → highlight → forwarded to bridge).
+- `keyboard.ts` — global capture-phase handler. Shift+Enter → copy notebook; Ctrl/Cmd+Z → visual-edit undo; arrows → preview DOM traversal; Space → append highlighted target as chip; Escape → cascaded close (codex confirm dialog → visual panel → floating note panel → toolbar selection → highlight → forwarded to bridge).
 - `shortcut-actions.ts` — pure action layer shared by local keyboard and bridge-forwarded shortcuts.
 
 ### `src/shared/` — cross-context contracts (no side effects)
@@ -175,6 +182,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 - `visual-style.ts` — the CSS control catalog: ~70 property definitions with control kind, units, presets, grouping (drives the visual panel UI).
 - `visual-html.ts` — DOMPurify-based `sanitizeVisualHtmlFragment` for rich-text edits (strips scripts, event handlers, dangerous URLs, runtime artifacts).
 - `config.ts` — app-wide constants: `DATA_AI_ID_ATTRIBUTE`, extension-owned DOM attributes + `EXTENSION_OWNED_DOM_SELECTOR` + `isExtensionOwnedElement()`, and the z-index layering table (**comment says load-bearing; do not renumber**).
+- `codex.ts` — Send-to-Codex contracts: server port/base URL, the `x-copy-ai-id-client` request header (web pages can't attach it without a preflight the server rejects), server response DTOs (`CodexResolvedProject`, `CodexRunResult`, error codes), and the editor ⇄ background runtime messages + shallow guard.
 - `i18n.ts` — en/ko message table + locale resolution (Chrome UI language → navigator → `'en'`).
 - `breakpoints.ts` — breakpoint definitions with Tailwind prefixes (`sm:`…`2xl:`).
 - `activation-scope.ts` — per-URL scope key (used to scope notebook drafts per page).
@@ -189,11 +197,12 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 - `public/` — icons (16/32/48/128) and `_locales/{en,ko}/messages.json` (manifest name/description only; UI strings live in `src/shared/i18n.ts`).
 - `examples/` — standalone HTML fixtures for manual testing: `test-2.html` (fully `data-ai-id`-annotated, includes an intentional duplicate id), `test-1.html` (mostly un-annotated → fallback paths), `fallback-targets.html`, `shadow-dom-test.html`, `iframe-test.html`, `complex-tailwind-test.html`, `manual-test.html` (+ destination page for navigation testing).
 - `scripts/deploy-to-chrome-extension-store.mjs` — the packaging script described above.
+- `scripts/codex-server.mjs` + `scripts/start-codex-server.sh` — the local Send-to-Codex server (see below). `scripts/codex-local-bridge.mjs` is an older token-based prototype kept for reference (`npm run codex-bridge`); the extension only talks to `codex-server.mjs`.
 - `dist/` — Vite/crxjs build output (the unpacked extension). `output/` — store zips, gitignored.
 
 ## Copy/export pipeline
 
-`notebook/copy.ts → copyNotebookDraftFromStore` assembles the clipboard payload:
+`notebook/export-markdown.ts → buildNotebookExportMarkdown` assembles the full markdown document (returns `null` when there is nothing to export); `notebook/copy.ts → copyNotebookDraftFromStore` and the codex send path both consume it:
 
 1. `chip-export.ts` — Lexical state → text with `[chip]el-N[/chip]` markers + chip target list.
 2. `format.ts → formatNotebookCopyBody` — `## Requests` (markers → `@el-N` mentions) + `## Targets` (per-chip details; ai-id targets are stable references, fallback targets include selector/path/context).
@@ -202,6 +211,63 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 5. `clipboard.ts → copyText`, then the draft and visual-edit records are cleared (applied preview DOM mutations are NOT reverted — reloading the preview restores the page).
 
 Visual-edit prompt text is hidden while editing and appended only on copy. Copy is reachable from the note panel copy button, the top-toolbar copy button (works for visual-only sessions), and Shift+Enter.
+
+## Send to Codex (optional, local-only)
+
+Sends the exact markdown the copy button produces to the OpenAI Codex CLI running on the user's machine, with automatic git commits around the run. Nothing leaves the machine: the extension talks (only through its background service worker) to a local server the user starts manually.
+
+```
+Editor (content script, shadow DOM)
+  └─ notebook/codex-send.ts — orchestration + polling, useCodexStore state machine
+       └─ chrome.runtime.sendMessage (contracts: src/shared/codex.ts)
+            └─ src/background/index.ts — stateless fetch proxy (extension-context fetch:
+               exempt from host-page CSP / mixed-content; covered by <all_urls>)
+                 └─ scripts/codex-server.mjs — 127.0.0.1:45130, zero-dependency Node
+                      ├─ lsof / fs — project auto-detection
+                      ├─ git — auto-commits around the run
+                      └─ codex exec (child process, prompt via stdin)
+```
+
+### Local server (`scripts/codex-server.mjs`)
+
+Started manually with `npm run codex-server` (or `scripts/start-codex-server.sh`); the extension never starts it. Endpoints (all JSON; every response is `{ ok: true, ... }` or `{ ok: false, code, error }`):
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | liveness + whether a run is in progress |
+| `POST /resolve-project` `{ pageUrl }` | page URL → `{ projectPath, method, detail }` |
+| `POST /runs` `{ prompt, subject, projectPath, pageUrl }` | starts a run **asynchronously**, returns `{ runId }` immediately; `409 busy` while another run is live (single-run serialization) |
+| `GET /runs/:id` | `{ status: 'running' \| 'done', result }`; finished runs are kept in memory (last 20) |
+
+**Project resolution** (`resolve-project`):
+- `http(s)://localhost|127.0.0.1|[::1]` → `lsof -iTCP:<port> -sTCP:LISTEN` → first listening pid → `lsof -p <pid> -d cwd` → the dev-server process's working directory (method `localhost-port`). No listener → `no-dev-server`.
+- `file://` → start from the file's directory and walk up to the nearest `.git` or `package.json`; if none found, use the file's directory itself (method `file-path`).
+- Any other origin → `unsupported-page`. Resolved paths must be existing directories under `$HOME` (never the filesystem root); outside-home paths are rejected unless `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+
+**Run pipeline** (`executeRun`), in order:
+1. `git rev-parse --is-inside-work-tree`; if not a repo → `git init` + write a default `.gitignore` (only when none exists). Reported as `gitInitialized`.
+2. If `git status --porcelain` is dirty → `git add -A` + commit `auto-commit: YYYY-MM-DD HH:MM:SS` (local time), so the user's pre-existing work is separated from codex's changes. Reported as `preCommitted`. Commits retry once with a `-c user.name/user.email` fallback identity if the project has no git identity.
+3. Spawn `codex exec --json --sandbox workspace-write --cd <projectPath> --skip-git-repo-check --config approval_policy="never" -` with `cwd = projectPath`; the prompt goes in via **stdin** (avoids argv limits/log exposure). A server-side preamble is prepended: project path, page URL, "map `data-ai-id`/selectors to source", "keep edits minimal", "**do not run git commands**". JSONL events are parsed for the final `agent_message` text. Timeout (`COPY_AI_ID_CODEX_TIMEOUT_MS`, default 300000) → SIGKILL + `timedOut: true`.
+4. Only on exit 0 and not timed out: if the tree is dirty → `git add -A` + commit `codex: <subject>` (subject = first line of the request, ≤72 chars, supplied by the editor). `committedFiles` comes from `git show --name-only HEAD`. A clean tree yields `committedFiles: []` with no commit. Failed/timed-out runs are **not** committed — the next run's pre-commit sweeps any partial changes into its `auto-commit`.
+
+**Result shape** (`CodexRunResult` in `src/shared/codex.ts`): `{ ok, exitCode, timedOut, finalMessage, errorOutput, error, gitInitialized, preCommitted, committedFiles, commitMessage, durationMs }`.
+
+**Env vars**: `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130 — must match `CODEX_SERVER_PORT` in `src/shared/codex.ts`), `CODEX_BIN` (default `codex` on PATH), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+
+**Security model**: binds `127.0.0.1` only; every request must carry the `x-copy-ai-id-client` header. A web page cannot attach that header without a CORS preflight, and the server only ACKs preflights from `chrome-extension://` / localhost origins — so cross-site pages (including DNS-rebinding hosts) cannot drive it. The extension's service-worker fetch is CORS-exempt via host permissions and sends the header directly. `curl` testing needs `-H 'x-copy-ai-id-client: dev'`.
+
+### Editor flow (`src/editor/notebook/codex-send.ts`)
+
+`useCodexStore.phase` is the single state machine: `idle → resolving → confirming → running → idle`. Both Codex buttons (top toolbar + note panel) disable while non-idle and re-label per phase (`codex.resolving` / `codex.running` i18n keys).
+
+1. `sendNotebookDraftToCodex()` — no-op with a `busy` toast if already running; builds the markdown via `buildNotebookExportMarkdown()` (empty → `notebook.empty` toast); strips the `copyaiid`/`copy-ai-id-preview` params from `location.href`; asks the worker to resolve the project. Resolve failure → reset + clipboard-fallback toast.
+2. `beginConfirm(...)` stores the pending payload (markdown, subject, page URL, resolved path/method/detail) and opens `CodexConfirmDialog`. Cancel paths: overlay click, cancel button, or Escape (first step of the `handleEditorEscapeAction` cascade, result `'codex-dialog'` — keyboard.ts must not forward that Escape to the bridge).
+3. `confirmCodexSend()` → `startRun` → poll `runStatus` every 2.5s. Transient poll failures (worker restart, brief server hiccup) are tolerated; only `run-not-found` or the 15-minute client deadline aborts.
+4. Outcome:
+   - **Success** (`result.ok`): clear notebook draft + visual edits (identical to a successful copy), info toast with the committed-file count (`codex.successCommitted` / `codex.successNoChanges`).
+   - **Failure/timeout**: the draft is **kept**, the plain markdown (no preamble) is copied to the clipboard as a manual fallback, and an error toast explains (`codex.failed` / `codex.timedOut` / `codex.serverUnreachable` / `codex.unsupportedPage` + `codex.fallbackCopied`). Clipboard write can itself fail when the tab lost focus mid-run — the toast then omits the "copied" suffix.
+
+All user-facing strings live in the `codex` group of `src/shared/i18n.ts` (en + ko). `scripts/codex-local-bridge.mjs` is an unrelated older prototype (fixed workspace + token auth); the extension only speaks to `codex-server.mjs`.
 
 ## chrome.storage keys
 
@@ -220,6 +286,11 @@ All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `
 - **Sanitization is centralized** — rich-text HTML goes through `visual-html.ts` (DOMPurify), attribute edits through `visual-attributes.ts`, exported snapshots through the allowlists in `visual-targets.ts`. Don't bypass these when adding new mutation paths.
 - **file:// and opaque origins** get relaxed origin checks in the bridge (parent-frame identity is still verified) to support local files.
 - **Chip ids are stable** — `el-N` numbers are never renumbered after deletion; `nextChipIndex` is persisted with the draft.
+- **Codex server port is defined in two places** — `CODEX_SERVER_PORT` in `src/shared/codex.ts` and the `COPY_AI_ID_CODEX_SERVER_PORT` default in `scripts/codex-server.mjs` must stay in sync (45130).
+- **The background worker stays a stateless proxy** — no run state, timers, or keepalive tricks in `src/background/index.ts`. Long codex runs are tracked by the editor polling `codex-run-status`; the worker may be killed and restarted between polls at any time. Don't add background logic for other features.
+- **Codex never runs without explicit confirm** — the resolve step only reads (`lsof`/fs); anything that writes to a user project (git init/commits, `codex exec`) happens only after the user confirms the detected path in `CodexConfirmDialog`.
+- **Codex failure keeps the draft** — the notebook draft + visual edits are cleared only on a successful run (mirroring copy semantics); failures/timeouts fall back to copying the prompt to the clipboard.
+- **`codex:` commits only on success** — a failed or timed-out run leaves the tree uncommitted; the next run's `auto-commit` pre-commit sweeps those partial changes up. Don't "fix" this by committing failed runs.
 
 ## Styling conventions
 

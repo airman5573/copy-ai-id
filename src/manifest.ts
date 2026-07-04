@@ -31,6 +31,13 @@ export default defineManifest({
   },
   permissions: ['storage'],
   host_permissions: ['<all_urls>'],
+  // Thin proxy for the "Send to Codex" feature only: forwards editor requests
+  // to the local codex server (see src/background/index.ts). No other logic
+  // lives in the background context.
+  background: {
+    service_worker: 'src/background/index.ts',
+    type: 'module',
+  },
   action: {
     default_title: '__MSG_extensionName__',
     default_popup: 'src/popup/index.html',

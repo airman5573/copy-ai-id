@@ -65,6 +65,27 @@ Keyboard traversal moves through every preview DOM node, not only nodes with `da
 
 Shortcuts are ignored while typing in editable fields or during IME composition, except **Shift + Enter** inside the notebook copies the current notebook.
 
+## Send to Codex (optional, local-only)
+
+The editor can send the same Markdown the **Copy** button produces straight to the [OpenAI Codex CLI](https://github.com/openai/codex) on your machine — no clipboard round-trip.
+
+1. Start the local server from this repository and keep the terminal open:
+
+   ```bash
+   npm run codex-server        # or scripts/start-codex-server.sh
+   ```
+
+2. Open a **localhost dev-server page** or a **file:// page** in the editor and click the **Codex** button (top toolbar or note panel).
+3. The server auto-detects the local project for the page — localhost pages map the port to the dev-server process's working directory, `file://` pages walk up to the nearest `.git`/`package.json` — and a confirmation dialog shows the detected path before anything runs.
+4. On **Run**, the server:
+   - runs `git init` (plus a default `.gitignore`) if the project has no repository,
+   - commits any pre-existing uncommitted changes first as `auto-commit: <timestamp>`,
+   - runs `codex exec` inside the project (workspace-write sandbox, 5-minute default timeout),
+   - commits Codex's changes as `codex: <first line of the request>`.
+5. On success the notebook draft and visual edits are cleared, exactly like a copy. On failure or timeout the prompt is copied to the clipboard instead so you can paste it manually.
+
+Everything stays on your machine: the server binds to `127.0.0.1` only and requires a request header ordinary web pages cannot attach. Environment overrides: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+
 ## What is `data-ai-id`?
 
 `data-ai-id` is a stable semantic HTML attribute that gives AI tools, browser automation, QA reviewers, and maintainers a precise handle for UI elements.
@@ -114,4 +135,4 @@ To fix it:
 
 ## Product scope
 
-Copy AI ID is now editor-only. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings pages, remote prompt sending, analytics, or remote AI processing. Notes and preview-only visual edit instructions are copied only when the user explicitly clicks **Copy** or presses **Shift + Enter**.
+Copy AI ID is editor-first. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings pages, analytics, or remote AI processing. Notes and preview-only visual edit instructions leave the editor only when the user explicitly copies them (**Copy** / **Shift + Enter**) or explicitly confirms a **Send to Codex** run, and the optional Codex path talks exclusively to a local `127.0.0.1` server the user starts manually — nothing is ever sent to a remote service.

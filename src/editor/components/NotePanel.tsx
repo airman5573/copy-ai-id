@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import {
@@ -9,8 +8,9 @@ import {
   type NotebookBreakpointScope,
 } from '../notebook/breakpoint-scope';
 import { getCurrentMessages } from '../../shared/i18n';
-import { writeNotebookTargetNotice } from '../notebook/notebook-notice';
+import { sendNotebookDraftToCodex } from '../notebook/codex-send';
 import { clearNotebookCopyStatusReset, copyNotebookDraftFromStore } from '../notebook/copy';
+import { useCodexStore } from '../stores/useCodexStore';
 import {
   selectHasNotebookDraftForCopy,
   useNotebookStore,
@@ -38,23 +38,6 @@ export function NotePanel({
     'copy-ai-id-editor-note-panel--floating',
     className,
   ].filter(Boolean).join(' ');
-  const [isNoticeEditorOpen, setNoticeEditorOpen] = useState(false);
-  const [noticeDraft, setNoticeDraft] = useState('');
-  const noticeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-  // The floating panel shell is transformed and overflow-hidden, so the
-  // fixed-position notice dialog must be portaled out to the editor shell.
-  const [noticeDialogHost, setNoticeDialogHost] = useState<HTMLElement | null>(null);
-  const attachNoticeDialogHostProbe = (node: HTMLDivElement | null): void => {
-    if (!node) {
-      setNoticeDialogHost(null);
-      return;
-    }
-
-    const root = node.getRootNode();
-    setNoticeDialogHost('querySelector' in root
-      ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-shell"]')
-      : null);
-  };
   const draft = useNotebookStore((state) => state.draft);
   const editorStateJson = useNotebookStore((state) => state.editorStateJson);
   const isNotebookEmpty = useNotebookStore((state) => state.isNotebookEmpty);
@@ -81,21 +64,6 @@ export function NotePanel({
     };
   }, [hydrateNoteFontSize]);
 
-  useEffect(() => {
-    if (!isNoticeEditorOpen) {
-      return;
-    }
-
-    const frameId = window.requestAnimationFrame(() => {
-      noticeTextareaRef.current?.focus();
-      noticeTextareaRef.current?.select();
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [isNoticeEditorOpen]);
-
   const handleCopy = async (): Promise<void> => {
     await copyNotebookDraftFromStore();
   };
@@ -103,26 +71,6 @@ export function NotePanel({
   const handleReset = (): void => {
     clearDraft();
     clearVisualEdits();
-  };
-
-  const openNoticeEditor = (): void => {
-    setNoticeDraft(suffixSettings.targetNotice);
-    setNoticeEditorOpen(true);
-  };
-
-  const closeNoticeEditor = (): void => {
-    setNoticeEditorOpen(false);
-  };
-
-  const saveNoticeEditor = async (): Promise<void> => {
-    await writeNotebookTargetNotice(noticeDraft);
-
-    const latestSuffixSettings = useNotebookStore.getState().suffixSettings;
-    setSuffixSettings({
-      ...latestSuffixSettings,
-      targetNotice: noticeDraft,
-    });
-    setNoticeEditorOpen(false);
   };
 
   const setBreakpointMode = (): void => {
@@ -161,6 +109,26 @@ export function NotePanel({
       : copyStatus === 'empty'
       ? messages.notebook.empty
       : messages.notebook.save;
+  const codexPhase = useCodexStore((state) => state.phase);
+  const codexButtonLabel = codexPhase === 'resolving'
+    ? messages.codex.resolving
+    : codexPhase === 'running'
+      ? messages.codex.running
+      : messages.codex.send;
+  const codexButton = (
+    <button
+      className={`copy-ai-id-editor-copy-button copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
+      data-ai-id="copy-ai-id-editor-codex-button"
+      type="button"
+      title={messages.codex.sendTitle}
+      disabled={codexPhase !== 'idle'}
+      onClick={() => {
+        void sendNotebookDraftToCodex();
+      }}
+    >
+      {codexButtonLabel}
+    </button>
+  );
   const copyButton = (
     <button
       className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
@@ -191,7 +159,6 @@ export function NotePanel({
       />
 
       <div
-        ref={attachNoticeDialogHostProbe}
         className="copy-ai-id-editor-note-controls"
         data-ai-id="copy-ai-id-editor-note-suffix-controls"
       >
@@ -232,16 +199,6 @@ export function NotePanel({
         </label>
 
         <ToolbarButton
-          data-ai-id="copy-ai-id-editor-note-notice-button"
-          title={messages.notebook.noticeDialogTitle}
-          aria-label={messages.notebook.noticeDialogTitle}
-          aria-haspopup="dialog"
-          aria-expanded={isNoticeEditorOpen}
-          onClick={openNoticeEditor}
-        >
-          {messages.notebook.noticeButton}
-        </ToolbarButton>
-        <ToolbarButton
           data-ai-id="copy-ai-id-editor-note-reset-button"
           disabled={isNotebookEmpty && !hasVisualEditState}
           title={messages.notebook.reset}
@@ -257,74 +214,9 @@ export function NotePanel({
         >
           <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
         </span>
+        {codexButton}
         {copyButton}
       </div>
-
-      {isNoticeEditorOpen ? portalNoticeDialog(noticeDialogHost, (
-        <div
-          className="copy-ai-id-editor-notice-dialog-backdrop"
-          data-ai-id="copy-ai-id-editor-notice-dialog-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeNoticeEditor();
-            }
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              closeNoticeEditor();
-            }
-          }}
-        >
-          <section
-            className="copy-ai-id-editor-notice-dialog"
-            data-ai-id="copy-ai-id-editor-notice-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="copy-ai-id-editor-notice-dialog-title"
-          >
-            <div className="copy-ai-id-editor-notice-dialog__header">
-              <h3 id="copy-ai-id-editor-notice-dialog-title">
-                {messages.notebook.noticeDialogTitle}
-              </h3>
-              <p>{messages.notebook.noticeDescription}</p>
-            </div>
-            <textarea
-              ref={noticeTextareaRef}
-              className="copy-ai-id-editor-notice-dialog__textarea"
-              data-ai-id="copy-ai-id-editor-notice-textarea"
-              value={noticeDraft}
-              placeholder={messages.notebook.noticePlaceholder}
-              spellCheck={false}
-              onChange={(event) => setNoticeDraft(event.currentTarget.value)}
-            />
-            <div className="copy-ai-id-editor-notice-dialog__actions">
-              <button
-                type="button"
-                className="copy-ai-id-editor-notice-dialog__button"
-                data-ai-id="copy-ai-id-editor-notice-cancel-button"
-                onClick={closeNoticeEditor}
-              >
-                {messages.notebook.noticeCancel}
-              </button>
-              <button
-                type="button"
-                className="copy-ai-id-editor-notice-dialog__button copy-ai-id-editor-notice-dialog__button--primary"
-                data-ai-id="copy-ai-id-editor-notice-save-button"
-                onClick={() => {
-                  void saveNoticeEditor();
-                }}
-              >
-                {messages.notebook.noticeSave}
-              </button>
-            </div>
-          </section>
-        </div>
-      )) : null}
     </PanelChrome>
   );
-}
-
-function portalNoticeDialog(host: HTMLElement | null, dialog: ReactElement) {
-  return host ? createPortal(dialog, host) : dialog;
 }

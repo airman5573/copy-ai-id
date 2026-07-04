@@ -1,8 +1,10 @@
-import { Copy, NotebookText, X } from 'lucide-react';
+import { Copy, NotebookText, SendHorizontal, X } from 'lucide-react';
 
 import { getCurrentMessages } from '../../shared/i18n';
 import { requestNotePanelFocus } from '../note-panel-focus';
+import { sendNotebookDraftToCodex } from '../notebook/codex-send';
 import { copyNotebookDraftFromStore } from '../notebook/copy';
+import { useCodexStore } from '../stores/useCodexStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { type FitZoomOptions } from '../stores/useBreakpointStore';
 import {
@@ -54,6 +56,12 @@ export function TopToolbar({
       : copyStatus === 'empty'
       ? messages.notebook.empty
       : messages.notebook.save;
+  const codexPhase = useCodexStore((state) => state.phase);
+  const codexButtonLabel = codexPhase === 'resolving'
+    ? messages.codex.resolving
+    : codexPhase === 'running'
+      ? messages.codex.running
+      : messages.codex.send;
 
   return (
     <header className="copy-ai-id-editor-toolbar" data-ai-id="copy-ai-id-editor-toolbar">
@@ -103,6 +111,20 @@ export function TopToolbar({
         >
           <Copy size={14} aria-hidden="true" />
           <span>{copyButtonLabel}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--toolbar copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
+          data-ai-id="copy-ai-id-editor-toolbar-codex-button"
+          title={messages.codex.sendTitle}
+          disabled={codexPhase !== 'idle'}
+          onClick={() => {
+            void sendNotebookDraftToCodex();
+          }}
+        >
+          <SendHorizontal size={14} aria-hidden="true" />
+          <span>{codexButtonLabel}</span>
         </button>
       </div>
     </header>

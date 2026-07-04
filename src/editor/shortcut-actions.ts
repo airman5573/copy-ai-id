@@ -11,7 +11,9 @@ import { bridgeViewportRectToEditorViewportRect, type EditorViewportRect } from 
 import { closeOpenQuickToolbarPopover } from './components/quick-toolbar/popoverRegistry';
 import { captureNotePanelAnchor } from './note-panel-anchor';
 import { requestNotePanelFocus } from './note-panel-focus';
+import { cancelCodexSend } from './notebook/codex-send';
 import { copyNotebookDraftFromStore } from './notebook/copy';
+import { useCodexStore } from './stores/useCodexStore';
 import { useFloatingNotePanelStore } from './stores/useFloatingNotePanelStore';
 import { useFloatingVisualPanelStore } from './stores/useFloatingVisualPanelStore';
 import { useHighlightStore } from './stores/useHighlightStore';
@@ -21,6 +23,7 @@ import { showStaleFallbackTargetToast } from './toast';
 import { undoLastVisualEdit } from './visual/visualUndo';
 
 export type EditorEscapeActionResult =
+  | 'codex-dialog'
   | 'quick-toolbar-popover'
   | 'visual-panel'
   | 'floating-note-panel'
@@ -61,8 +64,14 @@ export function handleEditorShortcutAction(
 }
 
 export function handleEditorEscapeAction(): EditorEscapeActionResult {
-  // Escape cascade: open quick-toolbar popover → visual panel → floating note
-  // panel → toolbar unpin → highlight (forwarded to the bridge by callers).
+  // Escape cascade: codex confirm dialog → open quick-toolbar popover →
+  // visual panel → floating note panel → toolbar unpin → highlight (forwarded
+  // to the bridge by callers).
+  if (useCodexStore.getState().phase === 'confirming') {
+    cancelCodexSend();
+    return 'codex-dialog';
+  }
+
   if (closeOpenQuickToolbarPopover()) {
     return 'quick-toolbar-popover';
   }

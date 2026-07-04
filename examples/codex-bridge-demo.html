@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Copy AI ID → Codex Local Bridge Demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        line-height: 1.5;
+      }
+
+      body {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 64px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      .lead {
+        margin: 0 0 24px;
+        color: #64748b;
+      }
+
+      .card {
+        border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+        border-radius: 16px;
+        padding: 18px;
+        margin-top: 16px;
+        background: color-mix(in srgb, canvas 94%, currentColor 6%);
+      }
+
+      label {
+        display: block;
+        margin: 14px 0 6px;
+        font-weight: 700;
+      }
+
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: canvas;
+        color: canvastext;
+      }
+
+      textarea {
+        min-height: 220px;
+        resize: vertical;
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          "Liberation Mono",
+          monospace;
+      }
+
+      button {
+        margin-top: 14px;
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 18px;
+        color: white;
+        background: #2563eb;
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.58;
+      }
+
+      pre {
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: 12px;
+        padding: 14px;
+        background: color-mix(in srgb, canvasText 8%, canvas);
+      }
+
+      code {
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Consolas,
+          "Liberation Mono",
+          monospace;
+      }
+
+      .status {
+        min-height: 24px;
+        margin-top: 12px;
+        font-weight: 700;
+      }
+
+      .status[data-tone="error"] {
+        color: #dc2626;
+      }
+
+      .status[data-tone="ok"] {
+        color: #16a34a;
+      }
+
+      .muted {
+        color: #64748b;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Copy AI ID → Codex Local Bridge Demo</h1>
+    <p class="lead">
+      이 파일을 <code>file://</code> 로 열고, 로컬 브릿지를 통해 브라우저에서 Codex로 프롬프트를 보냅니다.
+    </p>
+
+    <section class="card">
+      <strong>1. 먼저 프로젝트 루트에서 브릿지를 실행하세요.</strong>
+      <pre><code>npm run codex-bridge</code></pre>
+      <p class="muted">
+        터미널에 출력되는 <code>token</code> 값을 아래에 붙여넣으세요. Codex는 기본적으로 이 프로젝트 루트에서
+        <code>workspace-write</code> 권한으로 실행됩니다.
+      </p>
+    </section>
+
+    <section class="card">
+      <label for="endpoint">Endpoint</label>
+      <input id="endpoint" value="http://127.0.0.1:45129/api/codex" />
+
+      <label for="token">Bridge token</label>
+      <input id="token" autocomplete="off" placeholder="터미널에 출력된 token" />
+
+      <label for="prompt">Prompt</label>
+      <textarea id="prompt">현재 프로젝트의 README/package 구조를 보고, 내가 어떤 파일을 고치면 되는지 짧게 제안해줘. 실제 파일 수정은 아직 하지 마.</textarea>
+
+      <button id="send" type="button">Send prompt to Codex</button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>Final response</h2>
+      <pre id="final">(아직 응답 없음)</pre>
+    </section>
+
+    <section class="card">
+      <h2>Raw events</h2>
+      <pre id="events">(아직 이벤트 없음)</pre>
+    </section>
+
+    <script>
+      const endpointInput = document.querySelector('#endpoint');
+      const tokenInput = document.querySelector('#token');
+      const promptInput = document.querySelector('#prompt');
+      const sendButton = document.querySelector('#send');
+      const statusBox = document.querySelector('#status');
+      const finalBox = document.querySelector('#final');
+      const eventsBox = document.querySelector('#events');
+
+      endpointInput.value = localStorage.getItem('copy-ai-id-codex-bridge-endpoint') || endpointInput.value;
+      tokenInput.value = localStorage.getItem('copy-ai-id-codex-bridge-token') || '';
+
+      sendButton.addEventListener('click', async () => {
+        const endpoint = endpointInput.value.trim();
+        const token = tokenInput.value.trim();
+        const prompt = promptInput.value.trim();
+
+        localStorage.setItem('copy-ai-id-codex-bridge-endpoint', endpoint);
+        localStorage.setItem('copy-ai-id-codex-bridge-token', token);
+
+        if (!endpoint || !token || !prompt) {
+          setStatus('endpoint, token, prompt를 모두 입력하세요.', 'error');
+          return;
+        }
+
+        sendButton.disabled = true;
+        setStatus('Codex 실행 중입니다. 로컬 파일을 수정하는 프롬프트라면 시간이 걸릴 수 있습니다…', '');
+        finalBox.textContent = '(대기 중)';
+        eventsBox.textContent = '(대기 중)';
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({ token, prompt }),
+          });
+          const result = await response.json();
+
+          if (!response.ok || !result.ok) {
+            setStatus(result.error || `Request failed with HTTP ${response.status}`, 'error');
+          } else {
+            setStatus(`완료: ${result.durationMs}ms${result.threadId ? ` / thread ${result.threadId}` : ''}`, 'ok');
+          }
+
+          finalBox.textContent = result.finalMessage || '(final message 없음)';
+          eventsBox.textContent = JSON.stringify(result.events || result, null, 2);
+        } catch (error) {
+          setStatus(error instanceof Error ? error.message : String(error), 'error');
+          finalBox.textContent = '(실패)';
+        } finally {
+          sendButton.disabled = false;
+        }
+      });
+
+      function setStatus(message, tone) {
+        statusBox.textContent = message;
+        statusBox.dataset.tone = tone;
+      }
+    </script>
+  </body>
+</html>

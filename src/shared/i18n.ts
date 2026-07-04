@@ -80,6 +80,26 @@ export interface CopyAiIdMessages {
       selectedOnlySuffix: string;
     };
   };
+  codex: {
+    send: string;
+    sendTitle: string;
+    resolving: string;
+    running: string;
+    confirmTitle: string;
+    confirmMethodLocalhostPort: string;
+    confirmMethodFilePath: string;
+    confirmRun: string;
+    confirmCancel: string;
+    successCommitted: string;
+    successNoChanges: string;
+    failed: string;
+    timedOut: string;
+    busy: string;
+    serverUnreachable: string;
+    resolveFailed: string;
+    unsupportedPage: string;
+    fallbackCopied: string;
+  };
   // The quick toolbar and 모든 옵션 panel are Korean-only by product decision;
   // their labels are hardcoded in the components, so only the shared state
   // notices remain localized here.
@@ -197,6 +217,26 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         selectedOnlySuffix: ' only',
       },
     },
+    codex: {
+      send: 'Codex',
+      sendTitle: 'Send the current note to the Codex CLI and apply it to the local project',
+      resolving: 'Detecting…',
+      running: 'Running…',
+      confirmTitle: 'Run Codex in this project?',
+      confirmMethodLocalhostPort: 'Detected from the dev server process serving this page.',
+      confirmMethodFilePath: 'Detected from this file\'s path.',
+      confirmRun: 'Run',
+      confirmCancel: 'Cancel',
+      successCommitted: 'Codex finished — committed {count} file(s).',
+      successNoChanges: 'Codex finished — no file changes.',
+      failed: 'Codex run failed.',
+      timedOut: 'Codex run timed out.',
+      busy: 'Codex is already running.',
+      serverUnreachable: 'Codex server is not running. Start it with "npm run codex-server".',
+      resolveFailed: 'Could not detect a local project for this page.',
+      unsupportedPage: 'Codex send works only on localhost or file:// pages.',
+      fallbackCopied: 'The prompt was copied to the clipboard instead.',
+    },
     visualEditor: {
       panel: {
         state: {
@@ -307,6 +347,26 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         mobile: '모바일 이상에서만',
         selectedOnlySuffix: '에서만',
       },
+    },
+    codex: {
+      send: 'Codex',
+      sendTitle: '현재 노트를 Codex CLI로 보내 로컬 프로젝트에 적용합니다',
+      resolving: '감지 중…',
+      running: '실행 중…',
+      confirmTitle: '이 프로젝트에서 Codex를 실행할까요?',
+      confirmMethodLocalhostPort: '이 페이지를 서빙하는 개발 서버 프로세스에서 감지했습니다.',
+      confirmMethodFilePath: '이 파일의 경로에서 감지했습니다.',
+      confirmRun: '실행',
+      confirmCancel: '취소',
+      successCommitted: 'Codex 완료 — 파일 {count}개를 커밋했습니다.',
+      successNoChanges: 'Codex 완료 — 변경된 파일이 없습니다.',
+      failed: 'Codex 실행이 실패했습니다.',
+      timedOut: 'Codex 실행이 시간 초과되었습니다.',
+      busy: '이미 Codex가 실행 중입니다.',
+      serverUnreachable: 'Codex 서버가 실행 중이 아닙니다. "npm run codex-server"로 실행하세요.',
+      resolveFailed: '이 페이지의 로컬 프로젝트를 찾지 못했습니다.',
+      unsupportedPage: 'Codex 전송은 localhost 또는 file:// 페이지에서만 동작합니다.',
+      fallbackCopied: '프롬프트를 클립보드에 복사해 두었습니다.',
     },
     visualEditor: {
       panel: {

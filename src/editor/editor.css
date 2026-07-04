@@ -156,6 +156,16 @@ textarea,
   background: var(--editor-surface-hover);
 }
 
+.copy-ai-id-editor-codex-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.copy-ai-id-editor-codex-button:disabled:hover {
+  border-color: var(--editor-border);
+  background: var(--editor-surface-strong);
+}
+
 .copy-ai-id-editor-main {
   position: relative;
   display: grid;
@@ -788,107 +798,4 @@ textarea,
   border-color: rgba(248, 113, 113, 0.54);
   background: rgba(185, 28, 28, 0.28);
   color: #fee2e2;
-}
-
-.copy-ai-id-editor-notice-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  /* Portaled to the editor shell; must sit above every floating layer. */
-  z-index: 130;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(5, 6, 8, 0.68);
-  padding: 24px;
-}
-
-.copy-ai-id-editor-notice-dialog {
-  display: grid;
-  width: min(460px, 100%);
-  gap: 14px;
-  border: 1px solid var(--editor-border);
-  border-radius: 18px;
-  background: var(--editor-surface-raised);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58);
-  padding: 18px;
-}
-
-.copy-ai-id-editor-notice-dialog__header {
-  display: grid;
-  gap: 4px;
-}
-
-.copy-ai-id-editor-notice-dialog__header h3,
-.copy-ai-id-editor-notice-dialog__header p {
-  margin: 0;
-}
-
-.copy-ai-id-editor-notice-dialog__header h3 {
-  color: var(--editor-text-strong);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.copy-ai-id-editor-notice-dialog__header p {
-  color: var(--editor-text-muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.copy-ai-id-editor-notice-dialog__textarea {
-  width: 100%;
-  min-height: 150px;
-  resize: vertical;
-  border: 1px solid var(--editor-border);
-  border-radius: 12px;
-  outline: none;
-  background: rgba(5, 6, 8, 0.56);
-  color: var(--editor-text);
-  font-size: 12px;
-  line-height: 1.5;
-  padding: 10px 11px;
-}
-
-.copy-ai-id-editor-notice-dialog__textarea:focus {
-  border-color: var(--editor-accent-border);
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.16);
-}
-
-.copy-ai-id-editor-notice-dialog__textarea::placeholder {
-  color: var(--editor-text-faint);
-}
-
-.copy-ai-id-editor-notice-dialog__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.copy-ai-id-editor-notice-dialog__button {
-  border: 1px solid var(--editor-border);
-  border-radius: 10px;
-  background: var(--editor-surface-strong);
-  color: var(--editor-text);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 750;
-  padding: 8px 11px;
-}
-
-.copy-ai-id-editor-notice-dialog__button:hover,
-.copy-ai-id-editor-notice-dialog__button:focus-visible {
-  border-color: var(--editor-accent-border);
-  background: var(--editor-surface-hover);
-  outline: none;
-}
-
-.copy-ai-id-editor-notice-dialog__button--primary {
-  border-color: var(--editor-accent-border);
-  background: var(--editor-accent-strong);
-  color: var(--editor-accent-text);
-}
-
-.copy-ai-id-editor-notice-dialog__button--primary:hover,
-.copy-ai-id-editor-notice-dialog__button--primary:focus-visible {
-  background: #0284c7;
 }

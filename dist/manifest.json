@@ -16,6 +16,10 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
   "action": {
     "default_title": "__MSG_extensionName__",
     "default_popup": "src/popup/index.html",
@@ -29,7 +33,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-CuObB7WL.js"
+        "assets/index.ts-loader-DF6qNfVC.js"
       ],
       "matches": [
         "<all_urls>"
@@ -45,8 +49,9 @@
         "<all_urls>"
       ],
       "resources": [
-        "assets/i18n-DSYt5HRX.js",
-        "assets/index.ts-CLt2Lidd.js"
+        "assets/notebook-notice-C4DNMC8E.js",
+        "assets/codex-DD09e6-B.js",
+        "assets/index.ts-DeoEy0H5.js"
       ],
       "use_dynamic_url": false
     }
