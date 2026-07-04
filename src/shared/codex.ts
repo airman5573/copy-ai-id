@@ -20,9 +20,32 @@ export interface CodexResolvedProject {
   projectPath: string;
   method: CodexResolveMethod;
   detail: string;
+  // True when detection is unambiguous (localhost dev-server cwd, or a
+  // file:// walk that found a .git/package.json marker). Confident results
+  // run immediately; uncertain ones go through the confirm dialog.
+  confident: boolean;
 }
 
 export type CodexRunStatus = 'running' | 'done';
+
+export type CodexReasoningEffort = 'low' | 'medium' | 'high';
+
+export const CODEX_REASONING_EFFORTS: readonly CodexReasoningEffort[] = ['low', 'medium', 'high'];
+
+export const DEFAULT_CODEX_REASONING_EFFORT: CodexReasoningEffort = 'medium';
+
+export function isCodexReasoningEffort(value: unknown): value is CodexReasoningEffort {
+  return value === 'low' || value === 'medium' || value === 'high';
+}
+
+// One line of the live run log streamed to the mini console. `seq` is a
+// per-run monotonic cursor: the client polls with `after=<last seq>` and the
+// server only returns newer entries.
+export interface CodexRunEvent {
+  seq: number;
+  kind: 'status' | 'command' | 'reasoning' | 'message' | 'file' | 'error';
+  text: string;
+}
 
 export interface CodexRunResult {
   ok: boolean;
@@ -65,6 +88,8 @@ export type CodexStartRunResponse = CodexResponse<{ runId: string }>;
 export type CodexRunStatusResponse = CodexResponse<{
   status: CodexRunStatus;
   result: CodexRunResult | null;
+  events: CodexRunEvent[];
+  nextSeq: number;
 }>;
 
 // Editor (content script) → background service worker messages. The worker is
@@ -93,11 +118,13 @@ export interface CodexStartRunMessage {
   subject: string;
   projectPath: string;
   pageUrl: string;
+  reasoningEffort: CodexReasoningEffort;
 }
 
 export interface CodexRunStatusMessage {
   type: typeof CODEX_RUNTIME_MESSAGE_TYPES.runStatus;
   runId: string;
+  after: number;
 }
 
 export type CodexRuntimeMessage =

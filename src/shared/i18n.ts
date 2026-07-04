@@ -85,6 +85,7 @@ export interface CopyAiIdMessages {
     sendTitle: string;
     resolving: string;
     running: string;
+    startedIn: string;
     confirmTitle: string;
     confirmMethodLocalhostPort: string;
     confirmMethodFilePath: string;
@@ -99,6 +100,13 @@ export interface CopyAiIdMessages {
     resolveFailed: string;
     unsupportedPage: string;
     fallbackCopied: string;
+    logTitle: string;
+    logClose: string;
+    logWaiting: string;
+    reasoningTitle: string;
+    reasoningLow: string;
+    reasoningMedium: string;
+    reasoningHigh: string;
   };
   // The quick toolbar and 모든 옵션 panel are Korean-only by product decision;
   // their labels are hardcoded in the components, so only the shared state
@@ -222,6 +230,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       sendTitle: 'Send the current note to the Codex CLI and apply it to the local project',
       resolving: 'Detecting…',
       running: 'Running…',
+      startedIn: 'Running Codex in {path}',
       confirmTitle: 'Run Codex in this project?',
       confirmMethodLocalhostPort: 'Detected from the dev server process serving this page.',
       confirmMethodFilePath: 'Detected from this file\'s path.',
@@ -236,6 +245,13 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       resolveFailed: 'Could not detect a local project for this page.',
       unsupportedPage: 'Codex send works only on localhost or file:// pages.',
       fallbackCopied: 'The prompt was copied to the clipboard instead.',
+      logTitle: 'Codex activity',
+      logClose: 'Close log',
+      logWaiting: 'Waiting for output…',
+      reasoningTitle: 'Codex reasoning effort',
+      reasoningLow: 'Fast (low)',
+      reasoningMedium: 'Standard (medium)',
+      reasoningHigh: 'Deep (high)',
     },
     visualEditor: {
       panel: {
@@ -353,6 +369,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       sendTitle: '현재 노트를 Codex CLI로 보내 로컬 프로젝트에 적용합니다',
       resolving: '감지 중…',
       running: '실행 중…',
+      startedIn: '{path} 에서 Codex 실행 중',
       confirmTitle: '이 프로젝트에서 Codex를 실행할까요?',
       confirmMethodLocalhostPort: '이 페이지를 서빙하는 개발 서버 프로세스에서 감지했습니다.',
       confirmMethodFilePath: '이 파일의 경로에서 감지했습니다.',
@@ -367,6 +384,13 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       resolveFailed: '이 페이지의 로컬 프로젝트를 찾지 못했습니다.',
       unsupportedPage: 'Codex 전송은 localhost 또는 file:// 페이지에서만 동작합니다.',
       fallbackCopied: '프롬프트를 클립보드에 복사해 두었습니다.',
+      logTitle: 'Codex 작업 로그',
+      logClose: '로그 닫기',
+      logWaiting: '출력 대기 중…',
+      reasoningTitle: 'Codex reasoning 수준',
+      reasoningLow: '빠름 (low)',
+      reasoningMedium: '보통 (medium)',
+      reasoningHigh: '깊게 (high)',
     },
     visualEditor: {
       panel: {

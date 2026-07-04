@@ -152,14 +152,14 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 | `useNotebookStore` | notebook draft text, Lexical `editorStateJson`, chip targets/indexes, suffix settings, copy status |
 | `useVisualSelectionStore` | **single owner of visual-selection data**: hoverTarget, activeToolbarTarget, panelTarget, snapshot lifecycle (status/error/staleReason) |
 | `useVisualEditStore` | visual-edit history: records, pending mutations, undo/redo stacks, export document |
-| `useCodexStore` | Send-to-Codex state machine: `phase` (`idle → resolving → confirming → running`) + the pending send payload (markdown, subject, resolved project path/method) |
+| `useCodexStore` | Send-to-Codex state machine: `phase` (`idle → resolving → confirming → running`), the pending send payload (markdown, subject, resolved project path/method), the live log console state (`logOpen`/`logEvents`), and the persisted reasoning effort |
 
 **`bridge/`**
 - `bridgeClient.ts` — the message hub. `createPreviewUrl` appends `?copy-ai-id-preview=1`; `postToBridge` posts to the iframe; `installBridgeClient` validates inbound `source` + type guard, then `routeBridgeMessage` fans out to per-domain handlers that write into the stores. On `bridgeReady` it resets visual stores and re-pushes zoom state.
 - `geometry.ts` — converts bridge-viewport rects/points ⇄ editor-viewport coordinates (accounting for canvas zoom) and computes floating-panel placement.
 
 **`components/`**
-- Root: `TopToolbar` (note panel open/close toggle + prompt copy button + Codex send button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/Codex send/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`, `CodexConfirmDialog` (shows the auto-detected project path; the run starts only on explicit confirm).
+- Root: `TopToolbar` (note panel open/close toggle + prompt copy button + Codex send button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/Codex send/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`, `CodexConfirmDialog` (shows the auto-detected project path for non-confident detections), `CodexLogConsole` (live run log under the toolbar Codex button).
 - `visual-panel/` — `FloatingVisualPanel` (tabs for the six categories), `VisualPanelContent` (readiness gating, renders the matching controls group).
 - `visual/` — reusable inputs: `UnitValueInput`, `ColorInput`, `DropdownSelect`, `PresetSelect`, `EdgeBoxControl`, `VisualControl`/`VisualSection`; `dropdownCoordinator.ts` keeps only one dropdown open inside the shadow DOM.
 - `controls/` — one component per edit category (`ContentControls`, `LayoutControls`, `SpacingControls`, `SizeControls`, `BorderControls`, `ColorControls`, `TypographyControls`, `BackgroundImageControls`, …) bound to `forms/useVisualStyleForm.ts` and the style-edit hooks.
@@ -237,22 +237,23 @@ Started manually with `npm run codex-server` (or `scripts/start-codex-server.sh`
 | `GET /health` | liveness + whether a run is in progress |
 | `POST /resolve-project` `{ pageUrl }` | page URL → `{ projectPath, method, detail }` |
 | `POST /runs` `{ prompt, subject, projectPath, pageUrl }` | starts a run **asynchronously**, returns `{ runId }` immediately; `409 busy` while another run is live (single-run serialization) |
-| `GET /runs/:id` | `{ status: 'running' \| 'done', result }`; finished runs are kept in memory (last 20) |
+| `GET /runs/:id?after=<seq>` | `{ status: 'running' \| 'done', result, events, nextSeq }`; `events` is the incremental run log (entries with `seq > after`, capped at 500/run) that feeds the live log console; finished runs are kept in memory (last 20) |
 
 **Project resolution** (`resolve-project`):
 - `http(s)://localhost|127.0.0.1|[::1]` → `lsof -iTCP:<port> -sTCP:LISTEN` → first listening pid → `lsof -p <pid> -d cwd` → the dev-server process's working directory (method `localhost-port`). No listener → `no-dev-server`.
 - `file://` → start from the file's directory and walk up to the nearest `.git` or `package.json`; if none found, use the file's directory itself (method `file-path`).
 - Any other origin → `unsupported-page`. Resolved paths must be existing directories under `$HOME` (never the filesystem root); outside-home paths are rejected unless `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+- Every success carries `confident: boolean` — `true` for `localhost-port` (a process cwd is deterministic) and for marker-based `file-path` hits; `false` when the file walk found no marker and fell back to the file's own directory. Confident results skip the confirm dialog.
 
 **Run pipeline** (`executeRun`), in order:
 1. `git rev-parse --is-inside-work-tree`; if not a repo → `git init` + write a default `.gitignore` (only when none exists). Reported as `gitInitialized`.
 2. If `git status --porcelain` is dirty → `git add -A` + commit `auto-commit: YYYY-MM-DD HH:MM:SS` (local time), so the user's pre-existing work is separated from codex's changes. Reported as `preCommitted`. Commits retry once with a `-c user.name/user.email` fallback identity if the project has no git identity.
-3. Spawn `codex exec --json --sandbox workspace-write --cd <projectPath> --skip-git-repo-check --config approval_policy="never" -` with `cwd = projectPath`; the prompt goes in via **stdin** (avoids argv limits/log exposure). A server-side preamble is prepended: project path, page URL, "map `data-ai-id`/selectors to source", "keep edits minimal", "**do not run git commands**". JSONL events are parsed for the final `agent_message` text. Timeout (`COPY_AI_ID_CODEX_TIMEOUT_MS`, default 300000) → SIGKILL + `timedOut: true`.
+3. Spawn `codex exec --json --sandbox workspace-write --cd <projectPath> --skip-git-repo-check --config approval_policy="never" --config model_reasoning_effort="<effort>" [-m <model>] -` with `cwd = projectPath`; the prompt goes in via **stdin** (avoids argv limits/log exposure). The reasoning effort comes per-request from the editor's toolbar selector (low/medium/high, default medium); the model is env-only. A server-side preamble is prepended: project path, page URL, "map `data-ai-id`/selectors to source", "keep edits minimal", "**do not run git commands**". JSONL events are parsed for the final `agent_message` text **and** mapped to log entries (`describeCodexEvent`: reasoning summaries, `$ command` on start, non-zero exits, `edit: <files>`, agent messages; turn bookkeeping and successful command completions are dropped). Git/lifecycle steps also push `status`/`error` entries. Timeout (`COPY_AI_ID_CODEX_TIMEOUT_MS`, default 300000) → SIGKILL + `timedOut: true`.
 4. Only on exit 0 and not timed out: if the tree is dirty → `git add -A` + commit `codex: <subject>` (subject = first line of the request, ≤72 chars, supplied by the editor). `committedFiles` comes from `git show --name-only HEAD`. A clean tree yields `committedFiles: []` with no commit. Failed/timed-out runs are **not** committed — the next run's pre-commit sweeps any partial changes into its `auto-commit`.
 
 **Result shape** (`CodexRunResult` in `src/shared/codex.ts`): `{ ok, exitCode, timedOut, finalMessage, errorOutput, error, gitInitialized, preCommitted, committedFiles, commitMessage, durationMs }`.
 
-**Env vars**: `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130 — must match `CODEX_SERVER_PORT` in `src/shared/codex.ts`), `CODEX_BIN` (default `codex` on PATH), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+**Env vars**: `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130 — must match `CODEX_SERVER_PORT` in `src/shared/codex.ts`), `CODEX_BIN` (default `codex` on PATH), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (server-side default effort when a request omits it; default `medium`), `COPY_AI_ID_CODEX_MODEL` (optional `-m` override; empty = account default), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
 
 **Security model**: binds `127.0.0.1` only; every request must carry the `x-copy-ai-id-client` header. A web page cannot attach that header without a CORS preflight, and the server only ACKs preflights from `chrome-extension://` / localhost origins — so cross-site pages (including DNS-rebinding hosts) cannot drive it. The extension's service-worker fetch is CORS-exempt via host permissions and sends the header directly. `curl` testing needs `-H 'x-copy-ai-id-client: dev'`.
 
@@ -261,8 +262,10 @@ Started manually with `npm run codex-server` (or `scripts/start-codex-server.sh`
 `useCodexStore.phase` is the single state machine: `idle → resolving → confirming → running → idle`. Both Codex buttons (top toolbar + note panel) disable while non-idle and re-label per phase (`codex.resolving` / `codex.running` i18n keys).
 
 1. `sendNotebookDraftToCodex()` — no-op with a `busy` toast if already running; builds the markdown via `buildNotebookExportMarkdown()` (empty → `notebook.empty` toast); strips the `copyaiid`/`copy-ai-id-preview` params from `location.href`; asks the worker to resolve the project. Resolve failure → reset + clipboard-fallback toast.
-2. `beginConfirm(...)` stores the pending payload (markdown, subject, page URL, resolved path/method/detail) and opens `CodexConfirmDialog`. Cancel paths: overlay click, cancel button, or Escape (first step of the `handleEditorEscapeAction` cascade, result `'codex-dialog'` — keyboard.ts must not forward that Escape to the bridge).
-3. `confirmCodexSend()` → `startRun` → poll `runStatus` every 2.5s. Transient poll failures (worker restart, brief server hiccup) are tolerated; only `run-not-found` or the 15-minute client deadline aborts.
+2. **Confident detection runs immediately** — a `codex.startedIn` toast shows the project path and `runPendingCodexSend()` starts right away. Only non-confident detections go through `beginConfirm(...)` + `CodexConfirmDialog`. Dialog cancel paths: overlay click, cancel button, or Escape (first step of the `handleEditorEscapeAction` cascade, result `'codex-dialog'` — keyboard.ts must not forward that Escape to the bridge).
+3. `confirmCodexSend()` / auto-run → `runPendingCodexSend()` → `startRun` (with the persisted reasoning effort) → poll `runStatus` every 1.5s with an `after` cursor, appending returned events to `useCodexStore.logEvents`. Transient poll failures (worker restart, brief server hiccup) are tolerated; only `run-not-found` or the 15-minute client deadline aborts.
+4. **Live log console** (`CodexLogConsole`, absolutely positioned under the toolbar Codex button): opens automatically at run start (`startLog()` clears prior events), renders the accumulated entries as a scrolling monospace list (auto-scrolls to bottom, kind-colored), and auto-closes 5s after the run finishes — guarded by a module-level `logGeneration` counter in `codex-send.ts` so a stale timer never closes the next run's console. The X button closes it early; runs triggered from the note panel button use the same toolbar-anchored console.
+5. **Reasoning effort selector** — a compact `<select>` (low/medium/high, default medium) next to the toolbar Codex button, persisted to `chrome.storage.local` (`copy-ai-id:codex-reasoning:v1`, hydrated on toolbar mount) and sent with every run.
 4. Outcome:
    - **Success** (`result.ok`): clear notebook draft + visual edits (identical to a successful copy), info toast with the committed-file count (`codex.successCommitted` / `codex.successNoChanges`).
    - **Failure/timeout**: the draft is **kept**, the plain markdown (no preamble) is copied to the clipboard as a manual fallback, and an error toast explains (`codex.failed` / `codex.timedOut` / `codex.serverUnreachable` / `codex.unsupportedPage` + `codex.fallbackCopied`). Clipboard write can itself fail when the tab lost focus mid-run — the toast then omits the "copied" suffix.
@@ -271,7 +274,7 @@ All user-facing strings live in the `codex` group of `src/shared/i18n.ts` (en + 
 
 ## chrome.storage keys
 
-All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, and `notebook-draft:v1:<scopeKey>` (draft scoped per page URL via `activation-scope.ts`). The editor **on/off state is not stored** — it is runtime-only and resets on reload.
+All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, `codex-reasoning` (Codex reasoning effort selector), and `notebook-draft:v1:<scopeKey>` (draft scoped per page URL via `activation-scope.ts`). The editor **on/off state is not stored** — it is runtime-only and resets on reload.
 
 ## Invariants and gotchas
 
@@ -288,7 +291,7 @@ All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `
 - **Chip ids are stable** — `el-N` numbers are never renumbered after deletion; `nextChipIndex` is persisted with the draft.
 - **Codex server port is defined in two places** — `CODEX_SERVER_PORT` in `src/shared/codex.ts` and the `COPY_AI_ID_CODEX_SERVER_PORT` default in `scripts/codex-server.mjs` must stay in sync (45130).
 - **The background worker stays a stateless proxy** — no run state, timers, or keepalive tricks in `src/background/index.ts`. Long codex runs are tracked by the editor polling `codex-run-status`; the worker may be killed and restarted between polls at any time. Don't add background logic for other features.
-- **Codex never runs without explicit confirm** — the resolve step only reads (`lsof`/fs); anything that writes to a user project (git init/commits, `codex exec`) happens only after the user confirms the detected path in `CodexConfirmDialog`.
+- **Codex writes only after resolve is confident or confirmed** — the resolve step only reads (`lsof`/fs). Confident detections (dev-server cwd, marker-based file root) run immediately with a path toast; a non-confident guess (bare directory with no `.git`/`package.json`) must be confirmed in `CodexConfirmDialog` first. Never auto-run a non-confident path.
 - **Codex failure keeps the draft** — the notebook draft + visual edits are cleared only on a successful run (mirroring copy semantics); failures/timeouts fall back to copying the prompt to the clipboard.
 - **`codex:` commits only on success** — a failed or timed-out run leaves the tree uncommitted; the next run's `auto-commit` pre-commit sweeps those partial changes up. Don't "fix" this by committing failed runs.
 

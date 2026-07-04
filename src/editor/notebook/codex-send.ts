@@ -9,19 +9,24 @@ import {
   type CodexStartRunResponse,
 } from '../../shared/codex';
 import { getCurrentMessages } from '../../shared/i18n';
-import { useCodexStore } from '../stores/useCodexStore';
+import { useCodexStore, type CodexPendingSend } from '../stores/useCodexStore';
 import { useNotebookStore } from '../stores/useNotebookStore';
 import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { showEditorToast } from '../toast';
 import { copyText } from './clipboard';
 import { buildNotebookExportMarkdown } from './export-markdown';
 
-const RUN_POLL_INTERVAL_MS = 2500;
+const RUN_POLL_INTERVAL_MS = 1500;
 // Client-side safety cap; the server enforces its own codex timeout (5 min by
 // default) and reports it as a timedOut result long before this fires.
 const RUN_POLL_DEADLINE_MS = 15 * 60_000;
 const CODEX_TOAST_MS = 4000;
 const SUBJECT_MAX_CHARS = 72;
+const LOG_AUTO_CLOSE_MS = 5000;
+
+// Guards the delayed auto-close: a new run bumps the generation so a stale
+// timer never closes the console of the run that came after it.
+let logGeneration = 0;
 
 // Entry point for the "Send to Codex" buttons: build the same markdown the
 // copy button produces, resolve the local project for the current page, then
@@ -55,42 +60,68 @@ export async function sendNotebookDraftToCodex(): Promise<void> {
     return;
   }
 
-  useCodexStore.getState().beginConfirm({
+  const pending: CodexPendingSend = {
     markdown: exportMarkdown.markdown,
     subject: deriveSubject(exportMarkdown.requestText),
     pageUrl,
     projectPath: resolved.projectPath,
     method: resolved.method,
     detail: resolved.detail,
-  });
+  };
+
+  // Unambiguous detection (dev-server cwd / marker-based file root) runs
+  // immediately; only uncertain guesses go through the confirm dialog.
+  if (resolved.confident) {
+    showEditorToast(
+      messages.startedIn.replace('{path}', pending.projectPath),
+      'info',
+      CODEX_TOAST_MS,
+    );
+    await runPendingCodexSend(pending);
+    return;
+  }
+
+  useCodexStore.getState().beginConfirm(pending);
 }
 
-// Called by the confirmation dialog. Starts the run on the server and polls
-// its status; success clears the draft/visual edits exactly like a copy.
+// Called by the confirmation dialog for non-confident detections.
 export async function confirmCodexSend(): Promise<void> {
-  const messages = getCurrentMessages().codex;
   const { phase, pending } = useCodexStore.getState();
   if (phase !== 'confirming' || !pending) {
     return;
   }
 
-  useCodexStore.getState().setPhase('running');
+  await runPendingCodexSend(pending);
+}
+
+// Starts the run on the server and polls its status; success clears the
+// draft/visual edits exactly like a copy.
+async function runPendingCodexSend(pending: CodexPendingSend): Promise<void> {
+  const messages = getCurrentMessages().codex;
+  const codexStore = useCodexStore.getState();
+  codexStore.beginRun(pending);
+  codexStore.startLog();
+  logGeneration += 1;
+
   const started = await requestCodexBackground<CodexStartRunResponse>({
     type: CODEX_RUNTIME_MESSAGE_TYPES.startRun,
     prompt: pending.markdown,
     subject: pending.subject,
     projectPath: pending.projectPath,
     pageUrl: pending.pageUrl,
+    reasoningEffort: codexStore.reasoningEffort,
   });
 
   if (!started.ok) {
     useCodexStore.getState().reset();
+    scheduleLogAutoClose();
     await failWithClipboardFallback(pending.markdown, describeFailure(started));
     return;
   }
 
   const result = await pollRunUntilDone(started.runId);
   useCodexStore.getState().reset();
+  scheduleLogAutoClose();
 
   if (!result) {
     await failWithClipboardFallback(pending.markdown, messages.timedOut);
@@ -113,6 +144,15 @@ export async function confirmCodexSend(): Promise<void> {
   showEditorToast(successMessage, 'info', CODEX_TOAST_MS);
 }
 
+function scheduleLogAutoClose(): void {
+  const generation = logGeneration;
+  window.setTimeout(() => {
+    if (logGeneration === generation) {
+      useCodexStore.getState().closeLog();
+    }
+  }, LOG_AUTO_CLOSE_MS);
+}
+
 export function cancelCodexSend(): void {
   const { phase } = useCodexStore.getState();
   if (phase === 'confirming' || phase === 'resolving') {
@@ -122,12 +162,14 @@ export function cancelCodexSend(): void {
 
 async function pollRunUntilDone(runId: string): Promise<CodexRunResult | null> {
   const deadline = Date.now() + RUN_POLL_DEADLINE_MS;
+  let after = 0;
 
   while (Date.now() < deadline) {
     await sleep(RUN_POLL_INTERVAL_MS);
     const status = await requestCodexBackground<CodexRunStatusResponse>({
       type: CODEX_RUNTIME_MESSAGE_TYPES.runStatus,
       runId,
+      after,
     });
 
     if (!status.ok) {
@@ -138,6 +180,9 @@ async function pollRunUntilDone(runId: string): Promise<CodexRunResult | null> {
       }
       continue;
     }
+
+    useCodexStore.getState().appendLogEvents(status.events);
+    after = status.nextSeq;
 
     if (status.status === 'done') {
       return status.result;

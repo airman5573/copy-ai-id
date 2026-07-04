@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { Copy, NotebookText, SendHorizontal, X } from 'lucide-react';
 
+import { isCodexReasoningEffort, CODEX_REASONING_EFFORTS } from '../../shared/codex';
 import { getCurrentMessages } from '../../shared/i18n';
 import { requestNotePanelFocus } from '../note-panel-focus';
 import { sendNotebookDraftToCodex } from '../notebook/codex-send';
 import { copyNotebookDraftFromStore } from '../notebook/copy';
+import { CodexLogConsole } from './CodexLogConsole';
 import { useCodexStore } from '../stores/useCodexStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { type FitZoomOptions } from '../stores/useBreakpointStore';
@@ -57,6 +60,17 @@ export function TopToolbar({
       ? messages.notebook.empty
       : messages.notebook.save;
   const codexPhase = useCodexStore((state) => state.phase);
+  const reasoningEffort = useCodexStore((state) => state.reasoningEffort);
+  const setReasoningEffort = useCodexStore((state) => state.setReasoningEffort);
+  const hydrateReasoningEffort = useCodexStore((state) => state.hydrateReasoningEffort);
+  useEffect(() => {
+    void hydrateReasoningEffort();
+  }, [hydrateReasoningEffort]);
+  const reasoningLabels = {
+    low: messages.codex.reasoningLow,
+    medium: messages.codex.reasoningMedium,
+    high: messages.codex.reasoningHigh,
+  } as const;
   const codexButtonLabel = codexPhase === 'resolving'
     ? messages.codex.resolving
     : codexPhase === 'running'
@@ -113,19 +127,43 @@ export function TopToolbar({
           <span>{copyButtonLabel}</span>
         </button>
 
-        <button
-          type="button"
-          className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--toolbar copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
-          data-ai-id="copy-ai-id-editor-toolbar-codex-button"
-          title={messages.codex.sendTitle}
-          disabled={codexPhase !== 'idle'}
-          onClick={() => {
-            void sendNotebookDraftToCodex();
-          }}
-        >
-          <SendHorizontal size={14} aria-hidden="true" />
-          <span>{codexButtonLabel}</span>
-        </button>
+        <div className="relative flex items-center gap-2">
+          <select
+            className="h-8 cursor-pointer rounded-lg border border-gray-600 bg-gray-900 px-1.5 text-xs text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
+            data-ai-id="copy-ai-id-editor-codex-reasoning-select"
+            title={messages.codex.reasoningTitle}
+            aria-label={messages.codex.reasoningTitle}
+            value={reasoningEffort}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              if (isCodexReasoningEffort(value)) {
+                setReasoningEffort(value);
+              }
+            }}
+          >
+            {CODEX_REASONING_EFFORTS.map((effort) => (
+              <option key={effort} value={effort}>
+                {reasoningLabels[effort]}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--toolbar copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
+            data-ai-id="copy-ai-id-editor-toolbar-codex-button"
+            title={messages.codex.sendTitle}
+            disabled={codexPhase !== 'idle'}
+            onClick={() => {
+              void sendNotebookDraftToCodex();
+            }}
+          >
+            <SendHorizontal size={14} aria-hidden="true" />
+            <span>{codexButtonLabel}</span>
+          </button>
+
+          <CodexLogConsole />
+        </div>
       </div>
     </header>
   );

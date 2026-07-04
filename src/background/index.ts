@@ -36,9 +36,13 @@ async function routeCodexMessage(message: CodexRuntimeMessage): Promise<unknown>
         subject: message.subject,
         projectPath: message.projectPath,
         pageUrl: message.pageUrl,
+        reasoningEffort: message.reasoningEffort,
       });
     case CODEX_RUNTIME_MESSAGE_TYPES.runStatus:
-      return fetchCodexServer('GET', `/runs/${encodeURIComponent(message.runId)}`);
+      return fetchCodexServer(
+        'GET',
+        `/runs/${encodeURIComponent(message.runId)}?after=${encodeURIComponent(String(message.after))}`,
+      );
   }
 }
 

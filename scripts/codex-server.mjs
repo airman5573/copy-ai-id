@@ -27,12 +27,20 @@ const CODEX_TIMEOUT_MS = parsePositiveInt(
   'COPY_AI_ID_CODEX_TIMEOUT_MS',
 );
 const ALLOW_OUTSIDE_HOME = process.env.COPY_AI_ID_ALLOW_OUTSIDE_HOME === '1';
+const VALID_REASONING_EFFORTS = new Set(['low', 'medium', 'high']);
+const DEFAULT_REASONING_EFFORT = VALID_REASONING_EFFORTS.has(process.env.COPY_AI_ID_CODEX_REASONING)
+  ? process.env.COPY_AI_ID_CODEX_REASONING
+  : 'medium';
+// Optional model override (`-m`); empty = the account's default model.
+const CODEX_MODEL = process.env.COPY_AI_ID_CODEX_MODEL ?? '';
 
 const CLIENT_HEADER = 'x-copy-ai-id-client';
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const MAX_PROMPT_CHARS = 200000;
 const MAX_OUTPUT_CHARS = 20000;
 const MAX_FINISHED_RUNS = 20;
+const MAX_RUN_EVENTS = 500;
+const MAX_EVENT_TEXT_CHARS = 400;
 const HOME_DIR = os.homedir();
 
 const DEFAULT_GITIGNORE = `node_modules/
@@ -141,7 +149,17 @@ async function handleRequest(request, response) {
       return;
     }
 
-    writeJson(response, 200, { ok: true, status: run.status, result: run.result }, request);
+    // Incremental event log: the client passes back the `nextSeq` from its
+    // previous poll so only new entries travel each time.
+    const after = Number(url.searchParams.get('after') ?? '0');
+    const events = run.events.filter((event) => event.seq > (Number.isFinite(after) ? after : 0));
+    writeJson(response, 200, {
+      ok: true,
+      status: run.status,
+      result: run.result,
+      events,
+      nextSeq: run.eventSeq,
+    }, request);
     return;
   }
 
@@ -229,6 +247,9 @@ async function resolveLocalhostProject(url) {
     projectPath: cwd,
     method: 'localhost-port',
     detail: `dev server pid ${pid} on port ${port}`,
+    // The listening process's cwd is deterministic — safe to run without
+    // asking the user to confirm.
+    confident: true,
   };
 }
 
@@ -255,6 +276,9 @@ function resolveFileProject(url) {
     detail: marker
       ? `nearest ${marker} above ${path.basename(filePath)}`
       : `directory of ${path.basename(filePath)}`,
+    // A project marker makes the root unambiguous; a bare directory guess
+    // (e.g. a lone HTML file on the Desktop) still needs user confirmation.
+    confident: marker !== null,
   };
 }
 
@@ -326,6 +350,9 @@ function startRun(body) {
 
   const pageUrl = typeof body.pageUrl === 'string' ? body.pageUrl : '';
   const subject = typeof body.subject === 'string' ? body.subject.trim() : '';
+  const reasoningEffort = VALID_REASONING_EFFORTS.has(body.reasoningEffort)
+    ? body.reasoningEffort
+    : DEFAULT_REASONING_EFFORT;
 
   const active = activeRunId ? runs.get(activeRunId) : null;
   if (active && active.status === 'running') {
@@ -337,18 +364,33 @@ function startRun(body) {
     status: 'running',
     result: null,
     startedAt: Date.now(),
+    events: [],
+    eventSeq: 0,
   };
   runs.set(run.id, run);
   activeRunId = run.id;
   pruneFinishedRuns();
 
-  console.log(`[run ${run.id}] start — project: ${projectPath}`);
-  void executeRun(run, { prompt, projectPath, pageUrl, subject });
+  console.log(`[run ${run.id}] start — project: ${projectPath} (reasoning: ${reasoningEffort})`);
+  void executeRun(run, { prompt, projectPath, pageUrl, subject, reasoningEffort });
 
   return { ok: true, runId: run.id };
 }
 
-async function executeRun(run, { prompt, projectPath, pageUrl, subject }) {
+function pushRunEvent(run, kind, text) {
+  const trimmed = truncate(String(text).trim(), MAX_EVENT_TEXT_CHARS);
+  if (!trimmed) {
+    return;
+  }
+
+  run.eventSeq += 1;
+  run.events.push({ seq: run.eventSeq, kind, text: trimmed });
+  if (run.events.length > MAX_RUN_EVENTS) {
+    run.events.splice(0, run.events.length - MAX_RUN_EVENTS);
+  }
+}
+
+async function executeRun(run, { prompt, projectPath, pageUrl, subject, reasoningEffort }) {
   const startedAt = Date.now();
   const base = {
     exitCode: null,
@@ -366,8 +408,19 @@ async function executeRun(run, { prompt, projectPath, pageUrl, subject }) {
     const gitState = await prepareGit(projectPath);
     base.gitInitialized = gitState.gitInitialized;
     base.preCommitted = gitState.preCommitted;
+    if (gitState.gitInitialized) {
+      pushRunEvent(run, 'status', 'git init (+ default .gitignore)');
+    }
+    if (gitState.preCommitted) {
+      pushRunEvent(run, 'status', 'git auto-commit: backed up uncommitted changes');
+    }
 
-    const codex = await runCodex(projectPath, buildCodexPrompt({ prompt, projectPath, pageUrl }));
+    pushRunEvent(run, 'status', `codex exec started (reasoning: ${reasoningEffort}${CODEX_MODEL ? `, model: ${CODEX_MODEL}` : ''})`);
+    const codex = await runCodex(
+      projectPath,
+      buildCodexPrompt({ prompt, projectPath, pageUrl }),
+      { reasoningEffort, onEvent: (kind, text) => pushRunEvent(run, kind, text) },
+    );
     base.exitCode = codex.exitCode;
     base.timedOut = codex.timedOut;
     base.finalMessage = codex.finalMessage;
@@ -378,16 +431,26 @@ async function executeRun(run, { prompt, projectPath, pageUrl, subject }) {
       const commit = await commitCodexChanges(projectPath, subject);
       base.committedFiles = commit.committedFiles;
       base.commitMessage = commit.commitMessage;
-    } else if (!codex.timedOut && codex.spawnError) {
-      base.error = codex.spawnError;
+      pushRunEvent(run, 'status', commit.commitMessage
+        ? `git commit: "${commit.commitMessage}" (${commit.committedFiles.length} file(s))`
+        : 'no file changes to commit');
+    } else if (codex.timedOut) {
+      pushRunEvent(run, 'error', 'codex timed out');
+    } else {
+      if (!codex.timedOut && codex.spawnError) {
+        base.error = codex.spawnError;
+      }
+      pushRunEvent(run, 'error', codex.spawnError ?? `codex exited with code ${codex.exitCode}`);
     }
 
     run.result = { ...base, ok: codexOk, durationMs: Date.now() - startedAt };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    pushRunEvent(run, 'error', message);
     run.result = {
       ...base,
       ok: false,
-      error: error instanceof Error ? error.message : String(error),
+      error: message,
       durationMs: Date.now() - startedAt,
     };
   } finally {
@@ -513,7 +576,7 @@ function buildCodexPrompt({ prompt, projectPath, pageUrl }) {
   ].join('\n');
 }
 
-async function runCodex(projectPath, prompt) {
+async function runCodex(projectPath, prompt, { reasoningEffort, onEvent } = {}) {
   const args = [
     'exec',
     '--json',
@@ -521,6 +584,8 @@ async function runCodex(projectPath, prompt) {
     '--cd', projectPath,
     '--skip-git-repo-check',
     '--config', 'approval_policy="never"',
+    '--config', `model_reasoning_effort="${reasoningEffort ?? DEFAULT_REASONING_EFFORT}"`,
+    ...(CODEX_MODEL ? ['--model', CODEX_MODEL] : []),
     '-',
   ];
 
@@ -555,6 +620,11 @@ async function runCodex(projectPath, prompt) {
       && typeof event.item.text === 'string'
     ) {
       finalMessage = event.item.text;
+    }
+
+    const described = describeCodexEvent(event);
+    if (described && onEvent) {
+      onEvent(described.kind, described.text);
     }
   };
 
@@ -602,6 +672,46 @@ async function runCodex(projectPath, prompt) {
     errorOutput,
     spawnError,
   };
+}
+
+// Maps a `codex exec --json` JSONL event to a compact log-console entry, or
+// null for noise (turn bookkeeping, successful command completions, …).
+function describeCodexEvent(event) {
+  const item = event?.item;
+
+  if (event?.type === 'item.started' && item?.type === 'command_execution') {
+    return { kind: 'command', text: `$ ${item.command ?? ''}` };
+  }
+
+  if (event?.type === 'item.completed') {
+    switch (item?.type) {
+      case 'agent_message':
+        return typeof item.text === 'string' ? { kind: 'message', text: item.text } : null;
+      case 'reasoning':
+        return typeof item.text === 'string' ? { kind: 'reasoning', text: item.text } : null;
+      case 'command_execution':
+        // Successful commands were already logged at item.started.
+        return item.exit_code == null || item.exit_code === 0
+          ? null
+          : { kind: 'error', text: `$ ${item.command ?? ''} → exit ${item.exit_code}` };
+      case 'file_change': {
+        const files = Array.isArray(item.changes)
+          ? item.changes.map((change) => change?.path).filter(Boolean)
+          : [];
+        return { kind: 'file', text: files.length > 0 ? `edit: ${files.join(', ')}` : 'file change' };
+      }
+      case 'error':
+        return { kind: 'error', text: item.message ?? 'error' };
+      default:
+        return null;
+    }
+  }
+
+  if (event?.type === 'error' && typeof event.message === 'string') {
+    return { kind: 'error', text: event.message };
+  }
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
