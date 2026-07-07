@@ -85,9 +85,9 @@ The editor can send the same Markdown the **Copy** button produces straight to t
 5. While Codex works, a live activity log opens right under the toolbar Codex button — reasoning summaries, executed commands, and edited files stream in as they happen — and closes by itself a few seconds after the run ends.
 6. On success the notebook draft and visual edits are cleared, exactly like a copy. On failure or timeout the prompt is copied to the clipboard instead so you can paste it manually.
 
-The reasoning selector next to the Codex button controls how hard Codex thinks (low/medium/high; default medium — bump it to high for complex tasks). The choice is remembered across sessions.
+Runs always request Codex's fast service tier (ignored gracefully by models that don't support it). The reasoning selector next to the Codex button controls how hard Codex thinks (medium/high/xhigh; default medium — bump it for complex tasks). The choice is remembered across sessions.
 
-Everything stays on your machine: the server binds to `127.0.0.1` only and requires a request header ordinary web pages cannot attach. Environment overrides: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (default `medium`), `COPY_AI_ID_CODEX_MODEL` (optional model override), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+Everything stays on your machine: the server binds to `127.0.0.1` only and requires a request header ordinary web pages cannot attach. Environment overrides: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (default `medium`), `COPY_AI_ID_CODEX_FAST=0` (disable the fast tier), `COPY_AI_ID_CODEX_MODEL` (optional model override), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
 
 ## What is `data-ai-id`?
 

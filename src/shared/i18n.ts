@@ -104,9 +104,9 @@ export interface CopyAiIdMessages {
     logClose: string;
     logWaiting: string;
     reasoningTitle: string;
-    reasoningLow: string;
     reasoningMedium: string;
     reasoningHigh: string;
+    reasoningXhigh: string;
   };
   // The quick toolbar and 모든 옵션 panel are Korean-only by product decision;
   // their labels are hardcoded in the components, so only the shared state
@@ -249,9 +249,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       logClose: 'Close log',
       logWaiting: 'Waiting for output…',
       reasoningTitle: 'Codex reasoning effort',
-      reasoningLow: 'Fast (low)',
       reasoningMedium: 'Standard (medium)',
       reasoningHigh: 'Deep (high)',
+      reasoningXhigh: 'Deepest (xhigh)',
     },
     visualEditor: {
       panel: {
@@ -388,9 +388,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       logClose: '로그 닫기',
       logWaiting: '출력 대기 중…',
       reasoningTitle: 'Codex reasoning 수준',
-      reasoningLow: '빠름 (low)',
       reasoningMedium: '보통 (medium)',
       reasoningHigh: '깊게 (high)',
+      reasoningXhigh: '아주 깊게 (xhigh)',
     },
     visualEditor: {
       panel: {

@@ -28,14 +28,16 @@ export interface CodexResolvedProject {
 
 export type CodexRunStatus = 'running' | 'done';
 
-export type CodexReasoningEffort = 'low' | 'medium' | 'high';
+// Runs always request the fast service tier (server-side); the reasoning
+// effort is the only per-run knob, supported from medium up to xhigh.
+export type CodexReasoningEffort = 'medium' | 'high' | 'xhigh';
 
-export const CODEX_REASONING_EFFORTS: readonly CodexReasoningEffort[] = ['low', 'medium', 'high'];
+export const CODEX_REASONING_EFFORTS: readonly CodexReasoningEffort[] = ['medium', 'high', 'xhigh'];
 
 export const DEFAULT_CODEX_REASONING_EFFORT: CodexReasoningEffort = 'medium';
 
 export function isCodexReasoningEffort(value: unknown): value is CodexReasoningEffort {
-  return value === 'low' || value === 'medium' || value === 'high';
+  return value === 'medium' || value === 'high' || value === 'xhigh';
 }
 
 // One line of the live run log streamed to the mini console. `seq` is a

@@ -67,9 +67,9 @@ export function TopToolbar({
     void hydrateReasoningEffort();
   }, [hydrateReasoningEffort]);
   const reasoningLabels = {
-    low: messages.codex.reasoningLow,
     medium: messages.codex.reasoningMedium,
     high: messages.codex.reasoningHigh,
+    xhigh: messages.codex.reasoningXhigh,
   } as const;
   const codexButtonLabel = codexPhase === 'resolving'
     ? messages.codex.resolving

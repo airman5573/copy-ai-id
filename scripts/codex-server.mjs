@@ -27,10 +27,15 @@ const CODEX_TIMEOUT_MS = parsePositiveInt(
   'COPY_AI_ID_CODEX_TIMEOUT_MS',
 );
 const ALLOW_OUTSIDE_HOME = process.env.COPY_AI_ID_ALLOW_OUTSIDE_HOME === '1';
-const VALID_REASONING_EFFORTS = new Set(['low', 'medium', 'high']);
+const VALID_REASONING_EFFORTS = new Set(['medium', 'high', 'xhigh']);
 const DEFAULT_REASONING_EFFORT = VALID_REASONING_EFFORTS.has(process.env.COPY_AI_ID_CODEX_REASONING)
   ? process.env.COPY_AI_ID_CODEX_REASONING
   : 'medium';
+// Fast mode = the `fast` (runtime: `priority`) service tier, independent of
+// reasoning effort. Requires both the feature flag and the tier request; the
+// request is ignored gracefully by models that don't support the tier.
+// Always on; COPY_AI_ID_CODEX_FAST=0 is the escape hatch.
+const FAST_MODE = process.env.COPY_AI_ID_CODEX_FAST !== '0';
 // Optional model override (`-m`); empty = the account's default model.
 const CODEX_MODEL = process.env.COPY_AI_ID_CODEX_MODEL ?? '';
 
@@ -415,7 +420,7 @@ async function executeRun(run, { prompt, projectPath, pageUrl, subject, reasonin
       pushRunEvent(run, 'status', 'git auto-commit: backed up uncommitted changes');
     }
 
-    pushRunEvent(run, 'status', `codex exec started (reasoning: ${reasoningEffort}${CODEX_MODEL ? `, model: ${CODEX_MODEL}` : ''})`);
+    pushRunEvent(run, 'status', `codex exec started (${FAST_MODE ? 'fast, ' : ''}reasoning: ${reasoningEffort}${CODEX_MODEL ? `, model: ${CODEX_MODEL}` : ''})`);
     const codex = await runCodex(
       projectPath,
       buildCodexPrompt({ prompt, projectPath, pageUrl }),
@@ -585,6 +590,7 @@ async function runCodex(projectPath, prompt, { reasoningEffort, onEvent } = {}) 
     '--skip-git-repo-check',
     '--config', 'approval_policy="never"',
     '--config', `model_reasoning_effort="${reasoningEffort ?? DEFAULT_REASONING_EFFORT}"`,
+    ...(FAST_MODE ? ['--enable', 'fast_mode', '--config', 'service_tier="fast"'] : []),
     ...(CODEX_MODEL ? ['--model', CODEX_MODEL] : []),
     '-',
   ];

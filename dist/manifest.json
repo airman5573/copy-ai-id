@@ -33,7 +33,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-C0vMGQJI.js"
+        "assets/index.ts-loader-BrE6frmD.js"
       ],
       "matches": [
         "<all_urls>"
@@ -49,9 +49,9 @@
         "<all_urls>"
       ],
       "resources": [
-        "assets/notebook-notice-DYq-lddA.js",
-        "assets/codex-IuRwMvLq.js",
-        "assets/index.ts-DEkOIr2h.js"
+        "assets/notebook-notice-CNkUUrL6.js",
+        "assets/codex-BDexyLHK.js",
+        "assets/index.ts-CydOoYYH.js"
       ],
       "use_dynamic_url": false
     }

@@ -85,9 +85,9 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 5. Codex가 작업하는 동안 툴바 Codex 버튼 바로 아래에 실시간 작업 로그가 열립니다 — reasoning 요약, 실행한 명령, 수정한 파일이 실시간으로 흘러나오고, 실행이 끝나면 몇 초 뒤 자동으로 닫힙니다.
 6. 성공하면 복사와 동일하게 노트 드래프트와 visual edit이 초기화됩니다. 실패하거나 시간 초과되면 프롬프트를 클립보드에 대신 복사해 수동으로 붙여넣을 수 있게 합니다.
 
-Codex 버튼 옆의 reasoning 선택기로 Codex가 얼마나 깊게 생각할지 조절할 수 있습니다(low/medium/high; 기본 medium — 복잡한 작업은 high로). 선택은 세션 간에 유지됩니다.
+실행은 항상 Codex의 fast service tier를 요청합니다(지원하지 않는 모델에서는 무시됩니다). Codex 버튼 옆의 reasoning 선택기로 Codex가 얼마나 깊게 생각할지 조절할 수 있습니다(medium/high/xhigh; 기본 medium — 복잡한 작업은 올려서). 선택은 세션 간에 유지됩니다.
 
-모든 동작은 내 컴퓨터 안에서만 일어납니다: 서버는 `127.0.0.1`에만 바인딩되며 일반 웹페이지가 붙일 수 없는 요청 헤더를 요구합니다. 환경 변수: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT`(기본 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS`(기본 300000), `COPY_AI_ID_CODEX_REASONING`(기본 `medium`), `COPY_AI_ID_CODEX_MODEL`(선택적 모델 지정), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+모든 동작은 내 컴퓨터 안에서만 일어납니다: 서버는 `127.0.0.1`에만 바인딩되며 일반 웹페이지가 붙일 수 없는 요청 헤더를 요구합니다. 환경 변수: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT`(기본 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS`(기본 300000), `COPY_AI_ID_CODEX_REASONING`(기본 `medium`), `COPY_AI_ID_CODEX_FAST=0`(fast tier 끄기), `COPY_AI_ID_CODEX_MODEL`(선택적 모델 지정), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
 
 ## `data-ai-id`란 무엇인가요?
 
