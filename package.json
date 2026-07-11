@@ -1,14 +1,16 @@
 {
   "name": "copy-ai-id",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "COPY_AI_ID_INCLUDE_MANIFEST_KEY=1 vite build --watch",
     "build": "vite build",
+    "build:local": "COPY_AI_ID_INCLUDE_MANIFEST_KEY=1 vite build",
     "typecheck": "tsc --noEmit",
     "codex-bridge": "node scripts/codex-local-bridge.mjs",
     "codex-server": "node scripts/codex-server.mjs",
+    "package-codex-companion": "node scripts/package-codex-companion.mjs",
     "deploy-to-chrome-extension-store": "node scripts/deploy-to-chrome-extension-store.mjs"
   },
   "dependencies": {

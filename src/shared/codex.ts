@@ -1,5 +1,6 @@
 // Contracts shared by the editor, the background service worker, and (shape-
-// wise) the local codex server in scripts/codex-server.mjs. The server speaks
+// wise) the canonical companion in
+// skills/setup-copy-ai-id-codex/assets/codex-server.mjs. The server speaks
 // plain JSON over http://127.0.0.1 and every response is either
 // `{ ok: true, ... }` or `{ ok: false, code, error }`.
 
@@ -14,22 +15,27 @@ export const CODEX_SERVER_BASE_URL = `http://127.0.0.1:${CODEX_SERVER_PORT}`;
 export const CODEX_CLIENT_HEADER = 'x-copy-ai-id-client';
 export const CODEX_CLIENT_HEADER_VALUE = 'copy-ai-id-extension';
 
+// Bump only when the extension/companion HTTP contract changes incompatibly.
+// The companion reports this from /health and the extension keeps Send
+// disabled when the reported version does not match.
+export const CODEX_COMPANION_PROTOCOL_VERSION = 1;
+
 export type CodexResolveMethod = 'localhost-port' | 'file-path';
 
 export interface CodexResolvedProject {
   projectPath: string;
   method: CodexResolveMethod;
   detail: string;
-  // True when detection is unambiguous (localhost dev-server cwd, or a
-  // file:// walk that found a .git/package.json marker). Confident results
-  // run immediately; uncertain ones go through the confirm dialog.
+  // True only when the localhost/file walk found a .git/package.json marker.
+  // Markerless listener/file directories go through the confirm dialog.
   confident: boolean;
 }
 
 export type CodexRunStatus = 'running' | 'done';
 
-// Runs always request the fast service tier (server-side); the reasoning
-// effort is the only per-run knob, supported from medium up to xhigh.
+// The server requests the fast service tier when the installed CLI reports
+// support; compatible older CLIs use the standard tier. Reasoning effort is
+// the only per-run UI knob, supported from medium up to xhigh.
 export type CodexReasoningEffort = 'medium' | 'high' | 'xhigh';
 
 export const CODEX_REASONING_EFFORTS: readonly CodexReasoningEffort[] = ['medium', 'high', 'xhigh'];
@@ -72,6 +78,7 @@ export type CodexErrorCode =
   | 'unresolved-project'
   | 'invalid-project'
   | 'invalid-request'
+  | 'not-ready'
   | 'busy'
   | 'run-not-found'
   | 'server-error';
@@ -84,7 +91,68 @@ export interface CodexFailure {
 
 export type CodexResponse<T> = ({ ok: true } & T) | CodexFailure;
 
-export type CodexHealthResponse = CodexResponse<{ running: boolean }>;
+// The companion is macOS-only for the initial public release. Health checks
+// expose stable ids/codes so the editor can explain exactly which setup step
+// is missing without parsing command output or user-specific paths.
+export type CodexReadinessCheckId =
+  | 'protocol'
+  | 'platform'
+  | 'node'
+  | 'codex'
+  | 'codex-exec'
+  | 'codex-login'
+  | 'git'
+  | 'lsof';
+
+export type CodexReadinessIssueCode =
+  | 'protocol-version-mismatch'
+  | 'unsupported-platform'
+  | 'node-version-unsupported'
+  | 'codex-not-found'
+  | 'codex-version-unavailable'
+  | 'codex-exec-unsupported'
+  | 'codex-exec-capability-check-failed'
+  | 'codex-not-authenticated'
+  | 'codex-login-check-failed'
+  | 'git-not-found'
+  | 'git-version-unavailable'
+  | 'lsof-not-found'
+  | 'lsof-version-unavailable';
+
+export interface CodexReadinessCheck {
+  id: CodexReadinessCheckId;
+  ok: boolean;
+  issueCode: CodexReadinessIssueCode | null;
+  // Intentionally concise and safe to display. The server never includes
+  // command stderr, account identifiers, or filesystem paths here.
+  detail: string;
+}
+
+export interface CodexHealthSuccess {
+  ok: true;
+  service: 'copy-ai-id-codex-server';
+  protocolVersion: number;
+  reachable: true;
+  // Ready means all required setup checks passed. It is independent of
+  // `running`, which only reports whether a Codex run is currently active.
+  ready: boolean;
+  prerequisitesReady: boolean;
+  running: boolean;
+  maintenance: boolean;
+  acceptingRuns: boolean;
+  checkedAt: string;
+  checks: CodexReadinessCheck[];
+}
+
+export interface CodexHealthFailure extends CodexFailure {
+  code: 'server-unreachable' | 'bad-response';
+  reachable: false;
+  ready: false;
+  running: false;
+  checks: CodexReadinessCheck[];
+}
+
+export type CodexHealthResponse = CodexHealthSuccess | CodexHealthFailure;
 export type CodexResolveProjectResponse = CodexResponse<CodexResolvedProject>;
 export type CodexStartRunResponse = CodexResponse<{ runId: string }>;
 export type CodexRunStatusResponse = CodexResponse<{

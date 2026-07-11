@@ -65,29 +65,28 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 
 편집 가능한 필드에 입력 중이거나 IME 조합 중일 때는 단축키를 가로채지 않습니다. 단, 노트북 안의 **Shift + Enter**는 현재 노트북을 복사합니다.
 
-## Codex로 전송 (선택, 로컬 전용)
+## Codex로 전송 (선택, 로컬 companion)
 
-에디터는 **복사** 버튼이 만드는 것과 동일한 Markdown을 클립보드를 거치지 않고 내 컴퓨터의 [OpenAI Codex CLI](https://github.com/openai/codex)로 바로 보낼 수 있습니다.
+에디터는 **복사** 버튼이 만드는 것과 동일한 Markdown을 클립보드를 거치지 않고 Mac의 [OpenAI Codex CLI](https://learn.chatgpt.com/docs/codex/cli)로 바로 보낼 수 있습니다. 이 선택 기능에는 로컬 companion 서비스가 필요하지만 **복사**는 companion 없이도 동작합니다.
 
-1. 이 저장소에서 로컬 서버를 실행하고 터미널을 켜둡니다:
+일반 Chrome Web Store 설치 사용자는 **[macOS Codex 설정 가이드](docs/codex-setup.ko.md)**를 따라주세요. 권장 흐름은 에디터의 **Codex 설정** 모달에서 bootstrap 프롬프트를 복사하고 Codex가 확장과 일치하는 릴리스 tag에서 공개 [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex)을 설치하게 하는 것입니다. 저장소를 clone하거나 Terminal 창을 계속 열어둘 필요가 없습니다. 이 빌드와 일치하는 [v0.1.13 GitHub 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.13)에서 standalone companion ZIP을 받는 대체 방법도 제공합니다.
 
-   ```bash
-   npm run codex-server        # 또는 scripts/start-codex-server.sh
-   ```
+에디터는 전송 전에 companion과 필수 도구를 확인합니다. 확인 중이거나, 설치·업데이트 maintenance 중이거나, 연결되지 않았거나, 설정이 미완료되었거나, 다른 작업을 실행 중이면 두 Codex 전송 버튼이 비활성화됩니다. 별도의 **Codex 설정** 버튼에서 가이드를 열고 설정 후 **다시 확인**을 선택하세요.
 
-2. **localhost 개발 서버 페이지**나 **file:// 페이지**에서 에디터를 열고 **Codex** 버튼(상단 툴바 또는 노트 패널)을 클릭합니다.
-3. 서버가 페이지의 로컬 프로젝트를 자동 감지합니다 — localhost 페이지는 포트를 개발 서버 프로세스의 작업 디렉터리로 매핑하고, `file://` 페이지는 가장 가까운 `.git`/`package.json`까지 상위 탐색합니다. 감지가 확실하면 즉시 실행되며(토스트로 프로젝트 경로 표시), 마커 없이 폴더만 추정한 불확실한 경우에만 확인 다이얼로그를 먼저 보여줍니다.
-4. 실행이 시작되면 서버가:
-   - 프로젝트에 저장소가 없으면 `git init`(기본 `.gitignore` 포함)을 먼저 수행하고,
-   - 기존 미커밋 변경이 있으면 `auto-commit: <타임스탬프>`로 먼저 커밋한 뒤,
-   - 프로젝트 안에서 `codex exec`를 실행하고(workspace-write 샌드박스, 기본 타임아웃 5분),
-   - Codex의 변경을 `codex: <요청 첫 줄>`로 커밋합니다.
-5. Codex가 작업하는 동안 툴바 Codex 버튼 바로 아래에 실시간 작업 로그가 열립니다 — reasoning 요약, 실행한 명령, 수정한 파일이 실시간으로 흘러나오고, 실행이 끝나면 몇 초 뒤 자동으로 닫힙니다.
-6. 성공하면 복사와 동일하게 노트 드래프트와 visual edit이 초기화됩니다. 실패하거나 시간 초과되면 프롬프트를 클립보드에 대신 복사해 수동으로 붙여넣을 수 있게 합니다.
+바로 보내기는 **localhost 개발 서버 페이지**와 **file:// 페이지**만 지원합니다. 두 방식 모두 가장 가까운 `.git`/`package.json`까지 상위 탐색하며, localhost는 페이지 포트의 수신 프로세스에서, `file://`은 파일 위치에서 탐색을 시작합니다. 프로젝트 마커가 있는 루트는 즉시 실행할 수 있고(토스트로 경로 표시), 마커가 없으면 수신 프로세스의 작업 폴더 또는 파일 폴더를 표시해 확인받은 뒤 실행합니다. 원격 사이트에서도 에디터와 **복사**는 계속 사용할 수 있습니다.
 
-실행은 항상 Codex의 fast service tier를 요청합니다(지원하지 않는 모델에서는 무시됩니다). Codex 버튼 옆의 reasoning 선택기로 Codex가 얼마나 깊게 생각할지 조절할 수 있습니다(medium/high/xhigh; 기본 medium — 복잡한 작업은 올려서). 선택은 세션 간에 유지됩니다.
+각 전송에서 companion은:
 
-모든 동작은 내 컴퓨터 안에서만 일어납니다: 서버는 `127.0.0.1`에만 바인딩되며 일반 웹페이지가 붙일 수 없는 요청 헤더를 요구합니다. 환경 변수: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT`(기본 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS`(기본 300000), `COPY_AI_ID_CODEX_REASONING`(기본 `medium`), `COPY_AI_ID_CODEX_FAST=0`(fast tier 끄기), `COPY_AI_ID_CODEX_MODEL`(선택적 모델 지정), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+- 프로젝트에 저장소가 없으면 `git init`(기본 `.gitignore` 포함)을 먼저 수행하고,
+- 기존 미커밋 변경이 있으면 `auto-commit: <타임스탬프>`로 먼저 커밋한 뒤,
+- 프로젝트 안에서 `codex exec`를 실행하고(workspace-write 샌드박스, 기본 타임아웃 5분),
+- Codex의 변경을 `codex: <요청 첫 줄>`로 커밋합니다.
+
+Codex가 작업하는 동안 툴바 Codex 버튼 아래에 실시간 작업 로그가 열립니다. 성공하면 복사와 동일하게 노트 드래프트와 visual edit이 초기화됩니다. 실패하거나 시간 초과되면 프롬프트를 클립보드에 대신 복사해 수동으로 붙여넣을 수 있게 합니다.
+
+설치된 CLI가 `fast_mode` 기능을 지원한다고 확인될 때는 Codex의 fast service tier를 요청하고, 호환되는 구버전 CLI에서는 전송을 막지 않고 standard tier로 실행합니다. Codex 버튼 옆의 reasoning 선택기로 Codex가 얼마나 깊게 생각할지 조절할 수 있습니다(medium/high/xhigh; 기본 medium — 복잡한 작업은 올려서). 선택은 세션 간에 유지됩니다.
+
+Companion은 `127.0.0.1:45130`에만 바인딩되고 로컬 확장 프로토콜을 확인하며, 사용자가 명시적으로 전송하기 전에는 아무 작업도 하지 않습니다. 요청을 Copy AI ID 서비스에 업로드하지 않으며, 설치된 Codex CLI가 기존 Codex 인증과 설정을 사용하여 OpenAI와 통신합니다. 필수 준비, LaunchAgent 동작, 상태 확인·시작·업데이트·제거, 문제 해결, 전체 보안 모델은 설정 가이드를 확인하세요.
 
 ## `data-ai-id`란 무엇인가요?
 
@@ -113,10 +112,10 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 
 ```bash
 npm install
-npm run build
+npm run build:local
 ```
 
-그 다음 `chrome://extensions`를 열고 **Developer mode**를 켠 뒤 **Load unpacked**에서 이 저장소의 `dist/` 디렉터리를 선택합니다.
+그 다음 `chrome://extensions`를 열고 **Developer mode**를 켠 뒤 **Load unpacked**에서 이 저장소의 `dist/` 디렉터리를 선택합니다. `build:local`은 로컬 companion이 안정적인 unpacked 확장 ID를 인식하도록 공개 개발 key를 넣으며, 릴리스/스토어 빌드에서는 계속 제외됩니다.
 
 ## 로컬 파일 접근
 
@@ -138,4 +137,4 @@ Chrome은 해당 확장 프로그램에 파일 접근 권한을 켜지 않는 �
 
 ## 제품 범위
 
-Copy AI ID는 에디터 우선 제품입니다. Codex 사이드패널, native messaging host, AI 채팅, 히스토리, 설정 화면, analytics, 원격 AI 처리는 포함하지 않습니다. 노트와 preview-only visual edit 지시는 사용자가 명시적으로 복사(**복사** / **Shift + Enter**)하거나 **Codex로 전송** 실행을 명시적으로 확인했을 때만 에디터 밖으로 나가며, 선택적 Codex 경로는 사용자가 직접 실행한 로컬 `127.0.0.1` 서버와만 통신합니다 — 원격 서비스로는 아무것도 전송되지 않습니다.
+Copy AI ID는 에디터 우선 제품입니다. Codex 사이드패널, native messaging host, AI 채팅, 히스토리, 설정 페이지, analytics, Copy AI ID 원격 처리 서비스는 포함하지 않습니다. 노트와 preview-only visual edit 지시는 사용자가 명시적으로 복사(**복사** / **Shift + Enter**)하거나 **Codex로 전송**을 시작했을 때만 에디터 밖으로 나갑니다. 확장 프로그램은 로컬 `127.0.0.1` companion과만 통신하며, 명시적인 실행 중에는 companion이 사용자 인증을 사용하는 Codex CLI를 호출하고 Codex CLI가 사용자의 Codex 계정·설정에 따라 OpenAI와 통신합니다.

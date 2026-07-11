@@ -460,7 +460,11 @@ function handleKeyboardShortcut(message: KeyboardShortcutMessage): void {
 
   if (message.shortcut === 'escape') {
     const result = handleEditorEscapeAction();
-    if (result !== 'quick-toolbar-popover' && result !== 'visual-panel') {
+    if (
+      result !== 'codex-setup-dialog'
+      && result !== 'quick-toolbar-popover'
+      && result !== 'visual-panel'
+    ) {
       postToBridge({ type: EDITOR_MESSAGE_TYPES.keyboardShortcut, shortcut: 'escape' });
     }
     return;

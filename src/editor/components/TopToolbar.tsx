@@ -7,7 +7,9 @@ import { requestNotePanelFocus } from '../note-panel-focus';
 import { sendNotebookDraftToCodex } from '../notebook/codex-send';
 import { copyNotebookDraftFromStore } from '../notebook/copy';
 import { CodexLogConsole } from './CodexLogConsole';
+import { CodexSetupButton } from './CodexSetupButton';
 import { useCodexStore } from '../stores/useCodexStore';
+import { useCodexSetupStore } from '../stores/useCodexSetupStore';
 import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
 import { type FitZoomOptions } from '../stores/useBreakpointStore';
 import {
@@ -60,6 +62,8 @@ export function TopToolbar({
       ? messages.notebook.empty
       : messages.notebook.save;
   const codexPhase = useCodexStore((state) => state.phase);
+  const codexSetupStatus = useCodexSetupStore((state) => state.status);
+  const isCodexSetupReady = codexSetupStatus === 'ready';
   const reasoningEffort = useCodexStore((state) => state.reasoningEffort);
   const setReasoningEffort = useCodexStore((state) => state.setReasoningEffort);
   const hydrateReasoningEffort = useCodexStore((state) => state.hydrateReasoningEffort);
@@ -76,6 +80,11 @@ export function TopToolbar({
     : codexPhase === 'running'
       ? messages.codex.running
       : messages.codex.send;
+  const codexButtonTitle = isCodexSetupReady
+    ? messages.codex.sendTitle
+    : codexSetupStatus === 'not-ready'
+      ? messages.codex.setup.statusDescription.notReady
+      : messages.codex.setup.statusDescription[codexSetupStatus];
 
   return (
     <header className="copy-ai-id-editor-toolbar" data-ai-id="copy-ai-id-editor-toolbar">
@@ -128,6 +137,8 @@ export function TopToolbar({
         </button>
 
         <div className="relative flex items-center gap-2">
+          <CodexSetupButton placement="toolbar" />
+
           <select
             className="h-8 cursor-pointer rounded-lg border border-gray-600 bg-gray-900 px-1.5 text-xs text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/70"
             data-ai-id="copy-ai-id-editor-codex-reasoning-select"
@@ -152,9 +163,15 @@ export function TopToolbar({
             type="button"
             className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--toolbar copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
             data-ai-id="copy-ai-id-editor-toolbar-codex-button"
-            title={messages.codex.sendTitle}
-            disabled={codexPhase !== 'idle'}
-            onClick={() => {
+            data-codex-setup-status={codexSetupStatus}
+            title={codexButtonTitle}
+            aria-label={codexButtonTitle}
+            disabled={codexPhase !== 'idle' || !isCodexSetupReady}
+            onClick={(event) => {
+              if (!event.isTrusted) {
+                return;
+              }
+
               void sendNotebookDraftToCodex();
             }}
           >

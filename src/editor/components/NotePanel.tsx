@@ -20,6 +20,8 @@ import {
   selectVisualEditRuntimeStatus,
   useVisualEditStore,
 } from '../stores/useVisualEditStore';
+import { useCodexSetupStore } from '../stores/useCodexSetupStore';
+import { CodexSetupButton } from './CodexSetupButton';
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
@@ -110,19 +112,32 @@ export function NotePanel({
       ? messages.notebook.empty
       : messages.notebook.save;
   const codexPhase = useCodexStore((state) => state.phase);
+  const codexSetupStatus = useCodexSetupStore((state) => state.status);
+  const isCodexSetupReady = codexSetupStatus === 'ready';
   const codexButtonLabel = codexPhase === 'resolving'
     ? messages.codex.resolving
     : codexPhase === 'running'
       ? messages.codex.running
       : messages.codex.send;
+  const codexButtonTitle = isCodexSetupReady
+    ? messages.codex.sendTitle
+    : codexSetupStatus === 'not-ready'
+      ? messages.codex.setup.statusDescription.notReady
+      : messages.codex.setup.statusDescription[codexSetupStatus];
   const codexButton = (
     <button
       className={`copy-ai-id-editor-copy-button copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
       data-ai-id="copy-ai-id-editor-codex-button"
+      data-codex-setup-status={codexSetupStatus}
       type="button"
-      title={messages.codex.sendTitle}
-      disabled={codexPhase !== 'idle'}
-      onClick={() => {
+      title={codexButtonTitle}
+      aria-label={codexButtonTitle}
+      disabled={codexPhase !== 'idle' || !isCodexSetupReady}
+      onClick={(event) => {
+        if (!event.isTrusted) {
+          return;
+        }
+
         void sendNotebookDraftToCodex();
       }}
     >
@@ -214,6 +229,7 @@ export function NotePanel({
         >
           <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
         </span>
+        <CodexSetupButton placement="note-panel" />
         {codexButton}
         {copyButton}
       </div>

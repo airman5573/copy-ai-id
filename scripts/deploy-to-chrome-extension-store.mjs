@@ -8,9 +8,21 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageJsonPath = resolve(repoRoot, 'package.json');
 const packageLockPath = resolve(repoRoot, 'package-lock.json');
 const manifestSourcePath = resolve(repoRoot, 'src/manifest.ts');
+const releasePinnedDocumentPaths = [
+  resolve(repoRoot, 'README.md'),
+  resolve(repoRoot, 'README.ko.md'),
+  resolve(repoRoot, 'docs/codex-setup.md'),
+  resolve(repoRoot, 'docs/codex-setup.ko.md'),
+  resolve(repoRoot, 'skills/setup-copy-ai-id-codex/SKILL.md'),
+];
+const companionVersionPath = resolve(
+  repoRoot,
+  'skills/setup-copy-ai-id-codex/assets/VERSION',
+);
 const distManifestPath = resolve(repoRoot, 'dist/manifest.json');
 const distDir = resolve(repoRoot, 'dist');
 const outputDir = resolve(repoRoot, 'output');
+const companionPackagerPath = resolve(repoRoot, 'scripts/package-codex-companion.mjs');
 
 const args = process.argv.slice(2);
 const options = parseArgs(args);
@@ -23,7 +35,7 @@ const nextVersion = options.noVersionBump
 
 if (!isChromeExtensionVersion(nextVersion)) {
   throw new Error(
-    `Invalid Chrome extension version "${nextVersion}". Use 1-4 dot-separated integer parts, e.g. 0.1.13.`,
+    `Invalid release version "${nextVersion}". Use three dot-separated integer parts, e.g. 0.1.13.`,
   );
 }
 
@@ -32,10 +44,13 @@ if (nextVersion !== currentVersion) {
   writeJson(packageJsonPath, packageJson);
   syncPackageLockVersion(nextVersion);
   syncManifestSourceVersion(nextVersion);
+  syncCompanionVersion(nextVersion);
+  syncReleasePinnedDocuments(currentVersion, nextVersion);
   console.log(`Version bumped: ${currentVersion} -> ${nextVersion}`);
 } else {
   syncManifestSourceVersion(nextVersion);
   syncPackageLockVersion(nextVersion);
+  syncCompanionVersion(nextVersion);
   console.log(`Version unchanged: ${nextVersion}`);
 }
 
@@ -67,9 +82,25 @@ if (!existsSync(zipPath)) {
   throw new Error(`Expected zip was not created: ${zipPath}`);
 }
 
-console.log('\nChrome Web Store package ready:');
+console.log('\nPackaging the macOS Codex companion...');
+execFileSync(process.execPath, [companionPackagerPath], {
+  cwd: repoRoot,
+  stdio: 'inherit',
+});
+
+const companionZipPath = resolve(
+  outputDir,
+  `copy-ai-id-codex-companion-${nextVersion}-macos.zip`,
+);
+if (!existsSync(companionZipPath)) {
+  throw new Error(`Expected companion zip was not created: ${companionZipPath}`);
+}
+
+console.log('\nRelease packages ready:');
 console.log(zipPath);
-console.log('\nUpload this zip manually in Chrome Web Store Developer Dashboard.');
+console.log(companionZipPath);
+console.log('\nUpload the extension zip manually in Chrome Web Store Developer Dashboard.');
+console.log('Attach both zip files to the matching GitHub Release.');
 
 function parseArgs(rawArgs) {
   const parsed = {
@@ -120,6 +151,7 @@ Default behavior:
   - bump package/manifest patch version
   - run npm run build
   - create output/<name>-<version>-chrome-web-store.zip
+  - create output/copy-ai-id-codex-companion-<version>-macos.zip
 `);
 }
 
@@ -143,9 +175,8 @@ function bumpPatchVersion(version) {
 function isChromeExtensionVersion(version) {
   const parts = version.split('.');
   return (
-    parts.length >= 1 &&
-    parts.length <= 4 &&
-    parts.every((part) => /^\d+$/.test(part) && Number(part) >= 0 && Number(part) <= 65535)
+    parts.length === 3 &&
+    parts.every((part) => /^(?:0|[1-9]\d*)$/.test(part) && Number(part) <= 65535)
   );
 }
 
@@ -169,4 +200,22 @@ function syncManifestSourceVersion(version) {
   }
   const nextSource = source.replace(versionPattern, `version: '${version}'`);
   writeFileSync(manifestSourcePath, nextSource);
+}
+
+function syncCompanionVersion(version) {
+  writeFileSync(companionVersionPath, `${version}\n`);
+}
+
+function syncReleasePinnedDocuments(previousVersion, version) {
+  if (previousVersion === version) {
+    return;
+  }
+
+  for (const path of releasePinnedDocumentPaths) {
+    const source = readFileSync(path, 'utf8');
+    if (!source.includes(`v${previousVersion}`)) {
+      throw new Error(`Could not find release tag v${previousVersion} in ${path}`);
+    }
+    writeFileSync(path, source.replaceAll(previousVersion, version));
+  }
 }

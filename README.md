@@ -65,29 +65,28 @@ Keyboard traversal moves through every preview DOM node, not only nodes with `da
 
 Shortcuts are ignored while typing in editable fields or during IME composition, except **Shift + Enter** inside the notebook copies the current notebook.
 
-## Send to Codex (optional, local-only)
+## Send to Codex (optional local companion)
 
-The editor can send the same Markdown the **Copy** button produces straight to the [OpenAI Codex CLI](https://github.com/openai/codex) on your machine — no clipboard round-trip.
+The editor can send the same Markdown the **Copy** button produces to the [OpenAI Codex CLI](https://learn.chatgpt.com/docs/codex/cli) on your Mac without a clipboard round-trip. This optional path needs the local companion service; **Copy** works without it.
 
-1. Start the local server from this repository and keep the terminal open:
+For a normal Chrome Web Store installation, follow the **[macOS Codex setup guide](docs/codex-setup.md)**. The recommended flow is to copy the bootstrap prompt from the editor's **Codex setup** modal and let Codex install the public [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex) from the release tag matching the extension. You do not need to clone this repository or keep a Terminal window open. For this build, a standalone companion ZIP is also available from the matching [v0.1.13 GitHub release](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.13).
 
-   ```bash
-   npm run codex-server        # or scripts/start-codex-server.sh
-   ```
+The editor checks the companion and its prerequisites before sending. While it is checking, under setup/update maintenance, unavailable, incompletely configured, or busy, both Codex send buttons are disabled; use the separate **Codex Setup** control to open the guide and select **Retry** after setup.
 
-2. Open a **localhost dev-server page** or a **file:// page** in the editor and click the **Codex** button (top toolbar or note panel).
-3. The server auto-detects the local project for the page — localhost pages map the port to the dev-server process's working directory, `file://` pages walk up to the nearest `.git`/`package.json`. When detection is unambiguous the run starts immediately (a toast shows the project path); only uncertain guesses (a file with no `.git`/`package.json` marker nearby) ask for confirmation first.
-4. The server then:
-   - runs `git init` (plus a default `.gitignore`) if the project has no repository,
-   - commits any pre-existing uncommitted changes first as `auto-commit: <timestamp>`,
-   - runs `codex exec` inside the project (workspace-write sandbox, 5-minute default timeout),
-   - commits Codex's changes as `codex: <first line of the request>`.
-5. While Codex works, a live activity log opens right under the toolbar Codex button — reasoning summaries, executed commands, and edited files stream in as they happen — and closes by itself a few seconds after the run ends.
-6. On success the notebook draft and visual edits are cleared, exactly like a copy. On failure or timeout the prompt is copied to the clipboard instead so you can paste it manually.
+Direct send supports **localhost dev-server pages** and **file:// pages** only. Both flows walk up to the nearest `.git`/`package.json`; localhost starts from the process listening on the page's port, while `file://` starts from the file. A marker-based project root can start immediately (a toast shows its path). If no marker exists, the listener cwd or file directory is shown for confirmation before anything runs. Remote sites can still use the editor and **Copy**.
 
-Runs always request Codex's fast service tier (ignored gracefully by models that don't support it). The reasoning selector next to the Codex button controls how hard Codex thinks (medium/high/xhigh; default medium — bump it for complex tasks). The choice is remembered across sessions.
+For each direct send, the companion:
 
-Everything stays on your machine: the server binds to `127.0.0.1` only and requires a request header ordinary web pages cannot attach. Environment overrides: `CODEX_BIN`, `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (default `medium`), `COPY_AI_ID_CODEX_FAST=0` (disable the fast tier), `COPY_AI_ID_CODEX_MODEL` (optional model override), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+- runs `git init` (plus a default `.gitignore`) if the project has no repository,
+- commits any pre-existing uncommitted changes first as `auto-commit: <timestamp>`,
+- runs `codex exec` inside the project (workspace-write sandbox, 5-minute default timeout),
+- commits Codex's changes as `codex: <first line of the request>`.
+
+While Codex works, a live activity log opens under the toolbar Codex button. On success the notebook draft and visual edits are cleared, exactly like a copy. On failure or timeout the prompt is copied to the clipboard instead so you can paste it manually.
+
+Runs request Codex's fast service tier when the installed CLI reports support for the `fast_mode` feature; older compatible CLIs fall back to the standard tier instead of blocking Send. The reasoning selector next to the Codex button controls how hard Codex thinks (medium/high/xhigh; default medium — bump it for complex tasks). The choice is remembered across sessions.
+
+The companion binds only to `127.0.0.1:45130`, checks the local extension protocol, and does nothing until you explicitly send. It does not upload requests to a Copy AI ID service; the installed Codex CLI communicates with OpenAI using your existing Codex authentication and configuration. See the setup guide for prerequisites, LaunchAgent behavior, status/start/update/uninstall, troubleshooting, and the full security model.
 
 ## What is `data-ai-id`?
 
@@ -113,10 +112,10 @@ Everything stays on your machine: the server binds to `127.0.0.1` only and requi
 
 ```bash
 npm install
-npm run build
+npm run build:local
 ```
 
-Then open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select this repository's `dist/` directory.
+Then open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select this repository's `dist/` directory. `build:local` adds the repository's public development key so the local companion recognizes a stable unpacked extension ID; release/store builds continue to omit it.
 
 ## Local file access
 
@@ -138,4 +137,4 @@ To fix it:
 
 ## Product scope
 
-Copy AI ID is editor-first. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings pages, analytics, or remote AI processing. Notes and preview-only visual edit instructions leave the editor only when the user explicitly copies them (**Copy** / **Shift + Enter**) or explicitly confirms a **Send to Codex** run, and the optional Codex path talks exclusively to a local `127.0.0.1` server the user starts manually — nothing is ever sent to a remote service.
+Copy AI ID is editor-first. It does **not** include a Codex side panel, native messaging host, AI chat, history, settings page, analytics, or a Copy AI ID remote-processing service. Notes and preview-only visual edit instructions leave the editor only when the user explicitly copies them (**Copy** / **Shift + Enter**) or starts a **Send to Codex** run. The extension talks only to the local `127.0.0.1` companion; during an explicit run, that companion invokes the user's authenticated Codex CLI, which communicates with OpenAI according to the user's Codex account and configuration.

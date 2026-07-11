@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Copy AI ID Codex"
+  short_description: "Install and manage the macOS Codex companion"
+  default_prompt: "Use $setup-copy-ai-id-codex to install or manage the Copy AI ID Codex companion on this Mac."

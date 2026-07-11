@@ -107,6 +107,60 @@ export interface CopyAiIdMessages {
     reasoningMedium: string;
     reasoningHigh: string;
     reasoningXhigh: string;
+    setup: {
+      action: string;
+      helpAction: string;
+      title: string;
+      description: string;
+      close: string;
+      retry: string;
+      retrying: string;
+      status: {
+        checking: string;
+        ready: string;
+        busy: string;
+        maintenance: string;
+        unreachable: string;
+        notReady: string;
+      };
+      statusDescription: {
+        checking: string;
+        ready: string;
+        busy: string;
+        maintenance: string;
+        unreachable: string;
+        notReady: string;
+      };
+      issuesTitle: string;
+      noIssues: string;
+      technicalDetail: string;
+      checkLabels: {
+        protocol: string;
+        platform: string;
+        node: string;
+        codex: string;
+        codexExec: string;
+        codexLogin: string;
+        git: string;
+        lsof: string;
+        unknown: string;
+      };
+      issueMessages: Record<string, string>;
+      unknownIssue: string;
+      instructionsTitle: string;
+      macOnly: string;
+      instructionPrerequisites: string;
+      instructionBootstrap: string;
+      instructionRetry: string;
+      bootstrapTitle: string;
+      bootstrapDescription: string;
+      bootstrapPrompt: string;
+      copyPrompt: string;
+      promptCopied: string;
+      promptCopyFailed: string;
+      openSkill: string;
+      openGuide: string;
+    };
   };
   // The quick toolbar and 모든 옵션 panel are Korean-only by product decision;
   // their labels are hardcoded in the components, so only the shared state
@@ -241,7 +295,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       failed: 'Codex run failed.',
       timedOut: 'Codex run timed out.',
       busy: 'Codex is already running.',
-      serverUnreachable: 'Codex server is not running. Start it with "npm run codex-server".',
+      serverUnreachable: 'The Codex companion is not reachable. Open Codex setup and retry.',
       resolveFailed: 'Could not detect a local project for this page.',
       unsupportedPage: 'Codex send works only on localhost or file:// pages.',
       fallbackCopied: 'The prompt was copied to the clipboard instead.',
@@ -252,6 +306,77 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       reasoningMedium: 'Standard (medium)',
       reasoningHigh: 'Deep (high)',
       reasoningXhigh: 'Deepest (xhigh)',
+      setup: {
+        action: 'Codex setup',
+        helpAction: 'Setup help',
+        title: 'Set up Send to Codex',
+        description: 'Connect Copy AI ID to the Codex CLI through the local macOS companion.',
+        close: 'Close',
+        retry: 'Retry',
+        retrying: 'Checking…',
+        status: {
+          checking: 'Checking Codex setup…',
+          ready: 'Ready to send',
+          busy: 'Codex is busy',
+          maintenance: 'Companion updating',
+          unreachable: 'Companion unavailable',
+          notReady: 'Setup incomplete',
+        },
+        statusDescription: {
+          checking: 'Checking the local companion and required tools.',
+          ready: 'The companion and all prerequisites are ready.',
+          busy: 'A Codex run is active. Sending will be available when it finishes.',
+          maintenance: 'Setup, update, repair, or uninstall is in progress. Sending will resume after it finishes.',
+          unreachable: 'Copy AI ID cannot reach the companion at 127.0.0.1:45130.',
+          notReady: 'The companion is running, but one or more prerequisites need attention.',
+        },
+        issuesTitle: 'Setup checks',
+        noIssues: 'No failed prerequisite checks were reported.',
+        technicalDetail: 'Connection detail',
+        checkLabels: {
+          protocol: 'Companion compatibility',
+          platform: 'Operating system',
+          node: 'Node.js',
+          codex: 'Codex CLI',
+          codexExec: 'Codex non-interactive execution',
+          codexLogin: 'Codex sign-in',
+          git: 'Git',
+          lsof: 'lsof',
+          unknown: 'Required tool',
+        },
+        issueMessages: {
+          'protocol-version-mismatch': 'Install the companion release that matches this Copy AI ID extension version, then retry.',
+          'unsupported-platform': 'This release supports macOS only. Use Copy AI ID on a Mac.',
+          'node-version-unsupported': 'Install or update Node.js to a supported version, then retry.',
+          'codex-not-found': 'Install the Codex CLI before setting up the companion.',
+          'codex-version-unavailable': 'Update or reinstall the Codex CLI, then retry.',
+          'codex-exec-unsupported': 'Update the Codex CLI to a version that supports the required non-interactive exec options, then retry.',
+          'codex-exec-capability-check-failed': 'Update or reinstall the Codex CLI so its non-interactive exec capabilities can be checked, then retry.',
+          'codex-not-authenticated': 'Sign in to the Codex CLI, then retry.',
+          'codex-login-check-failed': 'Open the Codex CLI, confirm that sign-in works, then retry.',
+          'git-not-found': 'Install Git, then retry.',
+          'git-version-unavailable': 'Update or reinstall Git, then retry.',
+          'lsof-not-found': 'Install or restore the macOS lsof command, then retry.',
+          'lsof-version-unavailable': 'Confirm that the macOS lsof command runs, then retry.',
+        },
+        unknownIssue: 'Follow the setup guide for this prerequisite, then retry.',
+        instructionsTitle: 'Finish setup',
+        macOnly: 'macOS',
+        instructionPrerequisites: 'Install the Codex CLI and sign in to your Codex account if you have not already.',
+        instructionBootstrap: 'Copy the prompt below into Codex. It installs the release-matched setup skill and configures the companion to start at login.',
+        instructionRetry: 'Return here and select Retry. Send to Codex becomes available only after every check passes.',
+        bootstrapTitle: 'Bootstrap prompt for Codex',
+        bootstrapDescription: 'Paste this entire prompt into Codex on the Mac where you use Copy AI ID.',
+        bootstrapPrompt: `Use $skill-installer to install the skill from GitHub repo airman5573/copy-ai-id at path skills/setup-copy-ai-id-codex, pinned to ref {releaseTag} (do not use main or latest). Pass --ref {releaseTag} to the installer, or use the release-pinned Skill source URL below. If the destination skill already exists, move it to a temporary backup outside the active skills directory before installing; restore it if setup or status fails, and delete the backup only after status succeeds. After installation, locate the installed skill folder, read its SKILL.md, and in this same task run its setup.sh and status.sh through bash. Set up the macOS companion to start at login and report its readiness. If newly installed skill metadata is available only in the next turn, use the installed files directly instead of stopping.
+
+Skill source: {skillUrl}
+Readiness endpoint: {healthUrl}`,
+        copyPrompt: 'Copy prompt',
+        promptCopied: 'Prompt copied',
+        promptCopyFailed: 'Copy failed',
+        openSkill: 'View setup skill',
+        openGuide: 'Open detailed guide',
+      },
     },
     visualEditor: {
       panel: {
@@ -380,7 +505,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       failed: 'Codex 실행이 실패했습니다.',
       timedOut: 'Codex 실행이 시간 초과되었습니다.',
       busy: '이미 Codex가 실행 중입니다.',
-      serverUnreachable: 'Codex 서버가 실행 중이 아닙니다. "npm run codex-server"로 실행하세요.',
+      serverUnreachable: 'Codex companion에 연결할 수 없습니다. Codex 설정을 열고 다시 시도하세요.',
       resolveFailed: '이 페이지의 로컬 프로젝트를 찾지 못했습니다.',
       unsupportedPage: 'Codex 전송은 localhost 또는 file:// 페이지에서만 동작합니다.',
       fallbackCopied: '프롬프트를 클립보드에 복사해 두었습니다.',
@@ -391,6 +516,77 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       reasoningMedium: '보통 (medium)',
       reasoningHigh: '깊게 (high)',
       reasoningXhigh: '아주 깊게 (xhigh)',
+      setup: {
+        action: 'Codex 설정',
+        helpAction: '설정 도움말',
+        title: 'Codex로 바로 보내기 설정',
+        description: 'macOS 로컬 companion을 통해 Copy AI ID와 Codex CLI를 연결합니다.',
+        close: '닫기',
+        retry: '다시 확인',
+        retrying: '확인 중…',
+        status: {
+          checking: 'Codex 설정 확인 중…',
+          ready: '전송 준비 완료',
+          busy: 'Codex 작업 중',
+          maintenance: 'Companion 관리 작업 중',
+          unreachable: 'Companion 연결 안 됨',
+          notReady: '설정 미완료',
+        },
+        statusDescription: {
+          checking: '로컬 companion과 필수 도구를 확인하고 있습니다.',
+          ready: 'Companion과 모든 필수 항목이 준비되었습니다.',
+          busy: 'Codex 작업이 진행 중입니다. 완료되면 다시 전송할 수 있습니다.',
+          maintenance: '설치·업데이트·복구·제거 작업이 진행 중입니다. 완료되면 전송이 다시 활성화됩니다.',
+          unreachable: '127.0.0.1:45130에서 실행되는 companion에 연결할 수 없습니다.',
+          notReady: 'Companion은 실행 중이지만 확인이 필요한 필수 항목이 있습니다.',
+        },
+        issuesTitle: '설정 점검 항목',
+        noIssues: '실패한 필수 항목 정보가 없습니다.',
+        technicalDetail: '연결 상세',
+        checkLabels: {
+          protocol: 'Companion 호환성',
+          platform: '운영체제',
+          node: 'Node.js',
+          codex: 'Codex CLI',
+          codexExec: 'Codex 비대화형 실행',
+          codexLogin: 'Codex 로그인',
+          git: 'Git',
+          lsof: 'lsof',
+          unknown: '필수 도구',
+        },
+        issueMessages: {
+          'protocol-version-mismatch': '현재 Copy AI ID 확장 버전과 일치하는 companion 릴리스를 설치한 뒤 다시 확인하세요.',
+          'unsupported-platform': '이 버전은 macOS만 지원합니다. Mac에서 Copy AI ID를 사용해 주세요.',
+          'node-version-unsupported': '지원되는 Node.js 버전을 설치하거나 업데이트한 뒤 다시 확인하세요.',
+          'codex-not-found': 'Companion을 설정하기 전에 Codex CLI를 설치하세요.',
+          'codex-version-unavailable': 'Codex CLI를 업데이트하거나 다시 설치한 뒤 다시 확인하세요.',
+          'codex-exec-unsupported': '필요한 비대화형 exec 옵션을 지원하는 버전으로 Codex CLI를 업데이트한 뒤 다시 확인하세요.',
+          'codex-exec-capability-check-failed': '비대화형 exec 기능을 확인할 수 있도록 Codex CLI를 업데이트하거나 다시 설치한 뒤 다시 확인하세요.',
+          'codex-not-authenticated': 'Codex CLI에 로그인한 뒤 다시 확인하세요.',
+          'codex-login-check-failed': 'Codex CLI를 열어 로그인이 정상 동작하는지 확인한 뒤 다시 시도하세요.',
+          'git-not-found': 'Git을 설치한 뒤 다시 확인하세요.',
+          'git-version-unavailable': 'Git을 업데이트하거나 다시 설치한 뒤 다시 확인하세요.',
+          'lsof-not-found': 'macOS의 lsof 명령을 설치하거나 복구한 뒤 다시 확인하세요.',
+          'lsof-version-unavailable': 'macOS에서 lsof 명령이 정상 실행되는지 확인한 뒤 다시 시도하세요.',
+        },
+        unknownIssue: '설정 가이드에 따라 이 필수 항목을 준비한 뒤 다시 확인하세요.',
+        instructionsTitle: '설정 완료 방법',
+        macOnly: 'macOS',
+        instructionPrerequisites: '아직 준비하지 않았다면 Codex CLI를 설치하고 Codex 계정에 로그인하세요.',
+        instructionBootstrap: '아래 프롬프트를 복사해 Codex에 입력하세요. 확장 릴리스와 일치하는 설정 스킬을 설치하고 로그인 시 companion이 자동 시작되도록 구성합니다.',
+        instructionRetry: '이 화면으로 돌아와 다시 확인을 누르세요. 모든 점검을 통과한 뒤에만 Codex 전송이 활성화됩니다.',
+        bootstrapTitle: 'Codex용 시작 프롬프트',
+        bootstrapDescription: 'Copy AI ID를 사용하는 Mac의 Codex에 아래 프롬프트 전체를 붙여 넣으세요.',
+        bootstrapPrompt: `$skill-installer를 사용해 GitHub 저장소 airman5573/copy-ai-id의 skills/setup-copy-ai-id-codex 경로에 있는 스킬을 ref {releaseTag}로 고정해서 설치하세요(main 또는 latest를 사용하지 마세요). 설치기에 --ref {releaseTag}를 전달하거나 아래의 릴리스 고정 스킬 소스 URL을 사용하세요. 대상 스킬이 이미 있으면 설치 전에 활성 스킬 디렉터리 밖의 임시 위치로 백업하고, setup 또는 status가 실패하면 복원하며 status 성공 후에만 백업을 삭제하세요. 설치 후 실제 스킬 폴더를 찾아 SKILL.md를 읽고, 같은 작업 안에서 setup.sh와 status.sh를 bash로 실행하세요. macOS companion이 로그인 시 시작되도록 설정하고 readiness를 보고하세요. 새 스킬 metadata가 다음 turn부터 적용되더라도 멈추지 말고 설치된 파일을 직접 사용하세요.
+
+스킬 소스: {skillUrl}
+Readiness endpoint: {healthUrl}`,
+        copyPrompt: '프롬프트 복사',
+        promptCopied: '프롬프트 복사됨',
+        promptCopyFailed: '복사 실패',
+        openSkill: '설정 스킬 보기',
+        openGuide: '상세 가이드 열기',
+      },
     },
     visualEditor: {
       panel: {

@@ -45,7 +45,7 @@ export function mountCopyAiIdEditor(
   host.setAttribute('aria-label', `${messages.editor.title} ${messages.editor.subtitle}`);
   host.setAttribute('lang', messages.htmlLang);
 
-  const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' });
+  const shadow = host.attachShadow({ mode: 'closed' });
   const shadowSelectionBridge = installShadowSelectionBridge({ host, shadowRoot: shadow });
   shadow.replaceChildren();
 

@@ -6,17 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Copy AI ID** is a Chrome extension (Manifest V3) that overlays a full-screen visual editor on any rendered web page. Users highlight elements (preferring stable `data-ai-id` attributes, falling back to generated selectors), make **preview-only** visual edits (style/content/attributes/structure), write notes in a Lexical-based notebook with `@el-N` element chips, and copy an AI-ready Markdown document (`## Requests / ## Targets / ## Rules / ## Visual edits` with a machine-readable JSON diff).
 
-Product scope is intentionally narrow: editor-first. No side panel, no native messaging, no AI chat, no analytics, no remote data transmission. The only permission is `storage`; host permissions are `<all_urls>`. The one background service worker (`src/background/index.ts`) exists solely as a fetch proxy for the optional **Send to Codex** feature, which talks only to a local `127.0.0.1` server the user starts manually (`npm run codex-server`).
+Product scope is intentionally narrow: editor-first. No side panel, no native messaging, no AI chat, no analytics, no Copy AI ID remote-processing service. The only permission is `storage`; host permissions are `<all_urls>`. The one background service worker (`src/background/index.ts`) exists solely as a fetch proxy for the optional **Send to Codex** feature, which talks only to a local `127.0.0.1` companion. Public macOS users install that companion through the bundled setup Skill/LaunchAgent; repository development can still start it manually with `npm run codex-server`.
 
 Stack: TypeScript (strict) + React 19 + Zustand + Lexical + Radix UI + Tailwind 3, bundled by Vite 7 with `@crxjs/vite-plugin`.
 
 ## Commands
 
 ```bash
-npm run dev           # vite build --watch — rebuilds dist/ on change (reload the unpacked extension in Chrome to pick up changes)
+npm run dev           # stable-ID local Vite watch build (reload the unpacked extension in Chrome to pick up changes)
 npm run build         # one-shot build into dist/
+npm run build:local   # one-shot unpacked build with the public stable development manifest key
 npm run typecheck     # tsc --noEmit
 npm run codex-server  # local Send-to-Codex server (scripts/codex-server.mjs); scripts/start-codex-server.sh is the shell launcher
+npm run package-codex-companion # build the versioned macOS companion ZIP in output/
 ```
 
 - `npm run typecheck` is the **only automated verification gate**. There is no test framework, no test script, and no ESLint/Prettier config.
@@ -31,13 +33,14 @@ Use this command when preparing a new Chrome Web Store upload package:
 npm run deploy-to-chrome-extension-store
 ```
 
-The script (`scripts/deploy-to-chrome-extension-store.mjs`) prepares a manual-upload package; it does not automate Chrome or the Web Store UI. Default behavior:
+The script (`scripts/deploy-to-chrome-extension-store.mjs`) prepares the two matching release packages; it does not automate Chrome or the Web Store UI. Default behavior:
 
-1. Bumps the patch version in `package.json`, `package-lock.json`, and `src/manifest.ts`.
+1. Bumps the patch version in `package.json`, `package-lock.json`, `src/manifest.ts`, the Skill marker, and release-pinned setup guide/README references.
 2. Runs `npm run build`.
 3. Verifies the built `dist/manifest.json` version matches the bumped version.
 4. Fails if the built manifest contains the local-development `key` field.
 5. Creates `output/copy-ai-id-<version>-chrome-web-store.zip` from `dist/` (`output/` is gitignored).
+6. Creates `output/copy-ai-id-codex-companion-<version>-macos.zip` from the public setup Skill/runtime.
 
 Variants:
 
@@ -46,7 +49,12 @@ npm run deploy-to-chrome-extension-store -- --version 0.1.13    # exact version 
 npm run deploy-to-chrome-extension-store -- --no-version-bump   # rebuild + repackage current version
 ```
 
-After the script completes, upload the generated zip manually in the Chrome Web Store Developer Dashboard.
+Release ordering is an invariant because the in-extension setup links are pinned to `v<manifest version>`:
+
+1. Run the packaging command so versions, pinned docs, `dist/`, and both ZIPs match.
+2. Commit the synchronized source and tracked `dist/`, then push the commit.
+3. Create and push `v<version>`, and publish the matching GitHub Release with both ZIPs attached.
+4. Only after the tag/release links resolve, upload or roll out the extension ZIP in the Chrome Web Store Developer Dashboard.
 
 **Never set `COPY_AI_ID_INCLUDE_MANIFEST_KEY=1` for store builds.** That env var injects a public `key` into the manifest solely so local unpacked builds keep a stable extension ID (see `src/manifest.ts`); the packaging script rejects builds that contain it.
 
@@ -58,7 +66,7 @@ One content script runs in **every frame** (`all_frames: true`, `match_about_bla
 Top frame (the page being inspected)
  ├─ content script → role: EDITOR SHELL
  │    └─ src/content/editor-shell/mount.ts creates a fixed full-viewport host div
- │         └─ src/editor/main.tsx attaches an open Shadow DOM and mounts the React editor
+ │         └─ src/editor/main.tsx attaches a closed Shadow DOM and mounts the React editor
  │              └─ the React app renders a preview <iframe> of the same page,
  │                 with ?copy-ai-id-preview=1 appended to the URL
  │                   └─ content script (again, via all_frames) → role: PREVIEW BRIDGE
@@ -98,7 +106,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 
 ### `src/background/` — service worker (codex proxy only)
 
-`index.ts` — the only background logic in the extension. Listens for the codex runtime messages (guarded by `isCodexRuntimeMessage`; all other messages pass through untouched) and forwards each one as a short fetch to the local codex server (`http://127.0.0.1:45130`). Content-script fetches are subject to the host page's CSP and mixed-content rules; worker fetches are covered by the `<all_urls>` host permission. The worker is stateless — the long codex run is tracked by the editor polling `codex-run-status`, so the worker may be killed/restarted between polls.
+`index.ts` — the only background logic in the extension. Listens for the codex runtime messages (guarded by `isCodexRuntimeMessage`; all other messages pass through untouched) and forwards each one as a short fetch to the local codex server (`http://127.0.0.1:45130`). Content-script fetches are subject to the host page's CSP and mixed-content rules; worker fetches are covered by the `<all_urls>` host permission. Every proxy fetch is bounded (health 7s, resolve-project 25s, start-run 15s, run-status 5s); the start timeout deliberately exceeds the companion's 5-second readiness-command cap to minimize losing a run-id response after acceptance, while the short status timeout keeps one stalled poll from defeating the editor's overall deadline. The worker is stateless — the long codex run is tracked by the editor polling `codex-run-status`, so the worker may be killed/restarted between polls.
 
 ### `src/content/` — content-script side
 
@@ -133,7 +141,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 ### `src/editor/` — React app (mounted in the top-frame Shadow DOM)
 
 **Entry**
-- `main.tsx` — `mountCopyAiIdEditor(host)`: attaches an open shadow root, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, installs the shadow-selection bridge (Lexical selection fix) and notebook draft session persistence.
+- `main.tsx` — `mountCopyAiIdEditor(host)`: attaches a closed shadow root, retains the internal `ShadowRoot` reference, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, installs the shadow-selection bridge (Lexical selection fix) and notebook draft session persistence.
 - `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / `CodexConfirmDialog` / toast.
 
 **`stores/`** — all Zustand. One store per concern:
@@ -153,6 +161,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 | `useVisualSelectionStore` | **single owner of visual-selection data**: hoverTarget, activeToolbarTarget, panelTarget, snapshot lifecycle (status/error/staleReason) |
 | `useVisualEditStore` | visual-edit history: records, pending mutations, undo/redo stacks, export document |
 | `useCodexStore` | Send-to-Codex state machine: `phase` (`idle → resolving → confirming → running`), the pending send payload (markdown, subject, resolved project path/method), the live log console state (`logOpen`/`logEvents`), and the persisted reasoning effort |
+| `useCodexSetupStore` | live companion readiness (`checking/ready/busy/maintenance/unreachable/not-ready`), prerequisite results, refresh state, and the setup-dialog open state |
 
 **`bridge/`**
 - `bridgeClient.ts` — the message hub. `createPreviewUrl` appends `?copy-ai-id-preview=1`; `postToBridge` posts to the iframe; `installBridgeClient` validates inbound `source` + type guard, then `routeBridgeMessage` fans out to per-domain handlers that write into the stores. On `bridgeReady` it resets visual stores and re-pushes zoom state.
@@ -196,8 +205,10 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 
 - `public/` — icons (16/32/48/128) and `_locales/{en,ko}/messages.json` (manifest name/description only; UI strings live in `src/shared/i18n.ts`).
 - `examples/` — standalone HTML fixtures for manual testing: `test-2.html` (fully `data-ai-id`-annotated, includes an intentional duplicate id), `test-1.html` (mostly un-annotated → fallback paths), `fallback-targets.html`, `shadow-dom-test.html`, `iframe-test.html`, `complex-tailwind-test.html`, `manual-test.html` (+ destination page for navigation testing).
-- `scripts/deploy-to-chrome-extension-store.mjs` — the packaging script described above.
-- `scripts/codex-server.mjs` + `scripts/start-codex-server.sh` — the local Send-to-Codex server (see below). `scripts/codex-local-bridge.mjs` is an older token-based prototype kept for reference (`npm run codex-bridge`); the extension only talks to `codex-server.mjs`.
+- `scripts/deploy-to-chrome-extension-store.mjs` + `scripts/package-codex-companion.mjs` — the matching extension/companion packaging workflow described above.
+- `skills/setup-copy-ai-id-codex/` — public macOS setup Skill, management scripts, and the **canonical** zero-dependency companion server at `assets/codex-server.mjs`. It installs a user LaunchAgent at `~/Library/LaunchAgents/com.copy-ai-id.codex-server.plist` and a stable runtime under `~/Library/Application Support/Copy AI ID Codex`.
+- `scripts/codex-server.mjs` + `scripts/start-codex-server.sh` — repository-development entry points; the `.mjs` file imports the canonical Skill asset. `scripts/codex-local-bridge.mjs` is an older token-based prototype kept for reference (`npm run codex-bridge`).
+- `docs/codex-setup.md` / `docs/codex-setup.ko.md` — mirrored public companion setup/management guides.
 - `dist/` — Vite/crxjs build output (the unpacked extension). `output/` — store zips, gitignored.
 
 ## Copy/export pipeline
@@ -214,7 +225,7 @@ Visual-edit prompt text is hidden while editing and appended only on copy. Copy 
 
 ## Send to Codex (optional, local-only)
 
-Sends the exact markdown the copy button produces to the OpenAI Codex CLI running on the user's machine, with automatic git commits around the run. Nothing leaves the machine: the extension talks (only through its background service worker) to a local server the user starts manually.
+Sends the exact markdown the copy button produces to the OpenAI Codex CLI running on the user's machine, with automatic git commits around the run. The extension itself talks only to the local companion through its background service worker; public installs keep that companion running with a user LaunchAgent, while the Codex CLI communicates with OpenAI under the user's existing Codex authentication and configuration.
 
 ```
 Editor (content script, shadow DOM)
@@ -222,48 +233,50 @@ Editor (content script, shadow DOM)
        └─ chrome.runtime.sendMessage (contracts: src/shared/codex.ts)
             └─ src/background/index.ts — stateless fetch proxy (extension-context fetch:
                exempt from host-page CSP / mixed-content; covered by <all_urls>)
-                 └─ scripts/codex-server.mjs — 127.0.0.1:45130, zero-dependency Node
+                 └─ skills/setup-copy-ai-id-codex/assets/codex-server.mjs — 127.0.0.1:45130, zero-dependency Node
                       ├─ lsof / fs — project auto-detection
                       ├─ git — auto-commits around the run
                       └─ codex exec (child process, prompt via stdin)
 ```
 
-### Local server (`scripts/codex-server.mjs`)
+### Local companion (`skills/setup-copy-ai-id-codex/assets/codex-server.mjs`)
 
-Started manually with `npm run codex-server` (or `scripts/start-codex-server.sh`); the extension never starts it. Endpoints (all JSON; every response is `{ ok: true, ... }` or `{ ok: false, code, error }`):
+Public macOS setup copies the companion into the user's Library folder and keeps it running with a per-user LaunchAgent. Repository development can start the same canonical implementation with `npm run codex-server` (or `scripts/start-codex-server.sh`). The extension never starts a native process itself. Endpoints (all JSON; every response is `{ ok: true, ... }` or `{ ok: false, code, error }`):
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /health` | liveness + whether a run is in progress |
+| `GET /health` | reachability, protocol version, active-run state, and cached macOS readiness checks for Node 18+, Codex version/non-interactive exec capabilities/login, Git, and `lsof` |
 | `POST /resolve-project` `{ pageUrl }` | page URL → `{ projectPath, method, detail }` |
-| `POST /runs` `{ prompt, subject, projectPath, pageUrl }` | starts a run **asynchronously**, returns `{ runId }` immediately; `409 busy` while another run is live (single-run serialization) |
+| `POST /runs` `{ prompt, subject, projectPath, pageUrl }` | awaits cached prerequisite readiness, then starts a run **asynchronously** and returns `{ runId }`; `503 not-ready` if prerequisites fail and `409 busy` during maintenance/another live run (single-run serialization) |
 | `GET /runs/:id?after=<seq>` | `{ status: 'running' \| 'done', result, events, nextSeq }`; `events` is the incremental run log (entries with `seq > after`, capped at 500/run) that feeds the live log console; finished runs are kept in memory (last 20) |
 
 **Project resolution** (`resolve-project`):
-- `http(s)://localhost|127.0.0.1|[::1]` → `lsof -iTCP:<port> -sTCP:LISTEN` → first listening pid → `lsof -p <pid> -d cwd` → the dev-server process's working directory (method `localhost-port`). No listener → `no-dev-server`.
+- `http(s)://localhost|127.0.0.1|[::1]` → `lsof -iTCP:<port> -sTCP:LISTEN` → first listening pid → `lsof -p <pid> -d cwd` → resolve symlinks and walk from the listener cwd to the nearest `.git` or `package.json` (method `localhost-port`). A marker hit returns that canonical project root; no marker falls back to the canonical listener cwd. No listener → `no-dev-server`.
 - `file://` → start from the file's directory and walk up to the nearest `.git` or `package.json`; if none found, use the file's directory itself (method `file-path`).
-- Any other origin → `unsupported-page`. Resolved paths must be existing directories under `$HOME` (never the filesystem root); outside-home paths are rejected unless `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
-- Every success carries `confident: boolean` — `true` for `localhost-port` (a process cwd is deterministic) and for marker-based `file-path` hits; `false` when the file walk found no marker and fell back to the file's own directory. Confident results skip the confirm dialog.
+- Any other origin → `unsupported-page`. Resolved paths must be existing directories under `$HOME` (never the filesystem root or the entire home directory); outside-home paths are rejected unless `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`. Marker walks never select the filesystem root or home directory as a project.
+- Every success carries `confident: boolean` — `true` only when a localhost or file walk found a `.git`/`package.json` marker; `false` when localhost fell back to the listener cwd or a file walk fell back to the file's own directory. Confident results skip the confirm dialog; markerless fallbacks require the trusted-path confirmation dialog before any Git or Codex action.
+
+Before `executeRun` can begin, `POST /runs` awaits `getReadiness()` and rejects a failed result with the typed `not-ready` error, before any Git write. Because that probe is asynchronous, `startRun()` then rechecks the management lock and active run and assigns `activeRunId` in one no-`await` critical section; concurrent starts and setup/update cannot both claim the run slot.
 
 **Run pipeline** (`executeRun`), in order:
 1. `git rev-parse --is-inside-work-tree`; if not a repo → `git init` + write a default `.gitignore` (only when none exists). Reported as `gitInitialized`.
 2. If `git status --porcelain` is dirty → `git add -A` + commit `auto-commit: YYYY-MM-DD HH:MM:SS` (local time), so the user's pre-existing work is separated from codex's changes. Reported as `preCommitted`. Commits retry once with a `-c user.name/user.email` fallback identity if the project has no git identity.
-3. Spawn `codex exec --json --sandbox workspace-write --cd <projectPath> --skip-git-repo-check --config approval_policy="never" --config model_reasoning_effort="<effort>" --enable fast_mode --config service_tier="fast" [-m <model>] -` with `cwd = projectPath`; the prompt goes in via **stdin** (avoids argv limits/log exposure). **Fast mode is always requested**: it is a service-tier selection (`service_tier=fast`, runtime value `priority`), independent of reasoning effort, and needs both the feature flag and the tier config; models that don't support the tier ignore it gracefully (kill switch: `COPY_AI_ID_CODEX_FAST=0`). The reasoning effort comes per-request from the editor's toolbar selector (medium/high/xhigh only, default medium; invalid values fall back to the server default); the model is env-only. A server-side preamble is prepended: project path, page URL, "map `data-ai-id`/selectors to source", "keep edits minimal", "**do not run git commands**". JSONL events are parsed for the final `agent_message` text **and** mapped to log entries (`describeCodexEvent`: reasoning summaries, `$ command` on start, non-zero exits, `edit: <files>`, agent messages; turn bookkeeping and successful command completions are dropped). Git/lifecycle steps also push `status`/`error` entries. Timeout (`COPY_AI_ID_CODEX_TIMEOUT_MS`, default 300000) → SIGKILL + `timedOut: true`.
+3. Probe `codex exec --help` locally for the non-interactive options used below; this does not start an agent or make an authenticated/network request. Spawn `codex exec --json --sandbox workspace-write --cd <projectPath> --skip-git-repo-check --config approval_policy="never" --config model_reasoning_effort="<effort>" [--enable fast_mode --config service_tier="fast"] [-m <model>] -` with `cwd = projectPath`; the prompt goes in via **stdin** (avoids argv limits/log exposure). Fast mode is requested only when local CLI feature metadata reports `fast_mode`; otherwise a compatible CLI falls back to the standard tier (kill switch: `COPY_AI_ID_CODEX_FAST=0`). The reasoning effort comes per-request from the editor's toolbar selector (medium/high/xhigh only, default medium; invalid values fall back to the server default); the model is env-only. A server-side preamble is prepended: project path, page URL, "map `data-ai-id`/selectors to source", "keep edits minimal", "**do not run git commands**". JSONL events are parsed for the final `agent_message` text **and** mapped to log entries (`describeCodexEvent`: reasoning summaries, `$ command` on start, non-zero exits, `edit: <files>`, agent messages; turn bookkeeping and successful command completions are dropped). Git/lifecycle steps also push `status`/`error` entries. Timeout (`COPY_AI_ID_CODEX_TIMEOUT_MS`, default 300000) terminates the spawned process group and reports `timedOut: true`.
 4. Only on exit 0 and not timed out: if the tree is dirty → `git add -A` + commit `codex: <subject>` (subject = first line of the request, ≤72 chars, supplied by the editor). `committedFiles` comes from `git show --name-only HEAD`. A clean tree yields `committedFiles: []` with no commit. Failed/timed-out runs are **not** committed — the next run's pre-commit sweeps any partial changes into its `auto-commit`.
 
 **Result shape** (`CodexRunResult` in `src/shared/codex.ts`): `{ ok, exitCode, timedOut, finalMessage, errorOutput, error, gitInitialized, preCommitted, committedFiles, commitMessage, durationMs }`.
 
-**Env vars**: `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130 — must match `CODEX_SERVER_PORT` in `src/shared/codex.ts`), `CODEX_BIN` (default `codex` on PATH), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (server-side default effort when a request omits/sends an invalid one; default `medium`), `COPY_AI_ID_CODEX_FAST` (`0` disables the always-on fast service tier), `COPY_AI_ID_CODEX_MODEL` (optional `-m` override; empty = account default), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`.
+**Env vars**: `COPY_AI_ID_CODEX_SERVER_PORT` (default 45130 — must match `CODEX_SERVER_PORT` in `src/shared/codex.ts`), `CODEX_BIN` (default `codex` on PATH), `COPY_AI_ID_CODEX_TIMEOUT_MS` (default 300000), `COPY_AI_ID_CODEX_REASONING` (server-side default effort when a request omits/sends an invalid one; default `medium`), `COPY_AI_ID_CODEX_FAST` (`0` disables the capability-gated fast service tier), `COPY_AI_ID_CODEX_MODEL` (optional `-m` override; empty = account default), `COPY_AI_ID_ALLOW_OUTSIDE_HOME=1`, `COPY_AI_ID_ALLOWED_EXTENSION_IDS` (comma-separated extra unpacked extension ids for development only).
 
-**Security model**: binds `127.0.0.1` only; every request must carry the `x-copy-ai-id-client` header. A web page cannot attach that header without a CORS preflight, and the server only ACKs preflights from `chrome-extension://` / localhost origins — so cross-site pages (including DNS-rebinding hosts) cannot drive it. The extension's service-worker fetch is CORS-exempt via host permissions and sends the header directly. `curl` testing needs `-H 'x-copy-ai-id-client: dev'`.
+**Security model**: binds `127.0.0.1` only; every request must carry the exact `x-copy-ai-id-client: copy-ai-id-extension` marker. A web page cannot attach that header without a CORS preflight, and the server accepts only the published extension id plus the documented stable development id (extra unpacked ids require the development-only env override above); requests that carry any other `Origin` are rejected. Non-browser CLI diagnostics may omit `Origin` but still need the exact client header. Project validation resolves symlinks, rejects filesystem root and the entire home directory, and stays inside the real home path unless the explicit outside-home override is enabled.
 
 ### Editor flow (`src/editor/notebook/codex-send.ts`)
 
-`useCodexStore.phase` is the single state machine: `idle → resolving → confirming → running → idle`. Both Codex buttons (top toolbar + note panel) disable while non-idle and re-label per phase (`codex.resolving` / `codex.running` i18n keys).
+`useCodexStore.phase` owns the send state machine (`idle → resolving → confirming → running → idle`), while `useCodexSetupStore` owns companion availability. On mount, focus/visibility restore, every 30 seconds, around runs, and on manual Retry, the editor calls `copy-ai-id:codex-health`. Both Codex buttons (top toolbar + note panel) are truly disabled unless setup status is `ready` and the send phase is idle. Separate setup/help buttons open `CodexSetupDialog`, which displays failed checks, a public Skill bootstrap prompt, locale-aware docs, and Retry; it never auto-opens.
 
 1. `sendNotebookDraftToCodex()` — no-op with a `busy` toast if already running; builds the markdown via `buildNotebookExportMarkdown()` (empty → `notebook.empty` toast); strips the `copyaiid`/`copy-ai-id-preview` params from `location.href`; asks the worker to resolve the project. Resolve failure → reset + clipboard-fallback toast.
 2. **Confident detection runs immediately** — a `codex.startedIn` toast shows the project path and `runPendingCodexSend()` starts right away. Only non-confident detections go through `beginConfirm(...)` + `CodexConfirmDialog`. Dialog cancel paths: overlay click, cancel button, or Escape (first step of the `handleEditorEscapeAction` cascade, result `'codex-dialog'` — keyboard.ts must not forward that Escape to the bridge).
-3. `confirmCodexSend()` / auto-run → `runPendingCodexSend()` → `startRun` (with the persisted reasoning effort) → poll `runStatus` every 1.5s with an `after` cursor, appending returned events to `useCodexStore.logEvents`. Transient poll failures (worker restart, brief server hiccup) are tolerated; only `run-not-found` or the 15-minute client deadline aborts.
+3. `confirmCodexSend()` / auto-run → `runPendingCodexSend()` → `startRun` (with the persisted reasoning effort) → poll `runStatus` every 1.5s with an `after` cursor, appending returned events to `useCodexStore.logEvents`. The background bounds each status fetch at 5 seconds, so a hung poll cannot suspend deadline accounting indefinitely. Transient poll failures (worker restart, brief server hiccup/timeout) are tolerated; only `run-not-found` or the 15-minute client deadline aborts. A start-response timeout resets the send state, immediately puts setup readiness back into non-sendable `checking`, and uses the existing clipboard fallback rather than issuing an automatic retry that could duplicate a server-accepted run.
 4. **Live log console** (`CodexLogConsole`, absolutely positioned under the toolbar Codex button): opens automatically at run start (`startLog()` clears prior events), renders the accumulated entries as a scrolling monospace list (auto-scrolls to bottom, kind-colored), and auto-closes 5s after the run finishes — guarded by a module-level `logGeneration` counter in `codex-send.ts` so a stale timer never closes the next run's console. The X button closes it early; runs triggered from the note panel button use the same toolbar-anchored console.
 5. **Reasoning effort selector** — a compact `<select>` (medium/high/xhigh, default medium) next to the toolbar Codex button, persisted to `chrome.storage.local` (`copy-ai-id:codex-reasoning:v1`, hydrated on toolbar mount) and sent with every run. Values outside the supported set (including a previously stored `low`) fall back to medium on hydrate.
 4. Outcome:
@@ -289,9 +302,11 @@ All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `
 - **Sanitization is centralized** — rich-text HTML goes through `visual-html.ts` (DOMPurify), attribute edits through `visual-attributes.ts`, exported snapshots through the allowlists in `visual-targets.ts`. Don't bypass these when adding new mutation paths.
 - **file:// and opaque origins** get relaxed origin checks in the bridge (parent-frame identity is still verified) to support local files.
 - **Chip ids are stable** — `el-N` numbers are never renumbered after deletion; `nextChipIndex` is persisted with the draft.
-- **Codex server port is defined in two places** — `CODEX_SERVER_PORT` in `src/shared/codex.ts` and the `COPY_AI_ID_CODEX_SERVER_PORT` default in `scripts/codex-server.mjs` must stay in sync (45130).
+- **Codex server port is defined in two places** — `CODEX_SERVER_PORT` in `src/shared/codex.ts` and the `COPY_AI_ID_CODEX_SERVER_PORT` default in `skills/setup-copy-ai-id-codex/assets/codex-server.mjs` must stay in sync (45130).
+- **Codex companion protocol is defined in two places** — `CODEX_COMPANION_PROTOCOL_VERSION` in `src/shared/codex.ts` and `PROTOCOL_VERSION` in the canonical companion server must stay in sync (currently 1). A missing or different `/health` version must remain a reachable-but-not-ready result so Send stays disabled.
+- **The editor shadow root stays closed** — the inspected page must not gain DOM access to Codex send/confirm controls. Editor focus and selection code must use the retained internal `ShadowRoot` reference instead of `host.shadowRoot`.
 - **The background worker stays a stateless proxy** — no run state, timers, or keepalive tricks in `src/background/index.ts`. Long codex runs are tracked by the editor polling `codex-run-status`; the worker may be killed and restarted between polls at any time. Don't add background logic for other features.
-- **Codex writes only after resolve is confident or confirmed** — the resolve step only reads (`lsof`/fs). Confident detections (dev-server cwd, marker-based file root) run immediately with a path toast; a non-confident guess (bare directory with no `.git`/`package.json`) must be confirmed in `CodexConfirmDialog` first. Never auto-run a non-confident path.
+- **Codex writes only after resolve is confident or confirmed** — the resolve step only reads (`lsof`/fs). Marker-based localhost/file roots run immediately with a path toast; a non-confident fallback (listener cwd or file directory with no `.git`/`package.json`) must be confirmed in `CodexConfirmDialog` first. Never auto-run a non-confident path.
 - **Codex failure keeps the draft** — the notebook draft + visual edits are cleared only on a successful run (mirroring copy semantics); failures/timeouts fall back to copying the prompt to the clipboard.
 - **`codex:` commits only on success** — a failed or timed-out run leaves the tree uncommitted; the next run's `auto-commit` pre-commit sweeps those partial changes up. Don't "fix" this by committing failed runs.
 

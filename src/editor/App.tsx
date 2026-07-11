@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { createPreviewUrl } from './bridge/bridgeClient';
 import { CodexConfirmDialog } from './components/CodexConfirmDialog';
+import { CodexSetupDialog } from './components/CodexSetupDialog';
 import { FloatingNotePanel } from './components/FloatingNotePanel';
 import { MainArea } from './components/MainArea';
 import { QuickToolbar } from './components/quick-toolbar/QuickToolbar';
@@ -17,6 +18,12 @@ import { useRuntimeStore } from './stores/useRuntimeStore';
 import { useNotebookStore } from './stores/useNotebookStore';
 import { useToastStore } from './stores/useToastStore';
 import { useFloatingNotePanelStore } from './stores/useFloatingNotePanelStore';
+import {
+  refreshCodexSetup,
+  resetCodexSetupRuntime,
+} from './stores/useCodexSetupStore';
+
+const CODEX_SETUP_REFRESH_INTERVAL_MS = 30_000;
 
 export interface AppProps {
   onRequestClose?: () => void;
@@ -33,6 +40,33 @@ export function App({ onRequestClose }: AppProps) {
   const clearToast = useToastStore((state) => state.clearToast);
   const setSuffixSettings = useNotebookStore((state) => state.setSuffixSettings);
   const resetFloatingNotePanelRuntime = useFloatingNotePanelStore((state) => state.resetFloatingNotePanelRuntime);
+
+  useEffect(() => {
+    resetCodexSetupRuntime();
+    void refreshCodexSetup({ showChecking: true });
+
+    const handleWindowFocus = (): void => {
+      void refreshCodexSetup({ showChecking: true });
+    };
+    const handleVisibilityChange = (): void => {
+      if (document.visibilityState === 'visible') {
+        void refreshCodexSetup({ showChecking: true });
+      }
+    };
+    const refreshInterval = window.setInterval(() => {
+      void refreshCodexSetup({ showChecking: true });
+    }, CODEX_SETUP_REFRESH_INTERVAL_MS);
+
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(refreshInterval);
+      window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      resetCodexSetupRuntime();
+    };
+  }, []);
 
   useEffect(() => {
     const url = window.location.href;
@@ -101,6 +135,7 @@ export function App({ onRequestClose }: AppProps) {
       <FloatingNotePanel />
       <QuickToolbar />
       <FloatingVisualPanel />
+      <CodexSetupDialog />
       <CodexConfirmDialog />
       {toastMessage ? (
         <div

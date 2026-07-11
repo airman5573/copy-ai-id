@@ -10,11 +10,18 @@ import {
 } from '../../shared/codex';
 import { getCurrentMessages } from '../../shared/i18n';
 import { useCodexStore, type CodexPendingSend } from '../stores/useCodexStore';
+import {
+  refreshCodexSetup,
+  useCodexSetupStore,
+} from '../stores/useCodexSetupStore';
 import { useNotebookStore } from '../stores/useNotebookStore';
 import { useVisualEditStore } from '../stores/useVisualEditStore';
 import { showEditorToast } from '../toast';
 import { copyText } from './clipboard';
-import { buildNotebookExportMarkdown } from './export-markdown';
+import {
+  buildNotebookExportMarkdown,
+  type NotebookExportMarkdown,
+} from './export-markdown';
 
 const RUN_POLL_INTERVAL_MS = 1500;
 // Client-side safety cap; the server enforces its own codex timeout (5 min by
@@ -27,6 +34,10 @@ const LOG_AUTO_CLOSE_MS = 5000;
 // Guards the delayed auto-close: a new run bumps the generation so a stale
 // timer never closes the console of the run that came after it.
 let logGeneration = 0;
+// Identifies the one async export/resolve preparation that currently owns the
+// resolving phase. Escape invalidates it so a stale continuation cannot reset
+// or overtake a newer send attempt.
+let activePreparationToken: symbol | null = null;
 
 // Entry point for the "Send to Codex" buttons: build the same markdown the
 // copy button produces, resolve the local project for the current page, then
@@ -41,21 +52,58 @@ export async function sendNotebookDraftToCodex(): Promise<void> {
     return;
   }
 
-  const exportMarkdown = await buildNotebookExportMarkdown();
+  // Claim the send synchronously before the first await so two rapid trusted
+  // clicks cannot both start preparing a run.
+  const preparationToken = Symbol('codex-send-preparation');
+  activePreparationToken = preparationToken;
+  codexStore.setPhase('resolving');
+
+  let exportMarkdown: NotebookExportMarkdown | null;
+  try {
+    exportMarkdown = await buildNotebookExportMarkdown();
+  } catch {
+    if (!resetOwnedPreparation(preparationToken)) {
+      return;
+    }
+
+    showEditorToast(getCurrentMessages().notebook.copyFailed, 'error');
+    return;
+  }
+
+  if (!ownsPreparation(preparationToken)) {
+    return;
+  }
+
   if (!exportMarkdown) {
+    resetOwnedPreparation(preparationToken);
     showEditorToast(getCurrentMessages().notebook.empty, 'info');
     return;
   }
 
-  useCodexStore.getState().setPhase('resolving');
-  const pageUrl = getCleanPageUrl();
+  let pageUrl: string;
+  try {
+    pageUrl = getCleanPageUrl();
+  } catch {
+    if (!resetOwnedPreparation(preparationToken)) {
+      return;
+    }
+
+    await failWithClipboardFallback(exportMarkdown.markdown, messages.resolveFailed);
+    return;
+  }
+
   const resolved = await requestCodexBackground<CodexResolveProjectResponse>({
     type: CODEX_RUNTIME_MESSAGE_TYPES.resolveProject,
     pageUrl,
-  });
+  }, isCodexResolveProjectSuccess);
+
+  if (!ownsPreparation(preparationToken)) {
+    return;
+  }
 
   if (!resolved.ok) {
-    useCodexStore.getState().reset();
+    resetOwnedPreparation(preparationToken);
+    void refreshCodexSetup({ showChecking: true });
     await failWithClipboardFallback(exportMarkdown.markdown, describeFailure(resolved));
     return;
   }
@@ -69,8 +117,12 @@ export async function sendNotebookDraftToCodex(): Promise<void> {
     detail: resolved.detail,
   };
 
-  // Unambiguous detection (dev-server cwd / marker-based file root) runs
-  // immediately; only uncertain guesses go through the confirm dialog.
+  // Both successful transitions below are synchronous, so releasing ownership
+  // immediately before them leaves no opportunity for another send to claim.
+  activePreparationToken = null;
+
+  // A marker-based localhost/file root runs immediately; markerless listener
+  // or file directories always go through the trusted-path confirm dialog.
   if (resolved.confident) {
     showEditorToast(
       messages.startedIn.replace('{path}', pending.projectPath),
@@ -87,7 +139,11 @@ export async function sendNotebookDraftToCodex(): Promise<void> {
 // Called by the confirmation dialog for non-confident detections.
 export async function confirmCodexSend(): Promise<void> {
   const { phase, pending } = useCodexStore.getState();
-  if (phase !== 'confirming' || !pending) {
+  if (
+    phase !== 'confirming'
+    || !pending
+    || useCodexSetupStore.getState().status !== 'ready'
+  ) {
     return;
   }
 
@@ -110,17 +166,20 @@ async function runPendingCodexSend(pending: CodexPendingSend): Promise<void> {
     projectPath: pending.projectPath,
     pageUrl: pending.pageUrl,
     reasoningEffort: codexStore.reasoningEffort,
-  });
+  }, isCodexStartRunSuccess);
 
   if (!started.ok) {
     useCodexStore.getState().reset();
+    void refreshCodexSetup({ showChecking: true });
     scheduleLogAutoClose();
     await failWithClipboardFallback(pending.markdown, describeFailure(started));
     return;
   }
 
+  void refreshCodexSetup({ showChecking: true });
   const result = await pollRunUntilDone(started.runId);
   useCodexStore.getState().reset();
+  void refreshCodexSetup({ showChecking: true });
   scheduleLogAutoClose();
 
   if (!result) {
@@ -156,8 +215,24 @@ function scheduleLogAutoClose(): void {
 export function cancelCodexSend(): void {
   const { phase } = useCodexStore.getState();
   if (phase === 'confirming' || phase === 'resolving') {
+    activePreparationToken = null;
     useCodexStore.getState().reset();
   }
+}
+
+function ownsPreparation(token: symbol): boolean {
+  return activePreparationToken === token
+    && useCodexStore.getState().phase === 'resolving';
+}
+
+function resetOwnedPreparation(token: symbol): boolean {
+  if (!ownsPreparation(token)) {
+    return false;
+  }
+
+  activePreparationToken = null;
+  useCodexStore.getState().reset();
+  return true;
 }
 
 async function pollRunUntilDone(runId: string): Promise<CodexRunResult | null> {
@@ -170,7 +245,7 @@ async function pollRunUntilDone(runId: string): Promise<CodexRunResult | null> {
       type: CODEX_RUNTIME_MESSAGE_TYPES.runStatus,
       runId,
       after,
-    });
+    }, isCodexRunStatusSuccess);
 
     if (!status.ok) {
       // Transient worker/server hiccups shouldn't abort a multi-minute run;
@@ -208,6 +283,8 @@ function describeFailure(failure: CodexFailure): string {
       return messages.serverUnreachable;
     case 'unsupported-page':
       return messages.unsupportedPage;
+    case 'not-ready':
+      return messages.setup.statusDescription.notReady;
     case 'busy':
       return messages.busy;
     default:
@@ -217,15 +294,22 @@ function describeFailure(failure: CodexFailure): string {
 
 async function requestCodexBackground<T extends CodexResponse<object>>(
   message: CodexRuntimeMessage,
+  isValidSuccess: (value: Record<string, unknown>) => boolean,
 ): Promise<T> {
   try {
     const response: unknown = await chrome.runtime.sendMessage(message);
-    if (!response || typeof response !== 'object' || typeof (response as { ok?: unknown }).ok !== 'boolean') {
-      return {
-        ok: false,
-        code: 'bad-response',
-        error: 'Unexpected background response.',
-      } satisfies CodexFailure as T;
+    if (!response || typeof response !== 'object') {
+      return badResponseFailure<T>();
+    }
+
+    const candidate = response as Record<string, unknown>;
+    if (candidate.ok === false) {
+      return typeof candidate.code === 'string' && typeof candidate.error === 'string'
+        ? response as T
+        : badResponseFailure<T>();
+    }
+    if (candidate.ok !== true || !isValidSuccess(candidate)) {
+      return badResponseFailure<T>();
     }
 
     return response as T;
@@ -238,6 +322,80 @@ async function requestCodexBackground<T extends CodexResponse<object>>(
       error: error instanceof Error ? error.message : 'Extension messaging failed.',
     } satisfies CodexFailure as T;
   }
+}
+
+function badResponseFailure<T extends CodexResponse<object>>(): T {
+  return {
+    ok: false,
+    code: 'bad-response',
+    error: 'Unexpected background response.',
+  } satisfies CodexFailure as T;
+}
+
+function isCodexResolveProjectSuccess(value: Record<string, unknown>): boolean {
+  return typeof value.projectPath === 'string'
+    && (value.method === 'localhost-port' || value.method === 'file-path')
+    && typeof value.detail === 'string'
+    && typeof value.confident === 'boolean';
+}
+
+function isCodexStartRunSuccess(value: Record<string, unknown>): boolean {
+  return typeof value.runId === 'string' && value.runId.length > 0;
+}
+
+function isCodexRunStatusSuccess(value: Record<string, unknown>): boolean {
+  if (
+    (value.status !== 'running' && value.status !== 'done')
+    || !Number.isSafeInteger(value.nextSeq)
+    || Number(value.nextSeq) < 0
+    || !Array.isArray(value.events)
+    || !value.events.every(isCodexRunEvent)
+  ) {
+    return false;
+  }
+
+  return value.status === 'running'
+    ? value.result === null
+    : isCodexRunResult(value.result);
+}
+
+function isCodexRunEvent(value: unknown): boolean {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const event = value as Record<string, unknown>;
+  return Number.isSafeInteger(event.seq)
+    && Number(event.seq) > 0
+    && typeof event.text === 'string'
+    && (
+      event.kind === 'status'
+      || event.kind === 'command'
+      || event.kind === 'reasoning'
+      || event.kind === 'message'
+      || event.kind === 'file'
+      || event.kind === 'error'
+    );
+}
+
+function isCodexRunResult(value: unknown): boolean {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const result = value as Record<string, unknown>;
+  return typeof result.ok === 'boolean'
+    && (result.exitCode === null || Number.isInteger(result.exitCode))
+    && typeof result.timedOut === 'boolean'
+    && typeof result.finalMessage === 'string'
+    && typeof result.errorOutput === 'string'
+    && (result.error === null || typeof result.error === 'string')
+    && typeof result.gitInitialized === 'boolean'
+    && typeof result.preCommitted === 'boolean'
+    && Array.isArray(result.committedFiles)
+    && result.committedFiles.every((file) => typeof file === 'string')
+    && (result.commitMessage === null || typeof result.commitMessage === 'string')
+    && typeof result.durationMs === 'number'
+    && Number.isFinite(result.durationMs)
+    && result.durationMs >= 0;
 }
 
 function getCleanPageUrl(): string {

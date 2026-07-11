@@ -3,7 +3,7 @@
   "default_locale": "en",
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -33,7 +33,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-BrE6frmD.js"
+        "assets/index.ts-loader-ZK9c8Qg6.js"
       ],
       "matches": [
         "<all_urls>"
@@ -49,9 +49,9 @@
         "<all_urls>"
       ],
       "resources": [
-        "assets/notebook-notice-CNkUUrL6.js",
-        "assets/codex-BDexyLHK.js",
-        "assets/index.ts-CydOoYYH.js"
+        "assets/notebook-notice-BIdEC6_H.js",
+        "assets/codex-D_rGEVn0.js",
+        "assets/index.ts--vaAfORE.js"
       ],
       "use_dynamic_url": false
     }

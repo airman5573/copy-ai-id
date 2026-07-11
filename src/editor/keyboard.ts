@@ -94,7 +94,8 @@ export function installEditorKeyboard(): () => void {
 function clearVisualEditorEscapeState(): void {
   const result = handleEditorEscapeAction();
   if (
-    result !== 'codex-dialog'
+    result !== 'codex-setup-dialog'
+    && result !== 'codex-dialog'
     && result !== 'quick-toolbar-popover'
     && result !== 'visual-panel'
     && result !== 'floating-note-panel'
