@@ -4,6 +4,7 @@ import { EDITOR_UI_ATTR } from '../shared/config';
 import { getCurrentMessages } from '../shared/i18n';
 import { App } from './App';
 import editorCss from './editor.css?inline';
+import { setEditorShadowRoot } from './editor-shadow-root';
 import { createNotebookDraftSessionPersistence } from './notebook/session-draft';
 import { installShadowSelectionBridge } from './shadow-selection-bridge';
 import { useNotebookStore } from './stores/useNotebookStore';
@@ -46,6 +47,7 @@ export function mountCopyAiIdEditor(
   host.setAttribute('lang', messages.htmlLang);
 
   const shadow = host.attachShadow({ mode: 'closed' });
+  setEditorShadowRoot(shadow);
   const shadowSelectionBridge = installShadowSelectionBridge({ host, shadowRoot: shadow });
   shadow.replaceChildren();
 
@@ -69,6 +71,7 @@ export function mountCopyAiIdEditor(
       shadowSelectionBridge.dispose();
       root.unmount();
       shadow.replaceChildren();
+      setEditorShadowRoot(null);
     },
   };
 }

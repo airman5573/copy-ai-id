@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { resolveEditorEventElement } from '../../editor-shadow-root';
 import {
   announceVisualDropdownOpen,
   listenForOtherVisualDropdowns,
@@ -55,8 +56,8 @@ export function ToolbarPopover({
     registerOpenQuickToolbarPopover(popoverId, () => setIsOpen(false));
 
     const handlePointerDown = (event: PointerEvent): void => {
-      const path = event.composedPath();
-      if (rootRef.current && !path.includes(rootRef.current)) {
+      const element = resolveEditorEventElement(event);
+      if (rootRef.current && !(element && rootRef.current.contains(element))) {
         setIsOpen(false);
       }
     };

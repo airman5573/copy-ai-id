@@ -1,3 +1,4 @@
+import { resolveEditorEventElement } from './editor-shadow-root';
 import { protectEditorInteractionFromHover } from './note-hover-guard';
 
 const VISUAL_EDITOR_HOVER_PROTECTION_MS = 500;
@@ -30,24 +31,7 @@ export function installVisualEditorFocusGuard(): () => void {
 }
 
 export function isVisualEditorFocusGuardEvent(event: Event): boolean {
-  const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-  const nodes: EventTarget[] = path.length > 0 ? path : event.target ? [event.target] : [];
-
-  for (const node of nodes) {
-    if (node instanceof Document || node instanceof Window) {
-      continue;
-    }
-
-    if (!(node instanceof Element)) {
-      continue;
-    }
-
-    if (node.matches(VISUAL_FOCUS_GUARD_SELECTOR) || node.closest(VISUAL_FOCUS_GUARD_SELECTOR)) {
-      return true;
-    }
-  }
-
-  return false;
+  return Boolean(resolveEditorEventElement(event)?.closest(VISUAL_FOCUS_GUARD_SELECTOR));
 }
 
 export function protectVisualEditorInteractionFromHover(

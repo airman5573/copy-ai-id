@@ -33,7 +33,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-BFODA6_o.js"
+        "assets/index.ts-loader-BIGzWM_3.js"
       ],
       "matches": [
         "<all_urls>"
@@ -51,7 +51,7 @@
       "resources": [
         "assets/notebook-notice-BIdEC6_H.js",
         "assets/codex-D_rGEVn0.js",
-        "assets/index.ts-Bixp7APS.js"
+        "assets/index.ts-81WzMepD.js"
       ],
       "use_dynamic_url": false
     }

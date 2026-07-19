@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode } from 'react';
 
+import { resolveEditorEventElement } from '../../editor-shadow-root';
 import {
   announceVisualDropdownOpen,
   listenForOtherVisualDropdowns,
@@ -73,7 +74,8 @@ export function ColorInput({
     }
 
     const handlePointerDown = (event: PointerEvent): void => {
-      if (!rootRef.current?.contains(event.target as Node | null)) {
+      const element = resolveEditorEventElement(event);
+      if (!element || !rootRef.current?.contains(element)) {
         setPaletteOpen(false);
       }
     };

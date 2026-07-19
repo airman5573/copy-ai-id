@@ -3,6 +3,7 @@ import {
   type EditorKeyboardShortcut,
 } from '../shared/protocol/editor-bridge-messages';
 import { hideQuickActionToolbar, postToBridge } from './bridge/bridgeClient';
+import { resolveEditorEventElement } from './editor-shadow-root';
 import { suppressHoverUntilMouseMove } from './keyboard-hover-guard';
 import { handleEditorEscapeAction, handleEditorShortcutAction } from './shortcut-actions';
 import { useHighlightStore } from './stores/useHighlightStore';
@@ -17,10 +18,9 @@ const ARROW_SHORTCUTS: Record<string, EditorKeyboardShortcut> = {
   ArrowLeft: 'arrow-left',
   ArrowRight: 'arrow-right',
 };
-const NOTEBOOK_LEXICAL_EDITOR_AI_ID = 'copy-ai-id-editor-note-lexical-editor';
-const RESIZE_HANDLE_AI_IDS = new Set([
-  'copy-ai-id-editor-preview-width-resize-handle',
-]);
+const NOTEBOOK_LEXICAL_EDITOR_SELECTOR = '[data-ai-id="copy-ai-id-editor-note-lexical-editor"]';
+const RESIZE_HANDLE_SELECTOR = '[data-ai-id="copy-ai-id-editor-preview-width-resize-handle"]';
+const EDITABLE_TARGET_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], [role="textbox"]';
 
 export function installEditorKeyboard(): () => void {
   const handleKeyDown = (event: KeyboardEvent): void => {
@@ -126,10 +126,7 @@ function shouldHandleShiftEnter(event: KeyboardEvent): boolean {
     return true;
   }
 
-  return event.composedPath().some((target) => {
-    return target instanceof HTMLElement
-      && target.dataset.aiId === NOTEBOOK_LEXICAL_EDITOR_AI_ID;
-  });
+  return Boolean(resolveEditorEventElement(event)?.closest(NOTEBOOK_LEXICAL_EDITOR_SELECTOR));
 }
 
 function hasNoModifier(event: KeyboardEvent): boolean {
@@ -147,20 +144,9 @@ function consumeKeyboardEvent(event: KeyboardEvent): void {
 }
 
 function isResizeHandleEventTarget(event: Event): boolean {
-  return event.composedPath().some((target) => {
-    return target instanceof HTMLElement
-      && RESIZE_HANDLE_AI_IDS.has(target.dataset.aiId ?? '');
-  });
+  return Boolean(resolveEditorEventElement(event)?.closest(RESIZE_HANDLE_SELECTOR));
 }
 
 function isEditableEventTarget(event: Event): boolean {
-  return event.composedPath().some((target) => {
-    if (!(target instanceof Element)) {
-      return false;
-    }
-
-    return Boolean(target.closest(
-      'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], [role="textbox"]',
-    ));
-  });
+  return Boolean(resolveEditorEventElement(event)?.closest(EDITABLE_TARGET_SELECTOR));
 }
