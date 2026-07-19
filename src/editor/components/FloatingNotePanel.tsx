@@ -35,11 +35,12 @@ import {
 } from '../stores/useFloatingNotePanelStore';
 import { NotePanel } from './NotePanel';
 
-const DEFAULT_FLOATING_NOTE_PANEL_HEIGHT_PX = 174;
+const DEFAULT_FLOATING_NOTE_PANEL_HEIGHT_PX = 348;
 const MIN_FLOATING_NOTE_PANEL_HEIGHT_PX = 150;
-const MAX_FLOATING_NOTE_PANEL_HEIGHT_PX = 240;
+const MAX_FLOATING_NOTE_PANEL_HEIGHT_PX = 480;
 const FLOATING_NOTE_PANEL_GAP_PX = 10;
 const FLOATING_NOTE_PANEL_MARGIN_PX = 12;
+const FLOATING_NOTE_PANEL_SCROLL_CLOSE_DISTANCE_PX = 200;
 const RIGHT_EDGE_SHIFT_THRESHOLD_PX = 1;
 
 const DEFAULT_PANEL_SIZE: OverlaySize = {
@@ -65,6 +66,7 @@ interface FloatingNotePanelPlacement {
 export function FloatingNotePanel() {
   const isOpen = useFloatingNotePanelStore((state) => state.isOpen);
   const anchor = useFloatingNotePanelStore((state) => state.anchor);
+  const openedAt = useFloatingNotePanelStore((state) => state.openedAt);
   const notePanelWidth = useEditorLayoutStore((state) => state.notePanelWidth);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
   const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
@@ -124,6 +126,50 @@ export function FloatingNotePanel() {
       previewStage?.removeEventListener('scroll', bumpLayoutRevision);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const root = panelRef.current?.getRootNode();
+    const previewStage = root && 'querySelector' in root
+      ? (root as ParentNode).querySelector<HTMLElement>('[data-ai-id="copy-ai-id-editor-preview-stage"]')
+      : null;
+    if (!previewStage) {
+      return undefined;
+    }
+
+    const openedAnchor = anchor;
+    let previousScrollLeft = previewStage.scrollLeft;
+    let previousScrollTop = previewStage.scrollTop;
+    let cumulativeScrollDistance = 0;
+
+    const closeAfterScrollThreshold = (): void => {
+      const nextScrollLeft = previewStage.scrollLeft;
+      const nextScrollTop = previewStage.scrollTop;
+      cumulativeScrollDistance += Math.abs(nextScrollLeft - previousScrollLeft)
+        + Math.abs(nextScrollTop - previousScrollTop);
+      previousScrollLeft = nextScrollLeft;
+      previousScrollTop = nextScrollTop;
+
+      if (cumulativeScrollDistance < FLOATING_NOTE_PANEL_SCROLL_CLOSE_DISTANCE_PX) {
+        return;
+      }
+
+      const floatingNotePanel = useFloatingNotePanelStore.getState();
+      if (
+        floatingNotePanel.isOpen
+        && floatingNotePanel.openedAt === openedAt
+        && floatingNotePanel.anchor === openedAnchor
+      ) {
+        floatingNotePanel.closePanel();
+      }
+    };
+
+    previewStage.addEventListener('scroll', closeAfterScrollThreshold, { passive: true });
+    return () => previewStage.removeEventListener('scroll', closeAfterScrollThreshold);
+  }, [anchor, isOpen, openedAt]);
 
   const placement = useMemo(() => computeFloatingNotePanelPlacement({
     anchor,

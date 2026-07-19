@@ -14,7 +14,7 @@ import {
   viewportRectForElement,
   viewportSize,
 } from './lib/viewport';
-import { resolveNodeIdForElement } from './layout-tree';
+import { buildLayoutTreeSnapshot, resolveNodeIdForElement } from './layout-tree';
 
 export type LocalHitTestSource = 'point' | 'composed-path' | 'event-target';
 
@@ -95,6 +95,21 @@ export function targetReferenceForElement(element: Element): LocalTargetReferenc
     elementRect: viewportRectForElement(connected),
     viewport: viewportSize(),
   };
+}
+
+// For explicit actions (Space reference request, click pin) only: a connected
+// fallback element resolves without a target when the layout-tree registry
+// predates it (the page re-rendered and replaced the node after the last
+// snapshot), so rebuild the registry once and retry. Passive hover/reposition
+// paths stay on targetReferenceForElement and never pay the full-tree rebuild.
+export function targetReferenceWithRegistryRefresh(element: Element): LocalTargetReference | null {
+  const reference = targetReferenceForElement(element);
+  if (!reference || reference.target) {
+    return reference;
+  }
+
+  buildLayoutTreeSnapshot();
+  return targetReferenceForElement(element);
 }
 
 export function hasUsableAiId(element: Element): boolean {

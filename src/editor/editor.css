@@ -708,28 +708,12 @@ textarea,
 .copy-ai-id-editor-note-controls {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
   border-bottom: 1px solid var(--editor-border-subtle);
   background: rgba(18, 21, 27, 0.58);
   padding: 6px 8px;
-  scrollbar-width: thin;
   white-space: nowrap;
-}
-
-.copy-ai-id-editor-note-controls::-webkit-scrollbar {
-  height: 4px;
-}
-
-.copy-ai-id-editor-note-controls::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.copy-ai-id-editor-note-controls::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(125, 137, 152, 0.5);
 }
 
 .copy-ai-id-editor-note-control-group {

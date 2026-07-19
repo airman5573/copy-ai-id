@@ -15,6 +15,7 @@ import {
   type LocalTargetReference,
   resolveStrictPointHitFromMouseEvent,
   targetReferenceForElement,
+  targetReferenceWithRegistryRefresh,
 } from './local-picker';
 import { hideOverlay, showOverlay } from './overlay';
 
@@ -213,7 +214,7 @@ export function requestHighlightedTargetReference(post: BridgePost): boolean {
     return false;
   }
 
-  const reference = targetReferenceForElement(element);
+  const reference = targetReferenceWithRegistryRefresh(element);
   if (!reference?.target) {
     post({
       type: EDITOR_MESSAGE_TYPES.targetReferenceRejected,
@@ -270,7 +271,7 @@ export function setHighlightedElement(
 
 // The quick-action toolbar is pinned by click only; hover just highlights.
 function pinQuickActionToolbar(element: Element, post: BridgePost): void {
-  const reference = targetReferenceForElement(element);
+  const reference = targetReferenceWithRegistryRefresh(element);
   if (!reference?.target) {
     return;
   }
