@@ -26,19 +26,19 @@ You do not need to clone this repository or run `npm install`. The setup Skill c
 
 1. Open Codex on your Mac. If you use the terminal app, run `codex` first.
 2. In Copy AI ID, open the editor and select **Codex setup** in the top toolbar or **Setup help** in the note panel.
-3. Use **Copy prompt**, paste the prompt into Codex, and let it finish. The prompt points Codex to the release-matched [`setup-copy-ai-id-codex` Skill](https://github.com/airman5573/copy-ai-id/tree/v0.1.13/skills/setup-copy-ai-id-codex) in this repository.
+3. Use **Copy prompt**, paste the prompt into Codex, and let it finish. The prompt points Codex to the release-matched [`setup-copy-ai-id-codex` Skill](https://github.com/airman5573/copy-ai-id/tree/v0.1.14/skills/setup-copy-ai-id-codex) in this repository.
 4. Return to Copy AI ID and select **Retry**. The Codex send buttons become available only after every readiness check passes and no other send is running.
 
 You can also copy this bootstrap prompt directly:
 
 ```text
-Use $skill-installer to install the skill from GitHub repo airman5573/copy-ai-id at path skills/setup-copy-ai-id-codex, pinned to ref v0.1.13 (do not use main or latest). Pass --ref v0.1.13 to the installer, or use the release-pinned Skill source URL below. If the destination skill already exists, move it to a temporary backup outside the active skills directory before installing; restore it if setup or status fails, and delete the backup only after status succeeds. After installation, locate the installed skill folder, read its SKILL.md, and in this same task run its setup.sh and status.sh through bash. Set up the macOS companion to start at login and report its readiness. If newly installed skill metadata is available only in the next turn, use the installed files directly instead of stopping.
+Use $skill-installer to install the skill from GitHub repo airman5573/copy-ai-id at path skills/setup-copy-ai-id-codex, pinned to ref v0.1.14 (do not use main or latest). Pass --ref v0.1.14 to the installer, or use the release-pinned Skill source URL below. If the destination skill already exists, move it to a temporary backup outside the active skills directory before installing; restore it if setup or status fails, and delete the backup only after status succeeds. After installation, locate the installed skill folder, read its SKILL.md, and in this same task run its setup.sh and status.sh through bash. Set up the macOS companion to start at login and report its readiness. If newly installed skill metadata is available only in the next turn, use the installed files directly instead of stopping.
 
-Skill source: https://github.com/airman5573/copy-ai-id/tree/v0.1.13/skills/setup-copy-ai-id-codex
+Skill source: https://github.com/airman5573/copy-ai-id/tree/v0.1.14/skills/setup-copy-ai-id-codex
 Readiness endpoint: http://127.0.0.1:45130/health
 ```
 
-This guide targets Copy AI ID `0.1.13`. The extension-generated prompt derives `v0.1.13` from its own manifest version so it never installs the moving `main` branch. The versioned source URL resolves when the matching GitHub release/tag is published.
+This guide targets Copy AI ID `0.1.14`. The extension-generated prompt derives `v0.1.14` from its own manifest version so it never installs the moving `main` branch. The versioned source URL resolves when the matching GitHub release/tag is published.
 
 The shell preflight checks macOS, Node.js, Codex CLI availability, `codex login status`, Git, and `lsof` before changing files. The staged companion then checks the required `codex exec --help` capabilities before the installation is committed; if that check fails, setup rolls back to the previous installation. The capability probe reads local help/feature metadata only—it does not start a Codex agent or make an authenticated network request. If a requirement is missing, fix the item Codex reports and run setup again.
 
@@ -121,8 +121,8 @@ Run Skill scripts with `bash`; downloaded GitHub archives do not always preserve
 
 Use this path if Codex cannot install the Skill from GitHub or if you prefer a downloaded bundle.
 
-1. Open the [Copy AI ID v0.1.13 release](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.13), which matches this guide and extension build.
-2. Download `copy-ai-id-codex-companion-0.1.13-macos.zip`. Do not download the Chrome Web Store ZIP for this step.
+1. Open the [Copy AI ID v0.1.14 release](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.14), which matches this guide and extension build.
+2. Download `copy-ai-id-codex-companion-0.1.14-macos.zip`. Do not download the Chrome Web Store ZIP for this step.
 3. Extract the ZIP. It contains `SETUP_PROMPT.md`, the setup Skill and runtime, plus `Setup.command`, `Start.command`, `Status.command`, `Update.command`, and `Uninstall.command`.
 4. Choose one setup method:
    - open `SETUP_PROMPT.md`, paste its prompt into Codex, and let Codex read the bundled `skills/setup-copy-ai-id-codex/SKILL.md`; or

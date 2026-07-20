@@ -69,7 +69,7 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 
 에디터는 **복사** 버튼이 만드는 것과 동일한 Markdown을 클립보드를 거치지 않고 Mac의 [OpenAI Codex CLI](https://learn.chatgpt.com/docs/codex/cli)로 바로 보낼 수 있습니다. 이 선택 기능에는 로컬 companion 서비스가 필요하지만 **복사**는 companion 없이도 동작합니다.
 
-일반 Chrome Web Store 설치 사용자는 **[macOS Codex 설정 가이드](docs/codex-setup.ko.md)**를 따라주세요. 권장 흐름은 에디터의 **Codex 설정** 모달에서 bootstrap 프롬프트를 복사하고 Codex가 확장과 일치하는 릴리스 tag에서 공개 [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex)을 설치하게 하는 것입니다. 저장소를 clone하거나 Terminal 창을 계속 열어둘 필요가 없습니다. 이 빌드와 일치하는 [v0.1.13 GitHub 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.13)에서 standalone companion ZIP을 받는 대체 방법도 제공합니다.
+일반 Chrome Web Store 설치 사용자는 **[macOS Codex 설정 가이드](docs/codex-setup.ko.md)**를 따라주세요. 권장 흐름은 에디터의 **Codex 설정** 모달에서 bootstrap 프롬프트를 복사하고 Codex가 확장과 일치하는 릴리스 tag에서 공개 [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex)을 설치하게 하는 것입니다. 저장소를 clone하거나 Terminal 창을 계속 열어둘 필요가 없습니다. 이 빌드와 일치하는 [v0.1.14 GitHub 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.14)에서 standalone companion ZIP을 받는 대체 방법도 제공합니다.
 
 에디터는 전송 전에 companion과 필수 도구를 확인합니다. 확인 중이거나, 설치·업데이트 maintenance 중이거나, 연결되지 않았거나, 설정이 미완료되었거나, 다른 작업을 실행 중이면 두 Codex 전송 버튼이 비활성화됩니다. 별도의 **Codex 설정** 버튼에서 가이드를 열고 설정 후 **다시 확인**을 선택하세요.
 
