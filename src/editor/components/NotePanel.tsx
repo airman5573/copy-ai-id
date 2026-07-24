@@ -1,16 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { Copy } from 'lucide-react';
 import { useShallow } from 'zustand/shallow';
 
 import {
-  getNotebookBreakpointScopeCascade,
+  getNotebookBreakpointScopeCumulativeSelection,
   NOTEBOOK_BREAKPOINT_SCOPE_ORDER,
-  normalizeNotebookBreakpointScopes,
   type NotebookBreakpointScope,
 } from '../notebook/breakpoint-scope';
 import { getCurrentMessages } from '../../shared/i18n';
-import { sendNotebookDraftToCodex } from '../notebook/codex-send';
 import { clearNotebookCopyStatusReset, copyNotebookDraftFromStore } from '../notebook/copy';
-import { useCodexStore } from '../stores/useCodexStore';
 import {
   selectHasNotebookDraftForCopy,
   useNotebookStore,
@@ -20,19 +18,19 @@ import {
   selectVisualEditRuntimeStatus,
   useVisualEditStore,
 } from '../stores/useVisualEditStore';
-import { useCodexSetupStore } from '../stores/useCodexSetupStore';
-import { CodexSetupButton } from './CodexSetupButton';
 import { NoteEditor } from './NoteEditor';
 import { PanelChrome, ToolbarButton } from './ui/builderChrome';
 
 export interface NotePanelProps {
   dataAiId?: string;
   className?: string;
+  dragHandle?: ReactNode;
 }
 
 export function NotePanel({
   dataAiId = 'copy-ai-id-editor-floating-note-panel',
   className = '',
+  dragHandle = null,
 }: NotePanelProps = {}) {
   const messages = getCurrentMessages();
   const panelClassName = [
@@ -48,6 +46,8 @@ export function NotePanel({
   const copyStatus = useNotebookStore((state) => state.copyStatus);
   const clearDraft = useNotebookStore((state) => state.clearDraft);
   const setSuffixSettings = useNotebookStore((state) => state.setSuffixSettings);
+  const lastBreakpointScopeClick = useNotebookStore((state) => state.lastBreakpointScopeClick);
+  const setLastBreakpointScopeClick = useNotebookStore((state) => state.setLastBreakpointScopeClick);
   const hydrateNoteFontSize = useNotebookStore((state) => state.hydrateNoteFontSize);
   const hasNotebookDraftForCopy = useNotebookStore(selectHasNotebookDraftForCopy);
   const visualEditStatus = useVisualEditStore(useShallow(selectVisualEditRuntimeStatus));
@@ -75,33 +75,18 @@ export function NotePanel({
     clearVisualEdits();
   };
 
-  const setBreakpointMode = (): void => {
-    setSuffixSettings({
-      ...suffixSettings,
-      breakpointMode: 'all',
-      breakpointScopes: [],
-    });
-  };
-
   const toggleScope = (scope: NotebookBreakpointScope): void => {
-    if (suffixSettings.breakpointMode === 'all') {
-      setSuffixSettings({
-        ...suffixSettings,
-        breakpointMode: 'manual',
-        breakpointScopes: getNotebookBreakpointScopeCascade(scope),
-      });
-      return;
-    }
-
-    const nextScopes = suffixSettings.breakpointScopes.includes(scope)
-      ? suffixSettings.breakpointScopes.filter((selectedScope) => selectedScope !== scope)
-      : normalizeNotebookBreakpointScopes([...suffixSettings.breakpointScopes, scope]);
+    const nextScopes = lastBreakpointScopeClick === scope
+      ? [scope]
+      : getNotebookBreakpointScopeCumulativeSelection(scope);
+    const selectsEveryScope = nextScopes.length === NOTEBOOK_BREAKPOINT_SCOPE_ORDER.length;
 
     setSuffixSettings({
       ...suffixSettings,
-      breakpointMode: nextScopes.length > 0 ? 'manual' : 'all',
-      breakpointScopes: nextScopes,
+      breakpointMode: selectsEveryScope ? 'all' : 'manual',
+      breakpointScopes: selectsEveryScope ? [] : nextScopes,
     });
+    setLastBreakpointScopeClick(scope);
   };
 
   const copyButtonLabel = copyStatus === 'copied'
@@ -111,39 +96,6 @@ export function NotePanel({
       : copyStatus === 'empty'
       ? messages.notebook.empty
       : messages.notebook.save;
-  const codexPhase = useCodexStore((state) => state.phase);
-  const codexSetupStatus = useCodexSetupStore((state) => state.status);
-  const isCodexSetupReady = codexSetupStatus === 'ready';
-  const codexButtonLabel = codexPhase === 'resolving'
-    ? messages.codex.resolving
-    : codexPhase === 'running'
-      ? messages.codex.running
-      : messages.codex.send;
-  const codexButtonTitle = isCodexSetupReady
-    ? messages.codex.sendTitle
-    : codexSetupStatus === 'not-ready'
-      ? messages.codex.setup.statusDescription.notReady
-      : messages.codex.setup.statusDescription[codexSetupStatus];
-  const codexButton = (
-    <button
-      className={`copy-ai-id-editor-copy-button copy-ai-id-editor-codex-button copy-ai-id-editor-codex-button--${codexPhase}`}
-      data-ai-id="copy-ai-id-editor-codex-button"
-      data-codex-setup-status={codexSetupStatus}
-      type="button"
-      title={codexButtonTitle}
-      aria-label={codexButtonTitle}
-      disabled={codexPhase !== 'idle' || !isCodexSetupReady}
-      onClick={(event) => {
-        if (!event.isTrusted) {
-          return;
-        }
-
-        void sendNotebookDraftToCodex();
-      }}
-    >
-      {codexButtonLabel}
-    </button>
-  );
   const copyButton = (
     <button
       className={`copy-ai-id-editor-copy-button copy-ai-id-editor-copy-button--${copyStatus}`}
@@ -155,7 +107,14 @@ export function NotePanel({
         void handleCopy();
       }}
     >
-      {copyButtonLabel}
+      <Copy size={13} strokeWidth={2.2} aria-hidden="true" />
+      <span className="copy-ai-id-editor-copy-button__label">{copyButtonLabel}</span>
+      <span
+        className="copy-ai-id-editor-copy-button__shortcut"
+        data-ai-id="copy-ai-id-editor-copy-shortcut-key"
+      >
+        · Shift + Enter
+      </span>
     </button>
   );
 
@@ -166,6 +125,7 @@ export function NotePanel({
       className={panelClassName}
       data-ai-editor-note-panel-variant="floating"
     >
+      {dragHandle}
       <NoteEditor
         draft={draft}
         editorStateJson={editorStateJson}
@@ -178,15 +138,6 @@ export function NotePanel({
         data-ai-id="copy-ai-id-editor-note-suffix-controls"
       >
         <div className="copy-ai-id-editor-note-control-group" role="group" aria-label={messages.notebook.breakpointScope.label}>
-          <button
-            type="button"
-            className={suffixSettings.breakpointMode === 'all' ? 'is-active' : ''}
-            data-ai-id="copy-ai-id-editor-note-scope-all-button"
-            aria-pressed={suffixSettings.breakpointMode === 'all'}
-            onClick={setBreakpointMode}
-          >
-            {messages.notebook.breakpointScope.all}
-          </button>
           {NOTEBOOK_BREAKPOINT_SCOPE_ORDER.map((scope) => (
             <button
               key={scope}
@@ -201,18 +152,6 @@ export function NotePanel({
           ))}
         </div>
 
-        <label className="copy-ai-id-editor-note-tailwind" data-ai-id="copy-ai-id-editor-note-tailwind-toggle">
-          <input
-            type="checkbox"
-            checked={suffixSettings.tailwindEnabled}
-            onChange={(event) => setSuffixSettings({
-              ...suffixSettings,
-              tailwindEnabled: event.currentTarget.checked,
-            })}
-          />
-          <span>{messages.notebook.tailwind}</span>
-        </label>
-
         <ToolbarButton
           data-ai-id="copy-ai-id-editor-note-reset-button"
           disabled={isNotebookEmpty && !hasVisualEditState}
@@ -222,15 +161,6 @@ export function NotePanel({
         >
           {messages.notebook.reset}
         </ToolbarButton>
-        <span
-          className="copy-ai-id-editor-copy-shortcut"
-          data-ai-id="copy-ai-id-editor-copy-shortcut-hint"
-          title={messages.notebook.copyShortcutLabel}
-        >
-          <kbd data-ai-id="copy-ai-id-editor-copy-shortcut-key">Shift + Enter</kbd>
-        </span>
-        <CodexSetupButton placement="note-panel" />
-        {codexButton}
         {copyButton}
       </div>
     </PanelChrome>

@@ -154,7 +154,7 @@ function assertReleaseSourcesMatchVersion() {
     const source = readFileSync(sourcePath, 'utf8');
     const pinnedTags = [...source.matchAll(/\bv(\d+\.\d+\.\d+)\b/gu)]
       .map((match) => match[1]);
-    if (pinnedTags.length === 0 || pinnedTags.some((tagVersion) => tagVersion !== version)) {
+    if (pinnedTags.some((tagVersion) => tagVersion !== version)) {
       throw new Error(
         `Release-pinned references in ${sourcePath} do not all match v${version}.`,
       );

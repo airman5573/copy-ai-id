@@ -150,8 +150,8 @@ export async function confirmCodexSend(): Promise<void> {
   await runPendingCodexSend(pending);
 }
 
-// Starts the run on the server and polls its status; success clears the
-// draft/visual edits exactly like a copy.
+// Starts the run on the server and polls its status. Successful Codex runs and
+// successful ordinary copies both clear the draft and visual-edit records.
 async function runPendingCodexSend(pending: CodexPendingSend): Promise<void> {
   const messages = getCurrentMessages().codex;
   const codexStore = useCodexStore.getState();

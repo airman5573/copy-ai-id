@@ -23,7 +23,7 @@ export type VisualEditId = string;
 
 export type VisualEditStatus = 'pending' | 'applied' | 'failed' | 'reverted';
 
-export type VisualEditSource = 'quick-action-bar' | 'floating-panel' | 'drag-and-drop' | 'keyboard' | 'inline-text-edit';
+export type VisualEditSource = 'quick-action-bar' | 'floating-panel' | 'drag-and-drop' | 'keyboard';
 
 export type VisualEditControlKind =
   | 'content'

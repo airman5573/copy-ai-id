@@ -4,6 +4,7 @@ import type {
   EditorTarget,
   EditorTargetReference,
 } from '../../shared/domain/targets';
+import type { BreakpointId } from '../../shared/breakpoints';
 import {
   FIRST_NOTEBOOK_CHIP_INDEX,
   formatNotebookChipId,
@@ -15,14 +16,15 @@ import {
   hasFallbackChipTargets,
 } from '../notebook/lexical/chip-export';
 import {
-  collectNotebookChipTargetsFromSerializedEditorState,
-  type NotebookDraftSessionSnapshot,
-} from '../notebook/session-draft';
-import {
   DEFAULT_NOTEBOOK_SUFFIX_SETTINGS,
   normalizeNotebookSuffixSettings,
   type NotebookSuffixSettings,
 } from '../notebook/suffix-settings';
+import {
+  getNotebookBreakpointScopeCumulativeSelection,
+  NOTEBOOK_BREAKPOINT_SCOPE_ORDER,
+  type NotebookBreakpointScope,
+} from '../notebook/breakpoint-scope';
 import type { CopyStatus } from '../types';
 
 export const DEFAULT_NOTE_FONT_SIZE = 14;
@@ -41,21 +43,24 @@ interface NotebookStore {
   isNotebookEmpty: boolean;
   nextChipIndex: number;
   suffixSettings: NotebookSuffixSettings;
+  lastBreakpointScopeClick: NotebookBreakpointScope | null;
   noteFontSize: number;
   copyStatus: CopyStatus;
   focusedTarget: EditorTarget | null;
   insertTargetReference: ((reference: EditorTargetReference) => void) | null;
   flashChip: ((chipId: string) => void) | null;
-  hydrateDraftSession(snapshot: NotebookDraftSessionSnapshot): void;
   setLexicalEditorState(snapshot: NotebookLexicalStateSnapshot): void;
   allocateChipId(): string;
   setInsertTargetReference(insertTargetReference: ((reference: EditorTargetReference) => void) | null): void;
   setFlashChip(flashChip: ((chipId: string) => void) | null): void;
   setSuffixSettings(settings: NotebookSuffixSettings): void;
+  syncBreakpointScopeFromCanvas(breakpointId: BreakpointId): void;
+  setLastBreakpointScopeClick(scope: NotebookBreakpointScope): void;
   hydrateNoteFontSize(): Promise<void>;
   setCopyStatus(copyStatus: CopyStatus): void;
   setFocusedTarget(target: EditorTarget | null): void;
   clearDraft(): void;
+  resetForPageChange(): void;
 }
 
 export interface NotebookLexicalStateSnapshot {
@@ -127,23 +132,12 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   isNotebookEmpty: true,
   nextChipIndex: FIRST_NOTEBOOK_CHIP_INDEX,
   suffixSettings: { ...DEFAULT_NOTEBOOK_SUFFIX_SETTINGS },
+  lastBreakpointScopeClick: 'desktop',
   noteFontSize: DEFAULT_NOTE_FONT_SIZE,
   copyStatus: 'idle',
   focusedTarget: null,
   insertTargetReference: null,
   flashChip: null,
-  hydrateDraftSession: (snapshot) => {
-    const chips = collectNotebookChipTargetsFromSerializedEditorState(snapshot.editorStateJson);
-
-    set({
-      ...createPlainDraftState(snapshot.draft),
-      editorStateJson: snapshot.editorStateJson,
-      activeChipTargets: chips,
-      chipTargetMap: formatChipTargetMap(chips),
-      hasFallbackTargets: hasFallbackChipTargets(chips),
-      nextChipIndex: normalizeNextNotebookChipIndex(snapshot.nextChipIndex),
-    });
-  },
   setLexicalEditorState: (snapshot) => set(snapshot),
   allocateChipId: () => {
     let chipId = formatNotebookChipId(FIRST_NOTEBOOK_CHIP_INDEX);
@@ -164,6 +158,25 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   setSuffixSettings: (suffixSettings) => set({
     suffixSettings: normalizeNotebookSuffixSettings(suffixSettings),
   }),
+  syncBreakpointScopeFromCanvas: (breakpointId) => set((state) => {
+    const scope: NotebookBreakpointScope = breakpointId === 'base'
+      ? 'mobile'
+      : breakpointId;
+    const breakpointScopes = getNotebookBreakpointScopeCumulativeSelection(scope);
+    const selectsEveryScope = breakpointScopes.length === NOTEBOOK_BREAKPOINT_SCOPE_ORDER.length;
+
+    return {
+      suffixSettings: {
+        ...state.suffixSettings,
+        breakpointMode: selectsEveryScope ? 'all' : 'manual',
+        breakpointScopes: selectsEveryScope ? [] : breakpointScopes,
+      },
+      lastBreakpointScopeClick: scope,
+    };
+  }),
+  setLastBreakpointScopeClick: (lastBreakpointScopeClick) => set({
+    lastBreakpointScopeClick,
+  }),
   hydrateNoteFontSize: async () => {
     set({ noteFontSize: await readStoredNoteFontSize() });
   },
@@ -171,6 +184,14 @@ export const useNotebookStore = create<NotebookStore>((set) => ({
   setFocusedTarget: (focusedTarget) => set({ focusedTarget }),
   clearDraft: () => set({
     ...createPlainDraftState(''),
+    focusedTarget: null,
+    copyStatus: 'idle',
+    nextChipIndex: FIRST_NOTEBOOK_CHIP_INDEX,
+  }),
+  resetForPageChange: () => set({
+    ...createPlainDraftState(''),
+    suffixSettings: { ...DEFAULT_NOTEBOOK_SUFFIX_SETTINGS },
+    lastBreakpointScopeClick: 'desktop',
     focusedTarget: null,
     copyStatus: 'idle',
     nextChipIndex: FIRST_NOTEBOOK_CHIP_INDEX,

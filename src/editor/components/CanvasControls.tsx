@@ -1,4 +1,5 @@
-import { Maximize2, Minus, Plus, RotateCcw } from 'lucide-react';
+import { useEffect, useState, type ChangeEvent, type KeyboardEvent } from 'react';
+import { Minus, NotebookText, Plus } from 'lucide-react';
 
 import {
   BREAKPOINTS,
@@ -6,6 +7,7 @@ import {
   type BreakpointId,
 } from '../../shared/breakpoints';
 import { getCurrentMessages } from '../../shared/i18n';
+import { requestNotePanelFocus } from '../note-panel-focus';
 import {
   CANVAS_ZOOM_STEP,
   MAX_ZOOM,
@@ -13,6 +15,8 @@ import {
   useBreakpointStore,
   type FitZoomOptions,
 } from '../stores/useBreakpointStore';
+import { useFloatingNotePanelStore } from '../stores/useFloatingNotePanelStore';
+import { useNotebookStore } from '../stores/useNotebookStore';
 import { ToolbarButton, ToolbarSegment } from './ui/builderChrome';
 
 export interface CanvasControlsProps {
@@ -27,23 +31,28 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
   const previewHeight = useBreakpointStore((state) => state.previewHeight);
   const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
   const setBreakpoint = useBreakpointStore((state) => state.setBreakpoint);
-  const persistCustomPreviewWidth = useBreakpointStore((state) => state.persistCustomPreviewWidth);
+  const setZoom = useBreakpointStore((state) => state.setZoom);
   const stepZoom = useBreakpointStore((state) => state.stepZoom);
   const fitZoom = useBreakpointStore((state) => state.fitZoom);
+  const syncBreakpointScopeFromCanvas = useNotebookStore((state) => state.syncBreakpointScopeFromCanvas);
+  const notePanelOpen = useFloatingNotePanelStore((state) => state.isOpen);
+  const openNotePanel = useFloatingNotePanelStore((state) => state.openPanel);
+  const closeNotePanel = useFloatingNotePanelStore((state) => state.closePanel);
   const activeBreakpoint = breakpointById(activeBreakpointId);
   const activePreviewWidth = viewportMode === 'custom' ? customPreviewWidth : activeBreakpoint.width;
+  const zoomPercent = Math.round(zoom * 100);
+  const [zoomInputValue, setZoomInputValue] = useState(String(zoomPercent));
+  const notePanelTitle = notePanelOpen
+    ? messages.editor.notePanelCloseTitle
+    : messages.editor.notePanelOpenTitle;
 
-  const handleFitZoom = (): void => {
-    if (onFitZoom) {
-      onFitZoom();
-      return;
-    }
-
-    fitZoom();
-  };
+  useEffect(() => {
+    setZoomInputValue(String(zoomPercent));
+  }, [zoomPercent]);
 
   const handleBreakpointChange = (breakpointId: BreakpointId): void => {
     setBreakpoint(breakpointId);
+    syncBreakpointScopeFromCanvas(breakpointId);
 
     if (onFitZoom) {
       onFitZoom({ fitDownOnly: true });
@@ -53,15 +62,47 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
     fitZoom(undefined, undefined, { fitDownOnly: true });
   };
 
-  const handleCustomViewportChange = (): void => {
-    void persistCustomPreviewWidth(customPreviewWidth);
-
-    if (onFitZoom) {
-      onFitZoom({ fitDownOnly: true });
+  const commitZoomInput = (): void => {
+    if (zoomInputValue.trim().length === 0) {
+      setZoomInputValue(String(zoomPercent));
       return;
     }
 
-    fitZoom(undefined, undefined, { fitDownOnly: true });
+    const parsedPercent = Number(zoomInputValue);
+    if (!Number.isFinite(parsedPercent)) {
+      setZoomInputValue(String(zoomPercent));
+      return;
+    }
+
+    const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, parsedPercent / 100));
+    setZoom(nextZoom);
+    setZoomInputValue(String(Math.round(nextZoom * 100)));
+  };
+
+  const handleZoomInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    setZoomInputValue(event.currentTarget.value);
+  };
+
+  const handleZoomInputKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    commitZoomInput();
+    event.currentTarget.blur();
+  };
+
+  const handleToggleNotePanel = (): void => {
+    if (notePanelOpen) {
+      closeNotePanel();
+      return;
+    }
+
+    openNotePanel();
+    window.requestAnimationFrame(() => {
+      requestNotePanelFocus();
+    });
   };
 
   return (
@@ -76,22 +117,13 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
               className={viewportMode === 'breakpoint' && breakpoint.id === activeBreakpointId ? 'is-active' : ''}
               data-ai-id={`copy-ai-id-editor-breakpoint-${breakpoint.id}-button`}
               onClick={() => handleBreakpointChange(breakpoint.id)}
-              title={`${breakpointLabel} · ${breakpoint.width}px`}
+              title={`${breakpointLabel} · ${breakpoint.width} × ${breakpoint.height}px`}
               aria-pressed={viewportMode === 'breakpoint' && breakpoint.id === activeBreakpointId}
             >
               {breakpointLabel}
             </ToolbarButton>
           );
         })}
-        <ToolbarButton
-          className={viewportMode === 'custom' ? 'is-active' : ''}
-          data-ai-id="copy-ai-id-editor-breakpoint-custom-button"
-          onClick={handleCustomViewportChange}
-          title={`${messages.editor.customViewport} · ${customPreviewWidth}px`}
-          aria-pressed={viewportMode === 'custom'}
-        >
-          {messages.editor.customViewport}
-        </ToolbarButton>
       </ToolbarSegment>
 
       <span className="copy-ai-id-editor-viewport-pill" data-ai-id="copy-ai-id-editor-viewport-width-pill">
@@ -108,15 +140,25 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
         >
           <Minus size={14} aria-hidden="true" />
         </ToolbarButton>
-        <ToolbarButton
-          data-ai-id="copy-ai-id-editor-zoom-reset-button"
-          onClick={handleFitZoom}
-          title={messages.editor.zoomReset}
-          aria-label={messages.editor.zoomReset}
+        <label
+          className="copy-ai-id-editor-zoom-input"
+          data-ai-id="copy-ai-id-editor-zoom-input"
         >
-          <RotateCcw size={14} aria-hidden="true" />
-          <span>{Math.round(zoom * 100)}%</span>
-        </ToolbarButton>
+          <input
+            type="number"
+            min={Math.round(MIN_ZOOM * 100)}
+            max={Math.round(MAX_ZOOM * 100)}
+            step={1}
+            inputMode="numeric"
+            value={zoomInputValue}
+            aria-label={messages.editor.zoomInput}
+            onChange={handleZoomInputChange}
+            onBlur={commitZoomInput}
+            onFocus={(event) => event.currentTarget.select()}
+            onKeyDown={handleZoomInputKeyDown}
+          />
+          <span aria-hidden="true">%</span>
+        </label>
         <ToolbarButton
           data-ai-id="copy-ai-id-editor-zoom-in-button"
           onClick={() => stepZoom(CANVAS_ZOOM_STEP)}
@@ -126,14 +168,19 @@ export function CanvasControls({ onFitZoom }: CanvasControlsProps) {
         >
           <Plus size={14} aria-hidden="true" />
         </ToolbarButton>
+      </ToolbarSegment>
+
+      <ToolbarSegment>
         <ToolbarButton
-          data-ai-id="copy-ai-id-editor-zoom-fit-button"
-          onClick={handleFitZoom}
-          title={messages.editor.zoomFit}
-          aria-label={messages.editor.zoomFit}
+          className={`copy-ai-id-editor-note-panel-toggle${notePanelOpen ? ' is-active' : ''}`}
+          data-ai-id="copy-ai-id-editor-note-panel-toggle-button"
+          onClick={handleToggleNotePanel}
+          title={notePanelTitle}
+          aria-label={messages.editor.notePanelToggle}
+          aria-pressed={notePanelOpen}
         >
-          <Maximize2 size={14} aria-hidden="true" />
-          <span>{messages.editor.zoomFit}</span>
+          <NotebookText size={14} aria-hidden="true" />
+          <span>{messages.editor.notePanelToggle}</span>
         </ToolbarButton>
       </ToolbarSegment>
     </div>

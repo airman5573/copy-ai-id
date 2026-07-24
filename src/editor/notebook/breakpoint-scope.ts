@@ -15,13 +15,15 @@ export function normalizeNotebookBreakpointScopes(
   return NOTEBOOK_BREAKPOINT_SCOPE_ORDER.filter((scope) => selectedScopes.has(scope));
 }
 
-export function getNotebookBreakpointScopeCascade(scope: NotebookBreakpointScope): NotebookBreakpointScope[] {
+export function getNotebookBreakpointScopeCumulativeSelection(
+  scope: NotebookBreakpointScope,
+): NotebookBreakpointScope[] {
   const scopeIndex = NOTEBOOK_BREAKPOINT_SCOPE_ORDER.indexOf(scope);
   if (scopeIndex < 0) {
     return [];
   }
 
-  return NOTEBOOK_BREAKPOINT_SCOPE_ORDER.slice(scopeIndex);
+  return NOTEBOOK_BREAKPOINT_SCOPE_ORDER.slice(0, scopeIndex + 1);
 }
 
 export function getNotebookBreakpointScopeSuffix(
@@ -37,7 +39,10 @@ export function getNotebookBreakpointScopeSuffix(
 
   const messages = getCurrentMessages();
   const cascadeScope = NOTEBOOK_BREAKPOINT_SCOPE_ORDER.find((scope) => (
-    hasSameNotebookBreakpointScopes(normalizedScopes, getNotebookBreakpointScopeCascade(scope))
+    hasSameNotebookBreakpointScopes(
+      normalizedScopes,
+      getNotebookBreakpointScopeCumulativeSelection(scope),
+    )
   ));
 
   if (cascadeScope) {

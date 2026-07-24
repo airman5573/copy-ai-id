@@ -38,7 +38,6 @@ let pinnedElement: Element | null = null;
 let quickActionToolbarHidden = false;
 let hoverHighlightSuppressed = false;
 let keyboardNavigationHoverSuppressed = false;
-let inlineTextEditSuppressed = false;
 let lastMousePosition: MousePosition | null = null;
 let suppressionStartPosition: MousePosition | null = null;
 let pinnedAnchorRafHandle: number | null = null;
@@ -93,7 +92,7 @@ export function installHoverHighlight(post: BridgePost): () => void {
   };
 
   const handleClick = (event: MouseEvent): void => {
-    if (event.button !== 0 || inlineTextEditSuppressed) {
+    if (event.button !== 0) {
       return;
     }
 
@@ -136,7 +135,6 @@ export function installHoverHighlight(post: BridgePost): () => void {
     quickActionToolbarHidden = false;
     hoverHighlightSuppressed = false;
     keyboardNavigationHoverSuppressed = false;
-    inlineTextEditSuppressed = false;
     lastMousePosition = null;
     suppressionStartPosition = null;
   };
@@ -178,12 +176,8 @@ export function setHoverHighlightSuppressed(suppressed: boolean): void {
   hoverHighlightSuppressed = suppressed;
 }
 
-// While a preview inline text edit is active, hover highlighting and click
-// pinning must not fight the contenteditable session.
-export function setInlineTextEditHighlightSuppressed(suppressed: boolean): void {
-  inlineTextEditSuppressed = suppressed;
-}
-
+// Keyboard navigation keeps its highlight stable until the pointer actually
+// moves again.
 export function suppressHoverHighlightUntilMouseMove(): void {
   keyboardNavigationHoverSuppressed = true;
   suppressionStartPosition = lastMousePosition;
@@ -401,7 +395,7 @@ function updateHoverOverlay(): void {
 }
 
 function isHoverHighlightSuppressed(): boolean {
-  return hoverHighlightSuppressed || keyboardNavigationHoverSuppressed || inlineTextEditSuppressed;
+  return hoverHighlightSuppressed || keyboardNavigationHoverSuppressed;
 }
 
 function hasMouseMovedFromSuppressionStart(event: MouseEvent, position: MousePosition): boolean {

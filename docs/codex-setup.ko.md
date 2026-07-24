@@ -26,19 +26,19 @@ Copy AI ID는 추가 프로그램 없이도 AI 친화적인 요청을 **복사**
 
 1. Mac에서 Codex를 엽니다. 터미널 앱을 사용한다면 먼저 `codex`를 실행합니다.
 2. Copy AI ID 에디터를 열고 상단 툴바의 **Codex 설정** 또는 노트 패널의 **설정 도움말**을 선택합니다.
-3. **프롬프트 복사**를 누르고 Codex에 붙여넣은 뒤 작업이 끝날 때까지 기다립니다. 이 프롬프트는 같은 공개 저장소의 확장 릴리스와 일치하는 [`setup-copy-ai-id-codex` Skill](https://github.com/airman5573/copy-ai-id/tree/v0.1.15/skills/setup-copy-ai-id-codex)을 안내합니다.
+3. **프롬프트 복사**를 누르고 Codex에 붙여넣은 뒤 작업이 끝날 때까지 기다립니다. 이 프롬프트는 같은 공개 저장소의 확장 릴리스와 일치하는 [`setup-copy-ai-id-codex` Skill](https://github.com/airman5573/copy-ai-id/tree/v0.1.14/skills/setup-copy-ai-id-codex)을 안내합니다.
 4. Copy AI ID로 돌아와 **다시 확인**을 선택합니다. 모든 readiness 검사를 통과하고 다른 전송 작업이 없을 때만 Codex 전송 버튼이 활성화됩니다.
 
 아래 bootstrap 프롬프트를 직접 복사해도 됩니다.
 
 ```text
-$skill-installer를 사용해서 GitHub 저장소 airman5573/copy-ai-id의 skills/setup-copy-ai-id-codex 경로에서 Skill을 ref v0.1.15로 고정해서 설치해줘(main 또는 latest를 사용하지 마). 설치기에 --ref v0.1.15를 전달하거나 아래의 릴리스 고정 Skill 소스 URL을 사용해줘. 대상 Skill이 이미 있으면 설치 전에 활성 Skill 디렉터리 밖의 임시 위치로 백업하고, setup 또는 status가 실패하면 복원하며 status 성공 후에만 백업을 삭제해줘. 설치 후 실제 Skill 폴더를 찾아 SKILL.md를 읽고, 같은 작업 안에서 setup.sh와 status.sh를 bash로 실행해줘. macOS companion이 로그인 시 시작되도록 설정하고 readiness를 보고해줘. 새 Skill metadata가 다음 turn부터 적용되더라도 멈추지 말고 설치된 파일을 직접 사용해줘.
+$skill-installer를 사용해서 GitHub 저장소 airman5573/copy-ai-id의 skills/setup-copy-ai-id-codex 경로에서 Skill을 ref v0.1.14로 고정해서 설치해줘(main 또는 latest를 사용하지 마). 설치기에 --ref v0.1.14를 전달하거나 아래의 릴리스 고정 Skill 소스 URL을 사용해줘. 대상 Skill이 이미 있으면 설치 전에 활성 Skill 디렉터리 밖의 임시 위치로 백업하고, setup 또는 status가 실패하면 복원하며 status 성공 후에만 백업을 삭제해줘. 설치 후 실제 Skill 폴더를 찾아 SKILL.md를 읽고, 같은 작업 안에서 setup.sh와 status.sh를 bash로 실행해줘. macOS companion이 로그인 시 시작되도록 설정하고 readiness를 보고해줘. 새 Skill metadata가 다음 turn부터 적용되더라도 멈추지 말고 설치된 파일을 직접 사용해줘.
 
-Skill source: https://github.com/airman5573/copy-ai-id/tree/v0.1.15/skills/setup-copy-ai-id-codex
+Skill source: https://github.com/airman5573/copy-ai-id/tree/v0.1.14/skills/setup-copy-ai-id-codex
 Readiness endpoint: http://127.0.0.1:45130/health
 ```
 
-이 가이드는 Copy AI ID `0.1.15`용입니다. 확장 프로그램이 만드는 프롬프트는 자체 manifest 버전에서 `v0.1.15`을 계산하므로 변경되는 `main` 브랜치를 설치하지 않습니다. 버전 고정 소스 URL은 일치하는 GitHub 릴리스/tag가 게시되면 열립니다.
+이 가이드는 Copy AI ID `0.1.14`용입니다. 확장 프로그램이 만드는 프롬프트는 자체 manifest 버전에서 `v0.1.14`을 계산하므로 변경되는 `main` 브랜치를 설치하지 않습니다. 버전 고정 소스 URL은 일치하는 GitHub 릴리스/tag가 게시되면 열립니다.
 
 Shell preflight는 파일을 변경하기 전에 macOS, Node.js, Codex CLI 실행 가능 여부, `codex login status`, Git, `lsof`를 확인합니다. 그다음 staged companion이 설치를 확정하기 전에 필요한 `codex exec --help` 기능을 확인하고, 실패하면 이전 설치로 rollback합니다. 기능 probe는 로컬 도움말·기능 metadata만 읽으며 Codex agent를 시작하거나 인증된 네트워크 요청을 만들지 않습니다. 준비되지 않은 항목이 있으면 Codex가 알려준 문제를 해결하고 설정을 다시 실행합니다.
 
@@ -121,8 +121,8 @@ Skill 스크립트는 `bash`로 실행하세요. GitHub에서 받은 압축 파�
 
 Codex가 GitHub에서 Skill을 설치할 수 없거나 다운로드한 번들을 직접 사용하고 싶다면 이 방법을 사용합니다.
 
-1. 이 가이드와 확장 빌드에 일치하는 [Copy AI ID v0.1.15 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.15)를 엽니다.
-2. `copy-ai-id-codex-companion-0.1.15-macos.zip`을 받습니다. 이 단계에서 Chrome Web Store ZIP을 받지 마세요.
+1. 이 가이드와 확장 빌드에 일치하는 [Copy AI ID v0.1.14 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.14)를 엽니다.
+2. `copy-ai-id-codex-companion-0.1.14-macos.zip`을 받습니다. 이 단계에서 Chrome Web Store ZIP을 받지 마세요.
 3. ZIP 압축을 풉니다. `SETUP_PROMPT.md`, 설정 Skill과 런타임, `Setup.command`, `Start.command`, `Status.command`, `Update.command`, `Uninstall.command`가 들어 있습니다.
 4. 다음 중 한 가지 방식으로 설정합니다.
    - `SETUP_PROMPT.md`를 열어 프롬프트를 Codex에 붙여넣고, Codex가 동봉된 `skills/setup-copy-ai-id-codex/SKILL.md`를 읽도록 합니다.

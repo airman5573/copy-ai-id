@@ -12,11 +12,13 @@ Copy AI ID is a `data-ai-id`-first Chrome extension editor for rendered pages. T
 1. Open a rendered page. Pages with semantic `data-ai-id` attributes work best, but fallback selection also works on no-ID or mixed pages.
 2. Press **Shift + Z + Space**, or open the extension popup and click **Turn ON**.
 3. Copy AI ID opens a full-screen editor over the current tab:
-   - **Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom controls, fit/reset controls, click-to-pin quick edit toolbar, and floating visual panel.
+   - **Preview:** iframe preview of the current URL with the `copy-ai-id-preview=1` query marker, breakpoint buttons, zoom `−/+` controls with a directly editable percentage, click-to-pin quick edit toolbar, and floating visual panel. The Note toggle sits beside the zoom controls; there is no separate Fit button.
    - **Floating note panel:** one Lexical-backed notebook draft for selected stable `data-ai-id` targets or generated fallback targets. Targets appear as compact `el-N` chips. Preview-only visual edit instructions stay hidden while editing and are appended only to the copied Markdown.
 4. Highlight DOM nodes from the preview or the keyboard.
 5. Press **Space** to insert/focus a notebook chip such as `el-1`. Copy AI ID uses `data-ai-id` first for the chip target; if the highlighted node has no usable `data-ai-id`, the chip stores fallback metadata without exposing long selector/path/context text in the editor. **Space** first opens the floating note panel near the highlighted/hovered element, focuses it, then inserts the chip. Click a chip to reveal/highlight its linked preview element. Chip numbers are stable and are not renumbered after deletion, so a draft can contain `el-1`, `el-3`, and `el-4`.
-6. Optionally click a preview element to pin the quick edit toolbar to it. The toolbar's first row is composed from the element's detected intents (image / text / container / link-button / form); the second row always offers padding/margin/gap steppers, structure buttons (duplicate, move, delete), a drag grip, and a **More** button that opens the floating visual panel. Numeric edits use `+/-` steppers that apply concrete pixel values to the preview while recording "change by n% relative to the current value" intents for export. Double-click a text element to edit its text inline. All mutations are preview-only and are recorded as AI-readable visual edit instructions.
+   - The notebook draft stays in memory when Copy AI ID is turned off and back on within the same page. Reloading the page or navigating to another page starts a fresh notebook.
+   - After you drag the floating note panel, closing/copying and reopening it uses that last position instead of returning to its initial placement.
+6. Optionally click a preview element to pin the quick edit toolbar to it. The toolbar's first row is composed from the element's detected intents (image / text / container / link-button / form); the second row always offers padding/margin/gap steppers, structure buttons (duplicate, move, delete), a drag grip, and a **More** button that opens the floating visual panel. Numeric edits use `+/-` steppers that apply concrete pixel values to the preview while recording "change by n% relative to the current value" intents for export. All mutations are preview-only and are recorded as AI-readable visual edit instructions.
 7. Press **Shift + Enter** or click **Copy** to copy the notebook as AI-friendly Markdown with `## Requests`, `## Targets`, `## Rules`, and, when applicable, `## Visual edits` sections. Inline chips are rendered as readable `@el-N` mentions, fallback targets include selector/path/context details, and visual edits include human summaries plus machine-readable JSON diffs.
 8. Close the editor with the toolbar close button, **Esc**, or **Shift + Z + Space**.
 
@@ -31,7 +33,7 @@ The notebook lives in a floating panel overlay:
 - Press **Space** on a highlighted/hovered element to open the panel right next to that element and insert a chip.
 - Click the **Note** button in the top toolbar to open/close the panel without selecting an element; it appears at a default position near the preview frame.
 - The top toolbar also has a **Copy** button, so visual-only edit sessions (no notebook text) can be copied without opening the note panel at all.
-- The panel's controls row includes the breakpoint scope buttons, the Tailwind toggle, the copy-notice dialog, reset, the **Shift + Enter** hint, and the copy button.
+- The panel's controls row includes only **Mobile / Tablet / Desktop** scope buttons, reset, and the combined **Copy · Shift + Enter** button. A fresh page starts with all three scopes selected. The first click selects the cumulative range (Mobile / Mobile+Tablet / all three); clicking the same scope again selects only that scope. Closing or copying preserves the last scope selection on the same page.
 
 ## Preview-only visual editing
 
@@ -41,12 +43,12 @@ Visual editing is an interface for creating precise implementation prompts. It d
 - The toolbar and the floating visual panel both live in the editor Shadow DOM; the preview bridge only streams anchor geometry and element intents while an element is pinned.
 - The toolbar's first row adapts to the element's intents — for example images get replace/size/object-fit/radius controls, text gets font-size/weight/color/align, containers get gap/flex/background controls. The second row is shared: padding/margin/gap scope popovers, duplicate/move/delete, a drag grip, and **More**.
 - Numeric properties are edited with `+/-` steppers only (10% per click relative to the value captured at the first step). The preview shows concrete pixels; the export records the percent intent with its base value so the change can be applied in whatever units the source already uses.
-- Double-click a text element in the preview to edit its text inline; **Enter** or blur commits through the regular text-mutation pipeline, **Esc** cancels.
+- Preview double-click does not activate text editing. Text content changes remain available through the visual content controls.
 - **More** opens the floating visual panel: a single scroll of collapsible sections (an image section appears first for image-intent elements) covering everything the toolbar does not — layout, size constraints, extended typography, effects (opacity/shadow/filter/transform presets), border details, and content/attribute/form values. Desktop placement follows the selected element; mobile and tablet breakpoints place the panel beside the preview iframe.
 - Structure controls duplicate, move up/down, delete, and drag elements inside the preview DOM. These are still preview-only operations.
 - Elements without `data-ai-id` can be edited through fallback target metadata. The copied output marks these as less stable and includes selector/path/context details so an AI or developer can re-identify the element in source.
 - Visual edit prompt text is intentionally hidden while editing. The note panel only shows status/counts. On **Copy**, Copy AI ID appends a `## Visual edits` section with human-readable summaries and a fenced JSON diff.
-- A successful copy clears both the visible notebook draft and the accumulated visual edit records. Reset clears those editor records too, but it does not restore preview DOM mutations that were already applied; reload/reopen the preview to return the rendered page to its original state.
+- A successful copy clears the visible notebook draft, `el-N` chips, and accumulated visual edit records, then closes the note panel. Reset clears the same editor records, but neither action restores preview DOM mutations that were already applied; reload/reopen the preview to return the rendered page to its original state.
 
 ## Shortcuts
 
@@ -65,28 +67,9 @@ Keyboard traversal moves through every preview DOM node, not only nodes with `da
 
 Shortcuts are ignored while typing in editable fields or during IME composition, except **Shift + Enter** inside the notebook copies the current notebook.
 
-## Send to Codex (optional local companion)
+## Copying requests
 
-The editor can send the same Markdown the **Copy** button produces to the [OpenAI Codex CLI](https://learn.chatgpt.com/docs/codex/cli) on your Mac without a clipboard round-trip. This optional path needs the local companion service; **Copy** works without it.
-
-For a normal Chrome Web Store installation, follow the **[macOS Codex setup guide](docs/codex-setup.md)**. The recommended flow is to copy the bootstrap prompt from the editor's **Codex setup** modal and let Codex install the public [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex) from the release tag matching the extension. You do not need to clone this repository or keep a Terminal window open. For this build, a standalone companion ZIP is also available from the matching [v0.1.15 GitHub release](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.15).
-
-The editor checks the companion and its prerequisites before sending. While it is checking, under setup/update maintenance, unavailable, incompletely configured, or busy, both Codex send buttons are disabled; use the separate **Codex Setup** control to open the guide and select **Retry** after setup.
-
-Direct send supports **localhost dev-server pages** and **file:// pages** only. Both flows walk up to the nearest `.git`/`package.json`; localhost starts from the process listening on the page's port, while `file://` starts from the file. A marker-based project root can start immediately (a toast shows its path). If no marker exists, the listener cwd or file directory is shown for confirmation before anything runs. Remote sites can still use the editor and **Copy**.
-
-For each direct send, the companion:
-
-- runs `git init` (plus a default `.gitignore`) if the project has no repository,
-- commits any pre-existing uncommitted changes first as `auto-commit: <timestamp>`,
-- runs `codex exec` inside the project (workspace-write sandbox, 5-minute default timeout),
-- commits Codex's changes as `codex: <first line of the request>`.
-
-While Codex works, a live activity log opens under the toolbar Codex button. On success the notebook draft and visual edits are cleared, exactly like a copy. On failure or timeout the prompt is copied to the clipboard instead so you can paste it manually.
-
-Runs request Codex's fast service tier when the installed CLI reports support for the `fast_mode` feature; older compatible CLIs fall back to the standard tier instead of blocking Send. The reasoning selector next to the Codex button controls how hard Codex thinks (medium/high/xhigh; default medium — bump it for complex tasks). The choice is remembered across sessions.
-
-The companion binds only to `127.0.0.1:45130`, checks the local extension protocol, and does nothing until you explicitly send. It does not upload requests to a Copy AI ID service; the installed Codex CLI communicates with OpenAI using your existing Codex authentication and configuration. See the setup guide for prerequisites, LaunchAgent behavior, status/start/update/uninstall, troubleshooting, and the full security model.
+The current editor does not expose Codex setup, reasoning, or send controls. Copy the generated Markdown from the floating note panel, or press **Shift + Enter**.
 
 ## What is `data-ai-id`?
 

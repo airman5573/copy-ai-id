@@ -5,7 +5,6 @@ import {
 import { createSetTopEditorEnabledMessage } from '../../shared/protocol/frame-messages';
 import { handleNavigationShortcut } from './navigation';
 import { clearHighlightedElement, clearQuickActionSelection, requestHighlightedTargetReference } from './highlight';
-import { isInlineTextEditActive } from './inline-text-edit';
 import type { BridgePost } from './types';
 
 const Z_CODE = 'KeyZ';
@@ -13,16 +12,19 @@ const SPACE_CODE = 'Space';
 
 export function installBridgeKeyboard(post: BridgePost): () => void {
   let zKeyPressed = false;
+  let consumeZKeyUp = false;
 
   const handleKeyDown = (event: KeyboardEvent): void => {
     if (event.code === Z_CODE) {
-      zKeyPressed = true;
-    }
-
-    // An active inline text edit owns the keyboard (Enter/Escape commit or
-    // cancel inside inline-text-edit.ts); bridge shortcuts must stay out.
-    if (isInlineTextEditActive()) {
-      return;
+      if (isShiftZPrefix(event)) {
+        // Consume the prefix before the IME can turn the physical Z key into
+        // "ㅋ" in a focused editable element.
+        zKeyPressed = true;
+        consumeZKeyUp = true;
+        consumeKeyboardEvent(event);
+      } else if (!event.repeat) {
+        zKeyPressed = false;
+      }
     }
 
     if (isShiftZSpace(event, zKeyPressed)) {
@@ -74,12 +76,17 @@ export function installBridgeKeyboard(post: BridgePost): () => void {
 
   const handleKeyUp = (event: KeyboardEvent): void => {
     if (event.code === Z_CODE) {
+      if (consumeZKeyUp) {
+        consumeKeyboardEvent(event);
+      }
       zKeyPressed = false;
+      consumeZKeyUp = false;
     }
   };
 
   const resetPressedKeys = (): void => {
     zKeyPressed = false;
+    consumeZKeyUp = false;
   };
 
   window.addEventListener('keydown', handleKeyDown, true);
@@ -119,6 +126,14 @@ function shortcutForArrowKey(key: string): 'arrow-up' | 'arrow-down' | 'arrow-le
     default:
       return null;
   }
+}
+
+function isShiftZPrefix(event: KeyboardEvent): boolean {
+  return event.code === Z_CODE
+    && event.shiftKey
+    && !event.metaKey
+    && !event.ctrlKey
+    && !event.altKey;
 }
 
 function isShiftZSpace(event: KeyboardEvent, zKeyPressed: boolean): boolean {

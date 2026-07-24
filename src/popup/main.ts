@@ -66,6 +66,13 @@ function renderRuntimeState(state: RuntimeStateMessageResponse): void {
   popupView.renderEnabled(state.enabled);
 }
 
+function isMissingActiveTabReceiverError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('Could not establish connection')
+    || message.includes('Receiving end does not exist')
+    || message.includes('The message port closed before a response was received');
+}
+
 async function refreshRuntimeState(): Promise<void> {
   currentScopeContext = await resolveActiveTabScopeContext();
   popupView.renderScope(currentScopeContext);
@@ -75,9 +82,20 @@ async function refreshRuntimeState(): Promise<void> {
     return;
   }
 
-  renderRuntimeState(await sendRuntimeMessageToActiveTab({
-    type: RUNTIME_MESSAGE_TYPES.getState,
-  }));
+  try {
+    renderRuntimeState(await sendRuntimeMessageToActiveTab({
+      type: RUNTIME_MESSAGE_TYPES.getState,
+    }));
+  } catch (error) {
+    if (!isMissingActiveTabReceiverError(error)) {
+      throw error;
+    }
+
+    renderRuntimeState({
+      enabled: false,
+      available: false,
+    });
+  }
 }
 
 async function refreshFileAccessHint(): Promise<void> {

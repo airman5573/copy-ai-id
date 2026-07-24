@@ -10,6 +10,7 @@ import type {
 } from '../shared/protocol/editor-bridge-messages';
 import type { BreakpointId } from '../shared/breakpoints';
 import type { NotebookSuffixSettings } from './notebook/suffix-settings';
+import type { NotebookBreakpointScope } from './notebook/breakpoint-scope';
 import type { ExportedChipTarget } from './notebook/lexical/chip-export';
 
 export type RuntimeStatus = 'idle' | 'mounted' | 'error';
@@ -52,6 +53,7 @@ export interface NotebookStateSlice {
   isNotebookEmpty: boolean;
   nextChipIndex: number;
   suffixSettings: NotebookSuffixSettings;
+  lastBreakpointScopeClick: NotebookBreakpointScope | null;
   copyStatus: CopyStatus;
   focusedTarget: EditorTarget | null;
   insertTargetReference: ((reference: EditorTargetReference) => void) | null;

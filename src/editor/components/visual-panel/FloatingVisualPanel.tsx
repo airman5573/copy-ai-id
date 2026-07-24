@@ -54,7 +54,7 @@ interface FloatingPanelPlacement {
   flipped: boolean;
 }
 
-const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
+const MOBILE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'tablet']);
 
 const CATEGORY_TAB_LABELS: Record<FloatingVisualPanelCategory, string> = {
   content: '콘텐츠',

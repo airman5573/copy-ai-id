@@ -7,8 +7,10 @@ import {
   type CSSProperties,
   type Dispatch,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   type SetStateAction,
 } from 'react';
+import { GripHorizontal } from 'lucide-react';
 
 import {
   bridgeViewportRectToEditorViewportRect,
@@ -20,6 +22,7 @@ import {
   type OverlaySize,
 } from '../bridge/geometry';
 import type { BreakpointId } from '../../shared/breakpoints';
+import { getCurrentMessages } from '../../shared/i18n';
 import { EDITOR_MESSAGE_TYPES } from '../../shared/protocol/editor-bridge-messages';
 import { postToBridge } from '../bridge/bridgeClient';
 import { handleEditorEscapeAction } from '../shortcut-actions';
@@ -32,6 +35,7 @@ import {
 import {
   useFloatingNotePanelStore,
   type FloatingNotePanelAnchor,
+  type FloatingNotePanelPosition,
 } from '../stores/useFloatingNotePanelStore';
 import { NotePanel } from './NotePanel';
 
@@ -50,7 +54,7 @@ const DEFAULT_PANEL_SIZE: OverlaySize = {
 
 type FloatingNotePanelPlacementMode = 'desktop-target' | 'mobile-preview-right';
 
-const MOBILE_NOTE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'mobile', 'tablet']);
+const MOBILE_NOTE_PANEL_BREAKPOINTS = new Set<BreakpointId>(['base', 'tablet']);
 
 interface FloatingNotePanelPlacement {
   left: number;
@@ -63,19 +67,41 @@ interface FloatingNotePanelPlacement {
   transformOrigin: string;
 }
 
+interface FloatingNotePanelDragState {
+  pointerId: number;
+  startClientX: number;
+  startClientY: number;
+  startLeft: number;
+  startTop: number;
+  panelWidth: number;
+  panelHeight: number;
+}
+
 export function FloatingNotePanel() {
+  const messages = getCurrentMessages();
   const isOpen = useFloatingNotePanelStore((state) => state.isOpen);
   const anchor = useFloatingNotePanelStore((state) => state.anchor);
   const openedAt = useFloatingNotePanelStore((state) => state.openedAt);
+  const manualPosition = useFloatingNotePanelStore((state) => state.lastPosition);
+  const setLastPosition = useFloatingNotePanelStore((state) => state.setLastPosition);
   const notePanelWidth = useEditorLayoutStore((state) => state.notePanelWidth);
   const activeBreakpointId = useBreakpointStore((state) => state.activeBreakpointId);
   const zoom = useBreakpointStore((state) => state.zoomById[state.activeBreakpointId]);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef<FloatingNotePanelDragState | null>(null);
   const [panelSize, setPanelSize] = useState<OverlaySize>(DEFAULT_PANEL_SIZE);
   const [layoutRevision, setLayoutRevision] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const placementMode: FloatingNotePanelPlacementMode = MOBILE_NOTE_PANEL_BREAKPOINTS.has(activeBreakpointId)
     ? 'mobile-preview-right'
     : 'desktop-target';
+
+  useEffect(() => {
+    if (!isOpen) {
+      dragStateRef.current = null;
+      setIsDragging(false);
+    }
+  }, [isOpen]);
 
   useLayoutEffect(() => {
     measurePanel(panelRef.current, setPanelSize);
@@ -186,7 +212,61 @@ export function FloatingNotePanel() {
     placementMode,
     zoom,
   ]);
-  const shellStyle = createFloatingNotePanelStyle(placement);
+  const resolvedPlacement = manualPosition
+    ? applyManualPosition(placement, manualPosition)
+    : placement;
+  const shellStyle = createFloatingNotePanelStyle(resolvedPlacement);
+
+  const handleDragPointerDown = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (!isOpen || event.button !== 0) {
+      return;
+    }
+
+    const panelRect = panelRef.current?.getBoundingClientRect();
+    if (!panelRect) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startLeft: panelRect.left,
+      startTop: panelRect.top,
+      panelWidth: panelRect.width,
+      panelHeight: panelRect.height,
+    };
+    setIsDragging(true);
+  };
+
+  const handleDragPointerMove = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextPosition = clampFloatingNotePanelPosition({
+      left: dragState.startLeft + event.clientX - dragState.startClientX,
+      top: dragState.startTop + event.clientY - dragState.startClientY,
+    }, {
+      width: dragState.panelWidth,
+      height: dragState.panelHeight,
+    }, getEditorBounds());
+    setLastPosition(nextPosition);
+  };
+
+  const finishDragging = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    if (dragStateRef.current?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    dragStateRef.current = null;
+    setIsDragging(false);
+  };
 
   const handleShellKeyDownCapture = (event: ReactKeyboardEvent<HTMLDivElement>): void => {
     if (!isOpen || event.key !== 'Escape' || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
@@ -214,6 +294,7 @@ export function FloatingNotePanel() {
         data-ai-id="copy-ai-id-editor-floating-note-panel-shell"
         data-ai-editor-floating-note-panel-placement={placement.mode}
         data-ai-editor-floating-note-panel-side={placement.side}
+        data-ai-editor-floating-note-panel-dragging={isDragging ? 'true' : 'false'}
         style={shellStyle}
         aria-hidden={isOpen ? undefined : true}
         inert={isOpen ? undefined : true}
@@ -222,10 +303,66 @@ export function FloatingNotePanel() {
         <NotePanel
           dataAiId="copy-ai-id-editor-floating-note-panel"
           className="copy-ai-id-editor-floating-note-panel"
+          dragHandle={(
+            <button
+              type="button"
+              className="copy-ai-id-editor-floating-note-panel-drag-handle"
+              data-ai-id="copy-ai-id-editor-floating-note-panel-drag-handle"
+              title={messages.editor.notePanelDragTitle}
+              aria-label={messages.editor.notePanelDragTitle}
+              onPointerDown={handleDragPointerDown}
+              onPointerMove={handleDragPointerMove}
+              onPointerUp={finishDragging}
+              onPointerCancel={finishDragging}
+              onLostPointerCapture={finishDragging}
+            >
+              <GripHorizontal size={15} aria-hidden="true" />
+              <span>{messages.editor.notePanelToggle}</span>
+            </button>
+          )}
         />
       </div>
     </div>
   );
+}
+
+function applyManualPosition(
+  placement: FloatingNotePanelPlacement,
+  position: FloatingNotePanelPosition,
+): FloatingNotePanelPlacement {
+  const clampedPosition = clampFloatingNotePanelPosition(position, {
+    width: placement.width,
+    height: placement.height,
+  }, getEditorBounds());
+
+  return {
+    ...placement,
+    left: clampedPosition.left,
+    top: clampedPosition.top,
+    transformOrigin: 'center',
+  };
+}
+
+function clampFloatingNotePanelPosition(
+  position: FloatingNotePanelPosition,
+  size: OverlaySize,
+  bounds: EditorViewportRect,
+): FloatingNotePanelPosition {
+  const minLeft = bounds.left + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxLeft = Math.max(
+    minLeft,
+    bounds.right - FLOATING_NOTE_PANEL_MARGIN_PX - size.width,
+  );
+  const minTop = bounds.top + FLOATING_NOTE_PANEL_MARGIN_PX;
+  const maxTop = Math.max(
+    minTop,
+    bounds.bottom - FLOATING_NOTE_PANEL_MARGIN_PX - size.height,
+  );
+
+  return {
+    left: clampNumber(position.left, minLeft, maxLeft),
+    top: clampNumber(position.top, minTop, maxTop),
+  };
 }
 
 function computeFloatingNotePanelPlacement({

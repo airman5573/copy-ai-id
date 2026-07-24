@@ -111,7 +111,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 ### `src/content/` — content-script side
 
 **`bootstrap/`** — entry + on/off lifecycle
-- `index.ts` — manifest JS entry. Picks the frame role (preview bridge vs editor shell), dedupes stale script instances (dispatches `copy-ai-id:destroy-content-script-instance`, removes leftover hosts), wires hotkey/runtime/frame listeners, syncs the `?copyaiid=active` URL param (forces enable at boot; rewritten via `history.replaceState` on state change).
+- `index.ts` — manifest JS entry. Picks the frame role (preview bridge vs editor shell), dedupes stale script instances (dispatches `copy-ai-id:destroy-content-script-instance`, removes leftover hosts), wires hotkey/runtime/frame listeners, syncs the `?copyaiid=active` URL param (forces enable at boot; rewritten via `history.replaceState` on state change), and clears the in-memory notebook when the real page identity changes (including SPA URL changes, while ignoring extension-owned query params).
 - `enabled-state.ts` — in-memory enabled flag. **Not persisted**; resets to `DEFAULT_ENABLED = false` on reload.
 - `shift-z-space-toggle.ts` — the Shift+Z+Space hotkey state machine (latched so one press = one toggle; capture phase). In child frames the new state is forwarded to the top frame via frame messages.
 
@@ -130,7 +130,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 - *Quick-action toolbar*: `quick-action-toolbar.ts` — imperative floating toolbar in the preview body (category buttons `content/layout/spacing/size/style/border` + structure buttons duplicate/move-up/move-down/delete + drag grip). Styled with an `all: initial` hard reset instead of a shadow root (`toolbar-styles.ts`); placement math in `toolbar-geometry.ts`.
 - *Mutation handlers* (all preview-only, all follow resolve → apply → post `visual*Updated` result with fresh snapshot → rebuild tree/overlays):
   - `visual-style-handler.ts` — inline `element.style` writes (records `previousValue`, supports `!important`).
-  - `visual-content-handler.ts` — text (`textContent` / form `.value` + native events) and rich text (`innerHTML` via the DOMPurify sanitizer; rejects form/media elements).
+  - `visual-content-handler.ts` — text (`textContent` / form `.value` + native events) and rich text (`innerHTML` via the DOMPurify sanitizer; rejects form/media elements). Preview double-click editing is intentionally not installed; content changes originate from the visual controls.
   - `visual-attribute-handler.ts` — attribute set/remove, gated by the allowlist in `src/shared/visual-attributes.ts`.
   - `visual-form-value-handler.ts` — input/textarea/select/contenteditable values, checked, selectedIndex; blocks `type=file`.
   - `visual-structure.ts` — duplicate/move/delete/restore/drag-move with before/after snapshots for undo; `visual-structure-results.ts`, `structure-clone.ts` (clones scrubbed via `runtime-artifacts.ts`).
@@ -141,8 +141,8 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 ### `src/editor/` — React app (mounted in the top-frame Shadow DOM)
 
 **Entry**
-- `main.tsx` — `mountCopyAiIdEditor(host)`: attaches a closed shadow root, retains the internal `ShadowRoot` reference, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, installs the shadow-selection bridge (Lexical selection fix) and notebook draft session persistence.
-- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / `CodexConfirmDialog` / toast.
+- `main.tsx` — `mountCopyAiIdEditor(host)`: attaches a closed shadow root, retains the internal `ShadowRoot` reference, injects the compiled CSS via `import editorCss from './editor.css?inline'` as a single `<style>` tag, mounts `<App/>`, and installs the shadow-selection bridge (Lexical selection fix). Notebook drafts stay only in the content script's in-memory Zustand store, so editor off/on within one document retains them while reload/navigation clears them.
+- `App.tsx` — boot effect (preview URL, hydrate persisted UI state, fit zoom) + window-level guards (`installEditorKeyboard`, hover/focus guards). Layout: `TopToolbar` / `MainArea` (single-column `PreviewWorkspace`) / `FloatingNotePanel` / `FloatingVisualPanel` / toast. Codex setup/send dialogs are not mounted.
 
 **`stores/`** — all Zustand. One store per concern:
 
@@ -151,24 +151,24 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 | `useRuntimeStore` | mount status, current/preview URL, boot errors |
 | `useBridgeStore` | bridge connection status, iframe status, aiId count |
 | `useHighlightStore` | highlight *identity* (target/nodeId/origin) — deliberately separate from hover *geometry* |
-| `useBreakpointStore` | breakpoint / custom viewport width, preview height, per-breakpoint zoom (persisted to `chrome.storage.local`) |
+| `useBreakpointStore` | fixed breakpoint viewport sizes (390×844 / 768×1024 / 1920×1080), custom viewport width, per-breakpoint zoom (viewport/zoom preferences persisted to `chrome.storage.local`) |
 | `useEditorLayoutStore` | note panel width (persisted; sizes the floating note panel) |
 | `useToastStore` | transient toasts |
 | `useFloatingVisualPanelStore` | floating visual panel open/close only (its target lives in `useVisualSelectionStore.panelTarget`) |
-| `useFloatingNotePanelStore` | floating note panel open/anchor (anchor-less `openPanel()` → default placement near the preview frame) |
+| `useFloatingNotePanelStore` | floating note panel open/anchor plus the last manually dragged position, retained across close/copy and editor off/on within the same document |
 | `useSectionJumpStore` | queued "scroll visual panel to section" requests |
-| `useNotebookStore` | notebook draft text, Lexical `editorStateJson`, chip targets/indexes, suffix settings, copy status |
+| `useNotebookStore` | notebook draft text, Lexical `editorStateJson`, chip targets/indexes, suffix settings, last-clicked viewport scope, copy status |
 | `useVisualSelectionStore` | **single owner of visual-selection data**: hoverTarget, activeToolbarTarget, panelTarget, snapshot lifecycle (status/error/staleReason) |
 | `useVisualEditStore` | visual-edit history: records, pending mutations, undo/redo stacks, export document |
-| `useCodexStore` | Send-to-Codex state machine: `phase` (`idle → resolving → confirming → running`), the pending send payload (markdown, subject, resolved project path/method), the live log console state (`logOpen`/`logEvents`), and the persisted reasoning effort |
-| `useCodexSetupStore` | live companion readiness (`checking/ready/busy/maintenance/unreachable/not-ready`), prerequisite results, refresh state, and the setup-dialog open state |
+| `useCodexStore` | dormant Send-to-Codex state machine retained in source; the current editor exposes no send/reasoning controls |
+| `useCodexSetupStore` | dormant companion-readiness/setup state retained in source; the current editor does not poll or mount its setup dialog |
 
 **`bridge/`**
 - `bridgeClient.ts` — the message hub. `createPreviewUrl` appends `?copy-ai-id-preview=1`; `postToBridge` posts to the iframe; `installBridgeClient` validates inbound `source` + type guard, then `routeBridgeMessage` fans out to per-domain handlers that write into the stores. On `bridgeReady` it resets visual stores and re-pushes zoom state.
 - `geometry.ts` — converts bridge-viewport rects/points ⇄ editor-viewport coordinates (accounting for canvas zoom) and computes floating-panel placement.
 
 **`components/`**
-- Root: `TopToolbar` (note panel open/close toggle + prompt copy button + Codex send button), `CanvasControls` (breakpoints/zoom), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/Codex send/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, `NoteEditor`, `CodexConfirmDialog` (shows the auto-detected project path for non-confident detections), `CodexLogConsole` (live run log under the toolbar Codex button).
+- Root: `TopToolbar` (brand/close + `CanvasControls`), `CanvasControls` (breakpoints, `−/+`, directly editable zoom percentage, and the adjacent note-panel toggle; no explicit Fit button), `MainArea` (single-column preview host), `PreviewWorkspace` (iframe host, resize handles, bridge-ready timeout → blocked status), `NotePanel` (floating-only notebook UI: copy/reset, notice dialog, suffix toggles; the notice dialog is portaled to the editor shell), `FloatingNotePanel`, and `NoteEditor`. Codex setup, reasoning, send, and toolbar copy controls are intentionally absent.
 - `visual-panel/` — `FloatingVisualPanel` (tabs for the six categories), `VisualPanelContent` (readiness gating, renders the matching controls group).
 - `visual/` — reusable inputs: `UnitValueInput`, `ColorInput`, `DropdownSelect`, `PresetSelect`, `EdgeBoxControl`, `VisualControl`/`VisualSection`; `dropdownCoordinator.ts` keeps only one dropdown open inside the shadow DOM.
 - `controls/` — one component per edit category (`ContentControls`, `LayoutControls`, `SpacingControls`, `SizeControls`, `BorderControls`, `ColorControls`, `TypographyControls`, `BackgroundImageControls`, …) bound to `forms/useVisualStyleForm.ts` and the style-edit hooks.
@@ -194,7 +194,7 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 - `codex.ts` — Send-to-Codex contracts: server port/base URL, the `x-copy-ai-id-client` request header (web pages can't attach it without a preflight the server rejects), server response DTOs (`CodexResolvedProject`, `CodexRunResult`, error codes), and the editor ⇄ background runtime messages + shallow guard.
 - `i18n.ts` — en/ko message table + locale resolution (Chrome UI language → navigator → `'en'`).
 - `breakpoints.ts` — breakpoint definitions with Tailwind prefixes (`sm:`…`2xl:`).
-- `activation-scope.ts` — per-URL scope key (used to scope notebook drafts per page).
+- `activation-scope.ts` — per-URL scope key used by the popup to identify the active page context.
 - `editor-targets.ts`, `runtime-messages.ts`, `types.ts` — target identity helpers, popup channel, tiny shared types.
 
 ### `src/popup/`
@@ -219,13 +219,15 @@ The bridge resolves incoming targets in priority order **node-id → ai-id → f
 2. `format.ts → formatNotebookCopyBody` — `## Requests` (markers → `@el-N` mentions) + `## Targets` (per-chip details; ai-id targets are stable references, fallback targets include selector/path/context).
 3. `format.ts → appendNotebookSuffixes` — `## Rules` (viewport scope, Tailwind hints, fallback/target notices).
 4. `visual-edits-export.ts` + `visual-edits-compact.ts` — `## Visual edits`: human-readable summary + fenced compact JSON (`VisualEditJsonDiff` shape).
-5. `clipboard.ts → copyText`, then the draft and visual-edit records are cleared (applied preview DOM mutations are NOT reverted — reloading the preview restores the page).
+5. `clipboard.ts → copyText`; a successful clipboard copy clears the draft, chips, and visual-edit records, then closes the floating note panel after its short success-state delay. Reset or page reload/navigation also clears editor records (applied preview DOM mutations are NOT reverted — reloading the preview restores the page).
 
-Visual-edit prompt text is hidden while editing and appended only on copy. Copy is reachable from the note panel copy button, the top-toolbar copy button (works for visual-only sessions), and Shift+Enter.
+Visual-edit prompt text is hidden while editing and appended only on copy. Copy is reachable from the note panel copy button and Shift+Enter.
 
-## Send to Codex (optional, local-only)
+The note panel has no separate Base scope button. Mobile/Tablet/Desktop start visually selected through `breakpointMode: 'all'`. Scope clicks use the last-clicked scope as a two-stage interaction: the first click selects the cumulative range through that scope (`mobile`, `mobile+tablet`, or all three), and a consecutive click on the same scope selects only that scope. Copy/close retains this scope state on the same page; `resetForPageChange()` restores all scopes and clears the click history when the real page identity changes.
 
-Sends the exact markdown the copy button produces to the OpenAI Codex CLI running on the user's machine, with automatic git commits around the run. The extension itself talks only to the local companion through its background service worker; public installs keep that companion running with a user LaunchAgent, while the Codex CLI communicates with OpenAI under the user's existing Codex authentication and configuration.
+## Dormant Send-to-Codex implementation
+
+The local companion, background proxy, stores, dialogs, and orchestration remain in the source tree, but the current editor mounts no Codex setup/send UI and performs no automatic companion health polling. The implementation below is dormant unless a future change deliberately exposes it again.
 
 ```
 Editor (content script, shadow DOM)
@@ -272,22 +274,22 @@ Before `executeRun` can begin, `POST /runs` awaits `getReadiness()` and rejects 
 
 ### Editor flow (`src/editor/notebook/codex-send.ts`)
 
-`useCodexStore.phase` owns the send state machine (`idle → resolving → confirming → running → idle`), while `useCodexSetupStore` owns companion availability. On mount, focus/visibility restore, every 30 seconds, around runs, and on manual Retry, the editor calls `copy-ai-id:codex-health`. Both Codex buttons (top toolbar + note panel) are truly disabled unless setup status is `ready` and the send phase is idle. Separate setup/help buttons open `CodexSetupDialog`, which displays failed checks, a public Skill bootstrap prompt, locale-aware docs, and Retry; it never auto-opens.
+`useCodexStore.phase` still owns the dormant send state machine (`idle → resolving → confirming → running → idle`), while `useCodexSetupStore` owns dormant companion availability state. `App` and `TopToolbar` do not currently invoke or render this flow.
 
 1. `sendNotebookDraftToCodex()` — no-op with a `busy` toast if already running; builds the markdown via `buildNotebookExportMarkdown()` (empty → `notebook.empty` toast); strips the `copyaiid`/`copy-ai-id-preview` params from `location.href`; asks the worker to resolve the project. Resolve failure → reset + clipboard-fallback toast.
 2. **Confident detection runs immediately** — a `codex.startedIn` toast shows the project path and `runPendingCodexSend()` starts right away. Only non-confident detections go through `beginConfirm(...)` + `CodexConfirmDialog`. Dialog cancel paths: overlay click, cancel button, or Escape (first step of the `handleEditorEscapeAction` cascade, result `'codex-dialog'` — keyboard.ts must not forward that Escape to the bridge).
 3. `confirmCodexSend()` / auto-run → `runPendingCodexSend()` → `startRun` (with the persisted reasoning effort) → poll `runStatus` every 1.5s with an `after` cursor, appending returned events to `useCodexStore.logEvents`. The background bounds each status fetch at 5 seconds, so a hung poll cannot suspend deadline accounting indefinitely. Transient poll failures (worker restart, brief server hiccup/timeout) are tolerated; only `run-not-found` or the 15-minute client deadline aborts. A start-response timeout resets the send state, immediately puts setup readiness back into non-sendable `checking`, and uses the existing clipboard fallback rather than issuing an automatic retry that could duplicate a server-accepted run.
-4. **Live log console** (`CodexLogConsole`, absolutely positioned under the toolbar Codex button): opens automatically at run start (`startLog()` clears prior events), renders the accumulated entries as a scrolling monospace list (auto-scrolls to bottom, kind-colored), and auto-closes 5s after the run finishes — guarded by a module-level `logGeneration` counter in `codex-send.ts` so a stale timer never closes the next run's console. The X button closes it early; runs triggered from the note panel button use the same toolbar-anchored console.
-5. **Reasoning effort selector** — a compact `<select>` (medium/high/xhigh, default medium) next to the toolbar Codex button, persisted to `chrome.storage.local` (`copy-ai-id:codex-reasoning:v1`, hydrated on toolbar mount) and sent with every run. Values outside the supported set (including a previously stored `low`) fall back to medium on hydrate.
+4. `CodexLogConsole` remains implemented but is not mounted.
+5. Reasoning-effort persistence remains implemented, but no selector is rendered or hydrated by the current toolbar.
 4. Outcome:
-   - **Success** (`result.ok`): clear notebook draft + visual edits (identical to a successful copy), info toast with the committed-file count (`codex.successCommitted` / `codex.successNoChanges`).
+   - **Success** (`result.ok`): clear notebook draft + visual edits because the request was applied, then show an info toast with the committed-file count (`codex.successCommitted` / `codex.successNoChanges`).
    - **Failure/timeout**: the draft is **kept**, the plain markdown (no preamble) is copied to the clipboard as a manual fallback, and an error toast explains (`codex.failed` / `codex.timedOut` / `codex.serverUnreachable` / `codex.unsupportedPage` + `codex.fallbackCopied`). Clipboard write can itself fail when the tab lost focus mid-run — the toast then omits the "copied" suffix.
 
 All user-facing strings live in the `codex` group of `src/shared/i18n.ts` (en + ko). `scripts/codex-local-bridge.mjs` is an unrelated older prototype (fixed workspace + token auth); the extension only speaks to `codex-server.mjs`.
 
 ## chrome.storage keys
 
-All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, `codex-reasoning` (Codex reasoning effort selector), and `notebook-draft:v1:<scopeKey>` (draft scoped per page URL via `activation-scope.ts`). The editor **on/off state is not stored** — it is runtime-only and resets on reload.
+All `chrome.storage` keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-viewport`, `editor-panel-layout`, `notebook-target-notice`, and `codex-reasoning` (Codex reasoning effort selector). Notebook drafts are not persisted to Web Storage or `chrome.storage`; they live only in memory for the current document. The editor **on/off state is not stored** — it is runtime-only and resets on reload.
 
 ## Invariants and gotchas
 
@@ -301,13 +303,13 @@ All keys are namespaced `copy-ai-id:*:v1`: `note-font-size`, `preview-height`, `
 - **Fresh structure clones aren't in the layout-tree registry yet** — structure handlers resolve ai-id instance indexes against the live DOM instead (`editor-bridge/editor-target.ts` comment).
 - **Sanitization is centralized** — rich-text HTML goes through `visual-html.ts` (DOMPurify), attribute edits through `visual-attributes.ts`, exported snapshots through the allowlists in `visual-targets.ts`. Don't bypass these when adding new mutation paths.
 - **file:// and opaque origins** get relaxed origin checks in the bridge (parent-frame identity is still verified) to support local files.
-- **Chip ids are stable** — `el-N` numbers are never renumbered after deletion; `nextChipIndex` is persisted with the draft.
+- **Chip ids are stable within the current document draft** — `el-N` numbers are never renumbered after deletion; `nextChipIndex` remains in memory across editor off/on but resets on reload/navigation.
 - **Codex server port is defined in two places** — `CODEX_SERVER_PORT` in `src/shared/codex.ts` and the `COPY_AI_ID_CODEX_SERVER_PORT` default in `skills/setup-copy-ai-id-codex/assets/codex-server.mjs` must stay in sync (45130).
 - **Codex companion protocol is defined in two places** — `CODEX_COMPANION_PROTOCOL_VERSION` in `src/shared/codex.ts` and `PROTOCOL_VERSION` in the canonical companion server must stay in sync (currently 1). A missing or different `/health` version must remain a reachable-but-not-ready result so Send stays disabled.
 - **The editor shadow root stays closed** — the inspected page must not gain DOM access to Codex send/confirm controls. Editor focus and selection code must use the retained internal `ShadowRoot` reference instead of `host.shadowRoot`.
 - **The background worker stays a stateless proxy** — no run state, timers, or keepalive tricks in `src/background/index.ts`. Long codex runs are tracked by the editor polling `codex-run-status`; the worker may be killed and restarted between polls at any time. Don't add background logic for other features.
 - **Codex writes only after resolve is confident or confirmed** — the resolve step only reads (`lsof`/fs). Marker-based localhost/file roots run immediately with a path toast; a non-confident fallback (listener cwd or file directory with no `.git`/`package.json`) must be confirmed in `CodexConfirmDialog` first. Never auto-run a non-confident path.
-- **Codex failure keeps the draft** — the notebook draft + visual edits are cleared only on a successful run (mirroring copy semantics); failures/timeouts fall back to copying the prompt to the clipboard.
+- **Codex failure keeps the draft** — the notebook draft + visual edits are cleared on a successful Codex run or successful ordinary copy; Codex failures/timeouts use a non-destructive clipboard fallback.
 - **`codex:` commits only on success** — a failed or timed-out run leaves the tree uncommitted; the next run's `auto-commit` pre-commit sweeps those partial changes up. Don't "fix" this by committing failed runs.
 
 ## Styling conventions

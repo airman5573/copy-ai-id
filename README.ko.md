@@ -12,11 +12,13 @@ Copy AI ID는 렌더링된 페이지를 위한 `data-ai-id` 우선 Chrome 확장
 1. 렌더링된 페이지를 엽니다. 의미 있는 `data-ai-id`가 있으면 가장 안정적이지만, ID가 없거나 일부만 있는 페이지에서도 fallback 선택이 동작합니다.
 2. **Shift + Z + Space**를 누르거나 확장 프로그램 팝업에서 **켜기**를 클릭합니다.
 3. 현재 탭 위에 전체 화면 에디터가 열립니다.
-   - **미리보기:** 현재 URL에 `copy-ai-id-preview=1` 쿼리 마커를 붙인 iframe 미리보기와 breakpoint 버튼, 확대/축소, 맞춤/초기화 컨트롤, 클릭으로 고정하는 퀵 편집 툴바, floating visual panel을 제공합니다.
+   - **미리보기:** 현재 URL에 `copy-ai-id-preview=1` 쿼리 마커를 붙인 iframe 미리보기와 breakpoint 버튼, 직접 입력할 수 있는 배율 및 `−/+` 컨트롤, 클릭으로 고정하는 퀵 편집 툴바, floating visual panel을 제공합니다. 노트 버튼은 배율 컨트롤 옆에 있으며 별도의 맞춤 버튼은 없습니다.
    - **플로팅 노트 패널:** 선택한 안정적인 `data-ai-id` target 또는 생성된 fallback target에 대한 Lexical 기반 노트 draft를 작성합니다. Target은 compact한 `el-N` chip으로 표시됩니다. Preview-only visual edit 지시는 편집 중에는 숨겨지고 복사한 Markdown에만 포함됩니다.
 4. 미리보기 또는 키보드로 DOM 노드를 선택합니다.
 5. **Space**를 누르면 `el-1` 같은 notebook chip이 추가되고 노트 패널에 포커스됩니다. Copy AI ID는 chip target에 `data-ai-id`를 먼저 사용합니다. 선택한 노드에 사용할 수 있는 `data-ai-id`가 없으면 긴 selector/path/context 텍스트를 에디터에 노출하지 않고 fallback metadata를 chip에 저장합니다. **Space**를 누르는 순간 먼저 선택/hover된 요소 근처에 플로팅 노트 패널을 열고, 패널에 포커스한 뒤 chip을 삽입합니다. Chip을 클릭하면 연결된 미리보기 요소가 다시 선택/강조됩니다. Chip 번호는 삭제 후에도 재번호 매김하지 않으므로 draft에 `el-1`, `el-3`, `el-4`가 함께 있을 수 있습니다.
-6. 필요하면 미리보기 요소를 클릭해서 퀵 편집 툴바를 그 요소에 고정합니다. 툴바 1행은 요소의 intent(image / text / container / link-button / form)에 맞춰 구성되고, 2행은 공통으로 패딩/마진/간격 스테퍼, 구조 버튼(복제·이동·삭제), 드래그 그립, floating visual panel을 여는 **기타** 버튼을 제공합니다. 수치 편집은 `+/-` 스테퍼로만 하며, preview에는 실제 px가 반영되고 export에는 "현재 값 대비 n% 증감" 의도로 기록됩니다. 텍스트 요소는 더블클릭으로 인라인 편집할 수 있습니다. 이 변경은 preview-only mutation이며 AI가 이해하기 좋은 visual edit 지시로 기록됩니다.
+   - 같은 페이지에서 Copy AI ID만 껐다 켜면 notebook draft가 메모리에 유지됩니다. 페이지를 새로고침하거나 다른 페이지로 이동하면 새 notebook으로 시작합니다.
+   - 플로팅 노트 패널을 드래그한 뒤 닫거나 복사하고 다시 열면 최초 위치가 아니라 마지막으로 옮긴 위치에서 열립니다.
+6. 필요하면 미리보기 요소를 클릭해서 퀵 편집 툴바를 그 요소에 고정합니다. 툴바 1행은 요소의 intent(image / text / container / link-button / form)에 맞춰 구성되고, 2행은 공통으로 패딩/마진/간격 스테퍼, 구조 버튼(복제·이동·삭제), 드래그 그립, floating visual panel을 여는 **기타** 버튼을 제공합니다. 수치 편집은 `+/-` 스테퍼로만 하며, preview에는 실제 px가 반영되고 export에는 "현재 값 대비 n% 증감" 의도로 기록됩니다. 모든 변경은 preview-only mutation이며 AI가 이해하기 좋은 visual edit 지시로 기록됩니다.
 7. **Shift + Enter**를 누르거나 **복사** 버튼을 클릭하면 `## Requests`, `## Targets`, `## Rules`, 필요한 경우 `## Visual edits` 섹션으로 정리된 AI 친화적 Markdown이 클립보드에 복사됩니다. Inline chip은 읽기 쉬운 `@el-N` mention으로 표시되고, fallback target은 selector/path/context 정보를 함께 제공하며, visual edit은 사람이 읽는 요약과 machine-readable JSON diff를 함께 포함합니다.
 8. 툴바 닫기 버튼, **Esc**, 또는 **Shift + Z + Space**로 에디터를 끕니다.
 
@@ -31,7 +33,7 @@ Copy AI ID는 렌더링된 페이지를 위한 `data-ai-id` 우선 Chrome 확장
 - 선택/hover된 요소 위에서 **Space**를 누르면 그 요소 바로 옆에 패널이 열리고 chip이 삽입됩니다.
 - 상단 툴바의 **노트** 버튼으로 요소 선택 없이도 패널을 열고 닫을 수 있습니다. 이때는 preview 프레임 근처의 기본 위치에 나타납니다.
 - 상단 툴바에는 **복사** 버튼도 있어서, 노트 텍스트 없이 visual edit만 한 세션도 노트 패널을 열지 않고 바로 복사할 수 있습니다.
-- 패널의 컨트롤 행에는 breakpoint 스코프 버튼, Tailwind 토글, 복사 공지(notice) 다이얼로그, 초기화, **Shift + Enter** 힌트, 복사 버튼이 있습니다.
+- 패널의 컨트롤 행에는 **모바일 / 태블릿 / 데스크톱** 범위 버튼, 초기화, 통합된 **복사 · Shift + Enter** 버튼만 있습니다. 새 페이지에서는 세 범위가 모두 선택된 상태로 시작합니다. 첫 클릭은 누적 범위(모바일 / 모바일+태블릿 / 세 범위 전체)를 선택하고, 같은 범위를 다시 클릭하면 해당 범위만 선택합니다. 같은 페이지에서 닫거나 복사한 뒤에도 마지막 범위 선택을 유지합니다.
 
 ## Preview-only visual editing
 
@@ -41,12 +43,12 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 - 툴바와 floating visual panel은 모두 에디터 Shadow DOM에 있습니다. preview bridge는 고정 중에 anchor 좌표와 요소 intent만 스트리밍합니다.
 - 툴바 1행은 요소 intent에 맞춰 구성됩니다 — 이미지는 교체/크기/object-fit/라운드, 텍스트는 글자 크기/굵기/색/정렬, 컨테이너는 간격/flex/배경 컨트롤을 얻습니다. 2행은 공통: 패딩/마진/간격 스코프 팝오버, 복제/이동/삭제, 드래그 그립, **기타** 버튼.
 - 수치 속성은 `+/-` 스테퍼로만 편집합니다(첫 스텝 시점 값 기준 클릭당 ±10%). preview에는 실제 px가 반영되고, export에는 기준값과 함께 % 의도가 기록되어 source가 쓰는 단위(rem, px, % 등)로 환산해 적용할 수 있습니다.
-- preview의 텍스트 요소를 더블클릭하면 인라인으로 텍스트를 편집합니다. **Enter**/blur는 정규 text mutation 파이프라인으로 커밋하고 **Esc**는 취소합니다.
+- Preview 요소를 더블클릭해도 텍스트 편집은 시작되지 않습니다. 문구 변경은 visual content 컨트롤에서만 할 수 있습니다.
 - **기타** 버튼은 floating visual panel을 엽니다. 접이식 섹션 단일 스크롤(이미지 intent 요소는 이미지 섹션이 최상단)로 툴바가 다루지 않는 나머지 — 레이아웃, 크기 제약, 타이포 확장, 효과(opacity/shadow/filter/transform 프리셋), 테두리 상세, 콘텐츠/속성/폼 값 — 를 다룹니다. Desktop에서는 선택 요소를 따라가고, mobile/tablet breakpoint에서는 preview iframe 옆에 배치됩니다.
 - 구조 컨트롤은 preview DOM 안에서 복제, 위/아래 이동, 삭제, 드래그 이동을 수행합니다. 이것도 모두 preview-only 작업입니다.
 - `data-ai-id`가 없는 요소도 fallback target metadata로 visual editing 할 수 있습니다. 복사 결과에는 이 target이 덜 안정적이라는 안내와 selector/path/context가 포함되어, AI나 개발자가 source에서 다시 식별할 수 있습니다.
 - Visual edit prompt text는 편집 중 화면에 직접 표시하지 않습니다. 노트 패널에는 상태/개수만 보이고, **복사**할 때 `## Visual edits` 섹션에 사람이 읽는 요약과 fenced JSON diff가 붙습니다.
-- 복사가 성공하면 visible notebook draft와 accumulated visual edit record가 함께 비워집니다. Reset도 이 editor record를 비우지만, 이미 preview DOM에 적용한 mutation을 되돌리지는 않습니다. 원래 렌더링 상태로 돌아가려면 preview를 reload/reopen하세요.
+- 복사가 성공하면 visible notebook draft, `el-N` chip, 누적 visual edit record를 비운 뒤 노트 패널을 닫습니다. Reset도 같은 editor record를 비우지만, 두 동작 모두 이미 preview DOM에 적용한 mutation을 되돌리지는 않습니다. 원래 렌더링 상태로 돌아가려면 preview를 reload/reopen하세요.
 
 ## 단축키
 
@@ -65,28 +67,9 @@ Visual editing은 실제 source를 바로 저장하는 기능이 아니라, AI�
 
 편집 가능한 필드에 입력 중이거나 IME 조합 중일 때는 단축키를 가로채지 않습니다. 단, 노트북 안의 **Shift + Enter**는 현재 노트북을 복사합니다.
 
-## Codex로 전송 (선택, 로컬 companion)
+## 요청 복사
 
-에디터는 **복사** 버튼이 만드는 것과 동일한 Markdown을 클립보드를 거치지 않고 Mac의 [OpenAI Codex CLI](https://learn.chatgpt.com/docs/codex/cli)로 바로 보낼 수 있습니다. 이 선택 기능에는 로컬 companion 서비스가 필요하지만 **복사**는 companion 없이도 동작합니다.
-
-일반 Chrome Web Store 설치 사용자는 **[macOS Codex 설정 가이드](docs/codex-setup.ko.md)**를 따라주세요. 권장 흐름은 에디터의 **Codex 설정** 모달에서 bootstrap 프롬프트를 복사하고 Codex가 확장과 일치하는 릴리스 tag에서 공개 [`setup-copy-ai-id-codex` Skill](skills/setup-copy-ai-id-codex)을 설치하게 하는 것입니다. 저장소를 clone하거나 Terminal 창을 계속 열어둘 필요가 없습니다. 이 빌드와 일치하는 [v0.1.15 GitHub 릴리스](https://github.com/airman5573/copy-ai-id/releases/tag/v0.1.15)에서 standalone companion ZIP을 받는 대체 방법도 제공합니다.
-
-에디터는 전송 전에 companion과 필수 도구를 확인합니다. 확인 중이거나, 설치·업데이트 maintenance 중이거나, 연결되지 않았거나, 설정이 미완료되었거나, 다른 작업을 실행 중이면 두 Codex 전송 버튼이 비활성화됩니다. 별도의 **Codex 설정** 버튼에서 가이드를 열고 설정 후 **다시 확인**을 선택하세요.
-
-바로 보내기는 **localhost 개발 서버 페이지**와 **file:// 페이지**만 지원합니다. 두 방식 모두 가장 가까운 `.git`/`package.json`까지 상위 탐색하며, localhost는 페이지 포트의 수신 프로세스에서, `file://`은 파일 위치에서 탐색을 시작합니다. 프로젝트 마커가 있는 루트는 즉시 실행할 수 있고(토스트로 경로 표시), 마커가 없으면 수신 프로세스의 작업 폴더 또는 파일 폴더를 표시해 확인받은 뒤 실행합니다. 원격 사이트에서도 에디터와 **복사**는 계속 사용할 수 있습니다.
-
-각 전송에서 companion은:
-
-- 프로젝트에 저장소가 없으면 `git init`(기본 `.gitignore` 포함)을 먼저 수행하고,
-- 기존 미커밋 변경이 있으면 `auto-commit: <타임스탬프>`로 먼저 커밋한 뒤,
-- 프로젝트 안에서 `codex exec`를 실행하고(workspace-write 샌드박스, 기본 타임아웃 5분),
-- Codex의 변경을 `codex: <요청 첫 줄>`로 커밋합니다.
-
-Codex가 작업하는 동안 툴바 Codex 버튼 아래에 실시간 작업 로그가 열립니다. 성공하면 복사와 동일하게 노트 드래프트와 visual edit이 초기화됩니다. 실패하거나 시간 초과되면 프롬프트를 클립보드에 대신 복사해 수동으로 붙여넣을 수 있게 합니다.
-
-설치된 CLI가 `fast_mode` 기능을 지원한다고 확인될 때는 Codex의 fast service tier를 요청하고, 호환되는 구버전 CLI에서는 전송을 막지 않고 standard tier로 실행합니다. Codex 버튼 옆의 reasoning 선택기로 Codex가 얼마나 깊게 생각할지 조절할 수 있습니다(medium/high/xhigh; 기본 medium — 복잡한 작업은 올려서). 선택은 세션 간에 유지됩니다.
-
-Companion은 `127.0.0.1:45130`에만 바인딩되고 로컬 확장 프로토콜을 확인하며, 사용자가 명시적으로 전송하기 전에는 아무 작업도 하지 않습니다. 요청을 Copy AI ID 서비스에 업로드하지 않으며, 설치된 Codex CLI가 기존 Codex 인증과 설정을 사용하여 OpenAI와 통신합니다. 필수 준비, LaunchAgent 동작, 상태 확인·시작·업데이트·제거, 문제 해결, 전체 보안 모델은 설정 가이드를 확인하세요.
+현재 에디터에는 Codex 설정, 추론 강도 선택, 전송 버튼을 노출하지 않습니다. 플로팅 노트 패널의 **복사** 버튼이나 **Shift + Enter**를 사용해 생성된 Markdown을 복사하세요.
 
 ## `data-ai-id`란 무엇인가요?
 

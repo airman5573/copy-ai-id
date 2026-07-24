@@ -22,6 +22,7 @@ export interface CopyAiIdMessages {
     notePanelToggle: string;
     notePanelOpenTitle: string;
     notePanelCloseTitle: string;
+    notePanelDragTitle: string;
     preview: string;
     close: string;
     duplicateWarning: string;
@@ -36,10 +37,9 @@ export interface CopyAiIdMessages {
     staleVisualTarget: string;
     ambiguousVisualTarget: string;
     deletedVisualTarget: string;
-    zoomFit: string;
     zoomIn: string;
     zoomOut: string;
-    zoomReset: string;
+    zoomInput: string;
     customViewport: string;
     resizePreviewWidth: string;
   };
@@ -68,7 +68,6 @@ export interface CopyAiIdMessages {
     unitConversionSuffix: string;
     breakpointScope: {
       label: string;
-      all: string;
       desktop: string;
       tablet: string;
       mobile: string;
@@ -185,14 +184,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
   en: {
     htmlLang: 'en',
     breakpoints: {
-      base: 'Base',
-      mobile: 'Mobile',
+      base: 'Mobile',
       tablet: 'Tablet',
       desktop: 'Desktop',
-      desktop1280: '1280',
-      desktop1440: '1440',
-      desktop1536: '1536',
-      desktop1920: '1920',
     },
     popup: {
       shortcutHintHtml:
@@ -209,6 +203,7 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
       notePanelToggle: 'Note',
       notePanelOpenTitle: 'Open the floating note panel.',
       notePanelCloseTitle: 'Close the floating note panel.',
+      notePanelDragTitle: 'Drag to move the note panel.',
       preview: 'Preview',
       close: 'Close editor',
       duplicateWarning: 'Duplicate data-ai-id',
@@ -227,10 +222,9 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         'The selected visual target now matches multiple elements. Hover the exact element again and reopen visual editing.',
       deletedVisualTarget:
         'The selected element was deleted. Hover another element to continue visual editing.',
-      zoomFit: 'Fit',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
-      zoomReset: 'Reset zoom',
+      zoomInput: 'Zoom percentage',
       customViewport: 'Custom',
       resizePreviewWidth: 'Resize preview width',
     },
@@ -267,15 +261,14 @@ export const COPY_AI_ID_MESSAGES: Record<CopyAiIdLocale, CopyAiIdMessages> = {
         'Numeric changes are expressed as % intents relative to current values — apply them using the units already used in the source code (rem, px, %, …).',
       breakpointScope: {
         label: 'Edit scope',
-        all: 'Base',
         desktop: 'Desktop',
         tablet: 'Tablet',
         mobile: 'Mobile',
       },
       breakpointScopeSuffix: {
-        desktop: 'Desktop only',
-        tablet: 'Tablet and up only',
-        mobile: 'Mobile and up only',
+        desktop: 'All viewport sizes',
+        tablet: 'Tablet and below only',
+        mobile: 'Mobile only',
         selectedOnlySuffix: ' only',
       },
     },
@@ -395,14 +388,9 @@ Readiness endpoint: {healthUrl}`,
   ko: {
     htmlLang: 'ko',
     breakpoints: {
-      base: '기본',
-      mobile: '모바일',
+      base: '모바일',
       tablet: '태블릿',
       desktop: '데스크톱',
-      desktop1280: '1280',
-      desktop1440: '1440',
-      desktop1536: '1536',
-      desktop1920: '1920',
     },
     popup: {
       shortcutHintHtml:
@@ -419,6 +407,7 @@ Readiness endpoint: {healthUrl}`,
       notePanelToggle: '노트',
       notePanelOpenTitle: '플로팅 노트 패널을 엽니다.',
       notePanelCloseTitle: '플로팅 노트 패널을 닫습니다.',
+      notePanelDragTitle: '드래그하여 노트 패널을 이동합니다.',
       preview: '미리보기',
       close: '에디터 닫기',
       duplicateWarning: '중복 data-ai-id',
@@ -437,10 +426,9 @@ Readiness endpoint: {healthUrl}`,
         '선택한 visual target이 여러 요소와 겹칩니다. 정확한 요소를 다시 hover한 뒤 visual editing을 다시 여세요.',
       deletedVisualTarget:
         '선택한 요소가 삭제되었습니다. 다른 요소를 hover해서 visual editing을 계속하세요.',
-      zoomFit: '맞춤',
       zoomIn: '확대',
       zoomOut: '축소',
-      zoomReset: '확대 초기화',
+      zoomInput: '배율 입력',
       customViewport: '사용자 지정',
       resizePreviewWidth: '미리보기 너비 조절',
     },
@@ -477,15 +465,14 @@ Readiness endpoint: {healthUrl}`,
         '수치 변경은 현재 값 대비 % 의도로 표현되어 있습니다 — 소스 코드에서 이미 사용 중인 단위(rem, px, % 등)로 환산해 적용하세요.',
       breakpointScope: {
         label: '수정 범위',
-        all: '기본',
         desktop: '데스크톱',
         tablet: '태블릿',
         mobile: '모바일',
       },
       breakpointScopeSuffix: {
-        desktop: '데스크톱에서만',
-        tablet: '태블릿 이상에서만',
-        mobile: '모바일 이상에서만',
+        desktop: '모든 화면 크기에서',
+        tablet: '태블릿 이하에서만',
+        mobile: '모바일에서만',
         selectedOnlySuffix: '에서만',
       },
     },

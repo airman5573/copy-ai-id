@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA22ev8MmCwlWx564ISSie+6UkJ6YYtbrfn1pz+jPbJzrgU4y6XXrDsAMBH0cNWr952M6NMBy8CKCj328XKIOf/OIxAiQ5KHvf216mbJ+iy7MQAcdzBZgnxtzOSuTvYdj4y9HjRUTjYdYGnZAUWs3MkuaghyLho58iAktMZdcX8DZMQiivmekFXoZtn6RywAh+oqRbsqGr3o1HQZNjORggMbvSJCobNFvjJSQ8x2RG45cwcpfGaOUaXrmZJzU4drbKSdyV/zBS+ZncZB7h410SgdYInq0w8pmGb5xZEYzBUViNzZx3BmlOQoo619ehMeWWJ5aVWG3aFy//9faW+OClnwIDAQAB",
   "default_locale": "en",
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "0.1.15",
+  "version": "0.1.14",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -33,7 +34,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/index.ts-loader-BIGzWM_3.js"
+        "assets/index.ts-loader-CIylbghr.js"
       ],
       "matches": [
         "<all_urls>"
@@ -49,9 +50,9 @@
         "<all_urls>"
       ],
       "resources": [
-        "assets/notebook-notice-BIdEC6_H.js",
-        "assets/codex-D_rGEVn0.js",
-        "assets/index.ts-81WzMepD.js"
+        "assets/notebook-notice-Ctd38HGx.js",
+        "assets/codex-DO4psH3i.js",
+        "assets/index.ts-Me6HEFwa.js"
       ],
       "use_dynamic_url": false
     }

@@ -20,9 +20,15 @@ export interface FloatingNotePanelAnchorInput extends EditorTargetReference {
   viewport?: BridgeViewportSize | null;
 }
 
+export interface FloatingNotePanelPosition {
+  left: number;
+  top: number;
+}
+
 interface FloatingNotePanelStateSnapshot {
   isOpen: boolean;
   anchor: FloatingNotePanelAnchor | null;
+  lastPosition: FloatingNotePanelPosition | null;
   openedAt: number | null;
   updatedAt: number | null;
 }
@@ -33,6 +39,7 @@ interface FloatingNotePanelStore extends FloatingNotePanelStateSnapshot {
   updateAnchorRects(rects: Pick<FloatingNotePanelAnchor, 'elementRect' | 'editorRect'> & {
     viewport?: BridgeViewportSize | null;
   }): void;
+  setLastPosition(position: FloatingNotePanelPosition): void;
   closePanel(): void;
   resetFloatingNotePanelRuntime(): void;
 }
@@ -40,6 +47,7 @@ interface FloatingNotePanelStore extends FloatingNotePanelStateSnapshot {
 const initialFloatingNotePanelState: FloatingNotePanelStateSnapshot = {
   isOpen: false,
   anchor: null,
+  lastPosition: null,
   openedAt: null,
   updatedAt: null,
 };
@@ -91,6 +99,10 @@ export const useFloatingNotePanelStore = create<FloatingNotePanelStore>((set) =>
       updatedAt: now,
     };
   }),
+  setLastPosition: (lastPosition) => set({
+    lastPosition,
+    updatedAt: Date.now(),
+  }),
   closePanel: () => set({
     isOpen: false,
     // Keep the last anchor while the closed shell fades out. Clearing it here
@@ -99,7 +111,10 @@ export const useFloatingNotePanelStore = create<FloatingNotePanelStore>((set) =>
     openedAt: null,
     updatedAt: Date.now(),
   }),
-  resetFloatingNotePanelRuntime: () => set({
+  resetFloatingNotePanelRuntime: () => set((state) => ({
     ...initialFloatingNotePanelState,
-  }),
+    // The module stays alive when the editor is toggled off/on in the same
+    // document, so keep the user's last dragged position for the next open.
+    lastPosition: state.lastPosition,
+  })),
 }));

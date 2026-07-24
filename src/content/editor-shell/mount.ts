@@ -15,6 +15,64 @@ export function createEditorShellController(
 ): EditorShellController {
   let host: HTMLElement | null = null;
   let mountedEditor: MountedCopyAiIdEditor | null = null;
+  let pageScrollSnapshot: {
+    body: HTMLElement | null;
+    bodyOverflow: string;
+    bodyOverflowPriority: string;
+    rootOverflow: string;
+    rootOverflowPriority: string;
+  } | null = null;
+
+  function lockPageScroll(): void {
+    if (pageScrollSnapshot) {
+      return;
+    }
+
+    const rootStyle = document.documentElement.style;
+    const body = document.body;
+    const bodyStyle = body?.style;
+
+    pageScrollSnapshot = {
+      body,
+      bodyOverflow: bodyStyle?.getPropertyValue('overflow') ?? '',
+      bodyOverflowPriority: bodyStyle?.getPropertyPriority('overflow') ?? '',
+      rootOverflow: rootStyle.getPropertyValue('overflow'),
+      rootOverflowPriority: rootStyle.getPropertyPriority('overflow'),
+    };
+
+    rootStyle.setProperty('overflow', 'hidden', 'important');
+    bodyStyle?.setProperty('overflow', 'hidden', 'important');
+  }
+
+  function restorePageScroll(): void {
+    if (!pageScrollSnapshot) {
+      return;
+    }
+
+    const {
+      body,
+      bodyOverflow,
+      bodyOverflowPriority,
+      rootOverflow,
+      rootOverflowPriority,
+    } = pageScrollSnapshot;
+
+    if (rootOverflow) {
+      document.documentElement.style.setProperty('overflow', rootOverflow, rootOverflowPriority);
+    } else {
+      document.documentElement.style.removeProperty('overflow');
+    }
+
+    if (body) {
+      if (bodyOverflow) {
+        body.style.setProperty('overflow', bodyOverflow, bodyOverflowPriority);
+      } else {
+        body.style.removeProperty('overflow');
+      }
+    }
+
+    pageScrollSnapshot = null;
+  }
 
   function ensureHost(): HTMLElement {
     const existingHost = document.querySelector<HTMLElement>(`[${EDITOR_HOST_ATTR}]`);
@@ -43,10 +101,19 @@ export function createEditorShellController(
       return;
     }
 
-    host = ensureHost();
-    mountedEditor = mountCopyAiIdEditor(host, {
-      onRequestClose: options.onRequestClose,
-    });
+    lockPageScroll();
+
+    try {
+      host = ensureHost();
+      mountedEditor = mountCopyAiIdEditor(host, {
+        onRequestClose: options.onRequestClose,
+      });
+    } catch (error) {
+      host?.remove();
+      host = null;
+      restorePageScroll();
+      throw error;
+    }
   }
 
   function unmount(): void {
@@ -54,6 +121,7 @@ export function createEditorShellController(
     mountedEditor = null;
     host?.remove();
     host = null;
+    restorePageScroll();
   }
 
   return {

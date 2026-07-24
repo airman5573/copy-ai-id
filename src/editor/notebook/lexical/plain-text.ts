@@ -9,7 +9,7 @@ import {
  * Replace the notebook editor content with plain-text paragraphs.
  *
  * Used to sync the Lexical editor when the store draft changes externally
- * (e.g., clearing after a successful copy). Chip insertions are owned by
+ * (e.g., an explicit reset or page-identity change). Chip insertions are owned by
  * ChipNode; this only renders plain text.
  */
 export function $setNotebookPlainText(value: string): void {

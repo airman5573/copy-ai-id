@@ -20,9 +20,18 @@ export function createShiftZSpaceToggleController(
     togglePressLatched: false,
     toggleWriteInFlight: false,
     consumeSpaceKeyUp: false,
+    consumeZKeyUp: false,
     zKeyPressed: false,
     listenersAttached: false,
   };
+
+  function isShiftZPrefix(event: KeyboardEvent): boolean {
+    return event.code === Z_CODE
+      && event.shiftKey
+      && !event.metaKey
+      && !event.ctrlKey
+      && !event.altKey;
+  }
 
   function isShiftZSpaceKeydown(event: KeyboardEvent): boolean {
     return event.code === SPACE_CODE
@@ -52,6 +61,7 @@ export function createShiftZSpaceToggleController(
   function resetPressedKeys(): void {
     runtimeState.zKeyPressed = false;
     runtimeState.consumeSpaceKeyUp = false;
+    runtimeState.consumeZKeyUp = false;
     releaseToggleLatch();
   }
 
@@ -96,7 +106,16 @@ export function createShiftZSpaceToggleController(
 
   function handleToggleHotkeyKeyDown(event: KeyboardEvent): void {
     if (event.code === Z_CODE) {
-      runtimeState.zKeyPressed = true;
+      if (isShiftZPrefix(event)) {
+        // Reserve the prefix immediately. Waiting until Space is pressed is
+        // too late: with a Korean IME the physical Z key inserts "ㅋ" into
+        // the currently focused editor before the full chord is recognized.
+        runtimeState.zKeyPressed = true;
+        runtimeState.consumeZKeyUp = true;
+        consumeKeyboardEvent(event);
+      } else if (!event.repeat) {
+        runtimeState.zKeyPressed = false;
+      }
     }
 
     if (shouldIgnoreToggleHotkey(event)) {
@@ -117,7 +136,11 @@ export function createShiftZSpaceToggleController(
       return;
     }
 
-    if (runtimeState.togglePressLatched || runtimeState.consumeSpaceKeyUp) {
+    if (
+      runtimeState.togglePressLatched
+      || runtimeState.consumeSpaceKeyUp
+      || (event.code === Z_CODE && runtimeState.consumeZKeyUp)
+    ) {
       consumeKeyboardEvent(event);
     }
 
@@ -127,6 +150,7 @@ export function createShiftZSpaceToggleController(
 
     if (event.code === Z_CODE) {
       runtimeState.zKeyPressed = false;
+      runtimeState.consumeZKeyUp = false;
     }
 
     releaseToggleLatch();

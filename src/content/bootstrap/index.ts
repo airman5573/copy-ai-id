@@ -26,6 +26,7 @@ import {
   createEditorShellController,
   type EditorShellController,
 } from '../editor-shell/mount';
+import { useNotebookStore } from '../../editor/stores/useNotebookStore';
 import { createShiftZSpaceToggleController } from './shift-z-space-toggle';
 
 declare global {
@@ -39,6 +40,8 @@ declare global {
 const DESTROY_EVENT_NAME = 'copy-ai-id:destroy-content-script-instance';
 const ACTIVE_QUERY_PARAM_NAME = 'copyaiid';
 const ACTIVE_QUERY_PARAM_VALUE = 'active';
+const PREVIEW_QUERY_PARAM_NAME = 'copy-ai-id-preview';
+const PAGE_IDENTITY_POLL_INTERVAL_MS = 500;
 
 function isTopFrame(): boolean {
   return window.parent === window;
@@ -140,6 +143,7 @@ const editorShellController: EditorShellController | null = !previewBridge && is
 let unsubscribeEnabledStateChange = () => {};
 let runtimeMessageCleanup = () => {};
 let childFrameMessageCleanup = () => {};
+let pageIdentityCleanup = () => {};
 let destroyed = false;
 
 const destroyCurrentContentScriptInstance = (): void => {
@@ -153,6 +157,7 @@ const destroyCurrentContentScriptInstance = (): void => {
   safelyRunCleanup(unsubscribeEnabledStateChange);
   safelyRunCleanup(runtimeMessageCleanup);
   safelyRunCleanup(childFrameMessageCleanup);
+  safelyRunCleanup(pageIdentityCleanup);
   safelyRunCleanup(window.__copyAiIdHotkeyCleanup__);
   safelyRunCleanup(window.__copyAiIdEditorShellCleanup__);
   safelyRunCleanup(window.__copyAiIdPreviewBridgeCleanup__);
@@ -251,6 +256,52 @@ function attachChildFrameMessageListener(): () => void {
   };
 }
 
+function createCurrentPageIdentity(): string {
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(ACTIVE_QUERY_PARAM_NAME);
+    url.searchParams.delete(PREVIEW_QUERY_PARAM_NAME);
+    if (!url.hash.startsWith('#/') && !url.hash.startsWith('#!/')) {
+      // Plain anchors stay within one page; hash-router paths represent a
+      // different SPA page and therefore remain part of the identity.
+      url.hash = '';
+    }
+    return url.href;
+  } catch {
+    return window.location.href;
+  }
+}
+
+function attachPageIdentityListener(): () => void {
+  if (!isTopFrame()) {
+    return () => {};
+  }
+
+  let currentPageIdentity = createCurrentPageIdentity();
+  const clearNotebookAfterPageChange = (): void => {
+    const nextPageIdentity = createCurrentPageIdentity();
+    if (nextPageIdentity === currentPageIdentity) {
+      return;
+    }
+
+    currentPageIdentity = nextPageIdentity;
+    useNotebookStore.getState().resetForPageChange();
+  };
+
+  const intervalId = window.setInterval(
+    clearNotebookAfterPageChange,
+    PAGE_IDENTITY_POLL_INTERVAL_MS,
+  );
+  window.addEventListener('popstate', clearNotebookAfterPageChange);
+  window.addEventListener('hashchange', clearNotebookAfterPageChange);
+
+  return () => {
+    window.clearInterval(intervalId);
+    window.removeEventListener('popstate', clearNotebookAfterPageChange);
+    window.removeEventListener('hashchange', clearNotebookAfterPageChange);
+  };
+}
+
 function attachHotkeyListeners(): void {
   if (previewBridge) {
     return;
@@ -273,6 +324,7 @@ async function bootstrap(): Promise<void> {
   attachHotkeyListeners();
   runtimeMessageCleanup = attachRuntimeMessageListener();
   childFrameMessageCleanup = attachChildFrameMessageListener();
+  pageIdentityCleanup = attachPageIdentityListener();
   window.__copyAiIdEditorShellCleanup__ = () => {
     editorShellController?.destroy();
   };

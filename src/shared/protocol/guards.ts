@@ -49,7 +49,6 @@ const BRIDGE_TO_EDITOR_MESSAGE_TYPES: ReadonlySet<string> = new Set<string>([
   EDITOR_MESSAGE_TYPES.visualElementRestored,
   EDITOR_MESSAGE_TYPES.visualDragMoveCompleted,
   EDITOR_MESSAGE_TYPES.visualMutationError,
-  EDITOR_MESSAGE_TYPES.inlineTextEditCommitted,
   EDITOR_MESSAGE_TYPES.chipBadgeClicked,
 ]);
 

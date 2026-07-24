@@ -6,7 +6,6 @@ import {
   EDITOR_MESSAGE_TYPES,
   type EditorKeyboardShortcut,
   type EditorToBridgeMessage,
-  type InlineTextEditCommittedMessage,
   type KeyboardShortcutMessage,
   type QuickActionAnchorChangedMessage,
   type RequestVisualTargetSnapshotMessage,
@@ -53,7 +52,6 @@ import {
   showStaleVisualTargetToast,
 } from '../toast';
 import { createVisualEditRecordPatchForMutationResult } from '../visual/mutationResultPatch';
-import { dispatchVisualTextMutation } from '../visual/visualMutationClient';
 import {
   handleVisualUndoMutationResult,
   isVisualUndoMutationResult,
@@ -264,9 +262,6 @@ function routeBridgeMessage(message: BridgeToEditorMessage): void {
     case EDITOR_MESSAGE_TYPES.visualMutationError:
       handleVisualMutationErrorMessage(message);
       return;
-    case EDITOR_MESSAGE_TYPES.inlineTextEditCommitted:
-      handleInlineTextEditCommitted(message);
-      return;
     case EDITOR_MESSAGE_TYPES.keyboardShortcut:
       handleKeyboardShortcut(message);
       return;
@@ -420,28 +415,6 @@ function handleVisualMutationErrorMessage(message: VisualMutationErrorMessage): 
   }
   if (isVisualTargetResolutionError(message.error)) {
     showStaleVisualTargetToast(message.error);
-  }
-}
-
-// The bridge reverted the element to previousValue before posting; re-apply
-// through the regular text mutation path so the record/undo pipeline stays
-// the single source of truth.
-function handleInlineTextEditCommitted(message: InlineTextEditCommittedMessage): void {
-  try {
-    dispatchVisualTextMutation({
-      reference: {
-        target: message.target,
-        nodeId: message.nodeId,
-      },
-      text: {
-        value: message.value,
-        previousValue: message.previousValue,
-      },
-      source: 'inline-text-edit',
-      category: 'content',
-    });
-  } catch (error) {
-    console.warn('[Copy AI ID] Failed to record inline text edit.', error);
   }
 }
 
