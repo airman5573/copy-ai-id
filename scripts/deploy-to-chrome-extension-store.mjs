@@ -9,8 +9,6 @@ const packageJsonPath = resolve(repoRoot, 'package.json');
 const packageLockPath = resolve(repoRoot, 'package-lock.json');
 const manifestSourcePath = resolve(repoRoot, 'src/manifest.ts');
 const releasePinnedDocumentPaths = [
-  resolve(repoRoot, 'README.md'),
-  resolve(repoRoot, 'README.ko.md'),
   resolve(repoRoot, 'docs/codex-setup.md'),
   resolve(repoRoot, 'docs/codex-setup.ko.md'),
   resolve(repoRoot, 'skills/setup-copy-ai-id-codex/SKILL.md'),

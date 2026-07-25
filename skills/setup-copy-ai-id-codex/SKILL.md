@@ -49,7 +49,7 @@ refresh a GitHub-installed copy, do not delete it first:
 2. Install `airman5573/copy-ai-id`, path
    `skills/setup-copy-ai-id-codex`, with `$skill-installer`, explicitly passing
    the release tag that matches the extension (for this release, `--ref
-   v0.1.14`). Never default to the moving `main` branch or `latest` release.
+   v0.1.16`). Never default to the moving `main` branch or `latest` release.
 3. Run the newly installed `update.sh`, then `status.sh`, through `bash`.
 4. Delete the backup only after status succeeds. If installation or status
    fails, remove the incomplete new directory and restore the backup.
